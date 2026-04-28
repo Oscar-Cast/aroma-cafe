@@ -87,7 +87,7 @@ export const getPedidos = async (req: Request, res: Response) => {
                         )
                     ) FILTER (WHERE dp.id_detalle IS NOT NULL),
                     '[]'
-                ) AS detalle
+                ) AS detalles
             FROM pedidos p
             JOIN usuarios u ON p.id_usuario = u.id_usuario
             LEFT JOIN detalle_pedidos dp ON dp.id_pedido = p.id_pedido

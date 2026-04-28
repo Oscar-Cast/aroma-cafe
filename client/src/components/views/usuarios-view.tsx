@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Switch } from '@/components/ui/switch'
-import { Users, Plus, Edit2, ShieldCheck, DollarSign, GlassWater, Utensils } from 'lucide-react'
+import { Users, Plus, Edit2, Trash2, ShieldCheck, DollarSign, GlassWater, Utensils } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
 interface Usuario {

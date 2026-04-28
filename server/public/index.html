@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aroma a Café — Sistema de Gestión</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- ===================== LOGIN SCREEN ===================== -->
+    <div id="screen-login" class="screen active">
+        <div class="login-bg">
+            <div class="login-grain"></div>
+            <div class="login-orb login-orb--1"></div>
+            <div class="login-orb login-orb--2"></div>
+        </div>
+        <div class="login-card">
+            <!-- LOGO PLACEHOLDER -->
+            <div class="logo-placeholder">
+                <div class="logo-placeholder__inner">
+                    <span class="logo-placeholder__icon">☕</span>
+                    <!-- Reemplaza este bloque con tu logo: <img src="img/logo.png" alt="Aroma a Café"> -->
+                    <p class="logo-placeholder__label">[ Logo aquí ]</p>
+                </div>
+            </div>
+            <h1 class="login-title">Aroma a Café</h1>
+            <p class="login-subtitle">Sistema de Gestión</p>
+            <div class="login-form">
+                <div class="field-group">
+                    <label class="field-label" for="input-usuario">Usuario</label>
+                    <input class="field-input" type="text" id="input-usuario" placeholder="nombre_usuario" autocomplete="username">
+                </div>
+                <div class="field-group">
+                    <label class="field-label" for="input-contrasena">Contraseña</label>
+                    <input class="field-input" type="password" id="input-contrasena" placeholder="••••••••" autocomplete="current-password">
+                </div>
+                <div id="login-error" class="login-error hidden"></div>
+                <button class="btn btn--primary btn--full" id="btn-login">
+                    <span class="btn-text">Ingresar</span>
+                    <span class="btn-spinner hidden"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== MAIN APP ===================== -->
+    <div id="screen-app" class="screen hidden">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <!-- LOGO PLACEHOLDER SIDEBAR -->
+                <div class="sidebar-logo">
+                    <span class="sidebar-logo__icon">☕</span>
+                    <!-- Reemplaza con: <img src="img/logo.png" alt="Aroma a Café" class="sidebar-logo__img"> -->
+                    <div class="sidebar-logo__text">
+                        <span class="sidebar-logo__name">Aroma a Café</span>
+                        <span class="sidebar-logo__role" id="sidebar-rol"></span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav" id="sidebar-nav">
+                <!-- Se genera dinámicamente según el rol -->
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <div class="user-avatar" id="sidebar-avatar"></div>
+                    <div class="user-details">
+                        <span class="user-name" id="sidebar-nombre"></span>
+                        <span class="user-rol" id="sidebar-rol-badge"></span>
+                    </div>
+                </div>
+                <button class="btn-logout" id="btn-logout" title="Cerrar sesión">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- MOBILE TOP BAR -->
+        <header class="topbar">
+            <button class="topbar-menu" id="btn-menu-toggle">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <span class="topbar-title" id="topbar-title">Panel</span>
+            <div class="topbar-user">
+                <div class="user-avatar user-avatar--sm" id="topbar-avatar"></div>
+            </div>
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="main-content" id="main-content">
+
+            <!-- ===== PEDIDOS (Cajero, Mesero) ===== -->
+            <section class="panel hidden" id="panel-pedidos">
+                <div class="panel-header">
+                    <h2 class="panel-title">Pedidos</h2>
+                    <button class="btn btn--primary btn--sm" id="btn-nuevo-pedido">+ Nuevo Pedido</button>
+                </div>
+
+                <!-- Filtro de estados -->
+                <div class="filter-bar">
+                    <button class="filter-btn active" data-estado="todos">Todos</button>
+                    <button class="filter-btn" data-estado="pendiente">Pendientes</button>
+                    <button class="filter-btn" data-estado="en preparación">En Preparación</button>
+                    <button class="filter-btn" data-estado="listo">Listos</button>
+                    <button class="filter-btn" data-estado="entregado">Entregados</button>
+                </div>
+
+                <!-- Vista de Mesas (Mesero) -->
+                <div id="vista-mesas" class="mesas-grid hidden">
+                    <!-- Generado dinámicamente -->
+                </div>
+
+                <!-- Lista de pedidos (Cajero) -->
+                <div id="lista-pedidos" class="pedidos-list">
+                    <div class="empty-state" id="pedidos-empty">
+                        <span class="empty-icon">📋</span>
+                        <p>No hay pedidos registrados</p>
+                    </div>
+                    <!-- Pedidos generados dinámicamente -->
+                </div>
+            </section>
+
+            <!-- ===== BARRA / COCINA ===== -->
+            <section class="panel hidden" id="panel-produccion">
+                <div class="panel-header">
+                    <h2 class="panel-title" id="produccion-title">Comandas</h2>
+                </div>
+
+                <div class="produccion-columns">
+                    <div class="produccion-col">
+                        <h3 class="col-title col-title--pendiente">Pendientes</h3>
+                        <div class="comandas-list" id="comandas-pendiente"></div>
+                    </div>
+                    <div class="produccion-col">
+                        <h3 class="col-title col-title--prep">En Preparación</h3>
+                        <div class="comandas-list" id="comandas-preparacion"></div>
+                    </div>
+                    <div class="produccion-col">
+                        <h3 class="col-title col-title--listo">Listos</h3>
+                        <div class="comandas-list" id="comandas-listo"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== CAJA ===== -->
+            <section class="panel hidden" id="panel-caja">
+                <div class="panel-header">
+                    <h2 class="panel-title">Cierre de Caja</h2>
+                </div>
+                <div class="caja-grid">
+                    <div class="caja-card">
+                        <p class="caja-card__label">Total Ingresos del Día</p>
+                        <p class="caja-card__value" id="caja-ingresos">$0.00</p>
+                    </div>
+                    <div class="caja-card caja-card--egreso">
+                        <p class="caja-card__label">Total Egresos</p>
+                        <input class="field-input" type="number" id="caja-egresos-input" placeholder="0.00" min="0" step="0.01">
+                    </div>
+                    <div class="caja-card caja-card--saldo">
+                        <p class="caja-card__label">Saldo Estimado</p>
+                        <p class="caja-card__value" id="caja-saldo">$0.00</p>
+                    </div>
+                </div>
+                <button class="btn btn--primary" id="btn-cierre-caja">Ejecutar Cierre de Caja</button>
+                <div class="section-divider"></div>
+                <h3 class="section-subtitle">Historial de Cierres</h3>
+                <div class="table-wrapper">
+                    <table class="data-table" id="tabla-cierres">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Ingresos</th>
+                                <th>Egresos</th>
+                                <th>Saldo</th>
+                                <th>Cajero</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-cierres"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ===== PRODUCTOS (Admin) ===== -->
+            <section class="panel hidden" id="panel-productos">
+                <div class="panel-header">
+                    <h2 class="panel-title">Catálogo de Productos</h2>
+                    <button class="btn btn--primary btn--sm" id="btn-nuevo-producto">+ Agregar Producto</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="tabla-productos">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Precio</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-productos"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ===== USUARIOS (Admin) ===== -->
+            <section class="panel hidden" id="panel-usuarios">
+                <div class="panel-header">
+                    <h2 class="panel-title">Gestión de Usuarios</h2>
+                    <button class="btn btn--primary btn--sm" id="btn-nuevo-usuario">+ Nuevo Usuario</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="tabla-usuarios">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre Completo</th>
+                                <th>Usuario</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                                <th>Alta</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-usuarios"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ===== INSUMOS (Admin) ===== -->
+            <section class="panel hidden" id="panel-insumos">
+                <div class="panel-header">
+                    <h2 class="panel-title">Inventario de Insumos</h2>
+                    <button class="btn btn--primary btn--sm" id="btn-nuevo-insumo">+ Agregar Insumo</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="tabla-insumos">
+                        <thead>
+                            <tr>
+                                <th>Insumo</th>
+                                <th>Unidad</th>
+                                <th>Existencia</th>
+                                <th>Mínimo</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-insumos"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ===== MERMAS (Admin) ===== -->
+            <section class="panel hidden" id="panel-mermas">
+                <div class="panel-header">
+                    <h2 class="panel-title">Registro de Mermas</h2>
+                    <button class="btn btn--primary btn--sm" id="btn-nueva-merma">+ Registrar Merma</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="tabla-mermas">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Motivo</th>
+                                <th>Reportado por</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-mermas"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ===== REPORTES (Admin) ===== -->
+            <section class="panel hidden" id="panel-reportes">
+                <div class="panel-header">
+                    <h2 class="panel-title">Reportes Estratégicos</h2>
+                </div>
+                <div class="reportes-grid">
+                    <div class="reporte-card">
+                        <h3 class="reporte-card__title">Resumen Financiero Último Cierre</h3>
+                        <div id="reporte-financiero" class="reporte-data">
+                            <div class="reporte-row"><span>Ingresos:</span><strong id="rep-ingresos">—</strong></div>
+                            <div class="reporte-row"><span>Egresos:</span><strong id="rep-egresos">—</strong></div>
+                            <div class="reporte-row reporte-row--saldo"><span>Saldo:</span><strong id="rep-saldo">—</strong></div>
+                            <p class="reporte-fecha" id="rep-fecha">—</p>
+                        </div>
+                    </div>
+                    <div class="reporte-card">
+                        <h3 class="reporte-card__title">Top 5 Productos más Vendidos</h3>
+                        <div id="reporte-top-productos" class="reporte-ranking">
+                            <!-- Generado dinámicamente -->
+                        </div>
+                    </div>
+                    <div class="reporte-card reporte-card--wide">
+                        <h3 class="reporte-card__title">Ventas por Día (últimos 7 días)</h3>
+                        <div id="reporte-ventas-dias" class="bar-chart-container">
+                            <!-- Gráfica de barras SVG simple -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ===== MOVIMIENTOS FINANCIEROS (Admin) ===== -->
+            <section class="panel hidden" id="panel-movimientos">
+                <div class="panel-header">
+                    <h2 class="panel-title">Movimientos Financieros</h2>
+                    <button class="btn btn--primary btn--sm" id="btn-nuevo-movimiento">+ Registrar Movimiento</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="tabla-movimientos">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Concepto</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-movimientos"></tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ===================== MODALS ===================== -->
+    <div id="modal-overlay" class="modal-overlay hidden">
+
+        <!-- Modal Nuevo Pedido -->
+        <div class="modal hidden" id="modal-pedido">
+            <div class="modal-header">
+                <h3 class="modal-title">Nuevo Pedido</h3>
+                <button class="modal-close" data-modal="modal-pedido">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="field-group">
+                    <label class="field-label">Mesa / Identificador</label>
+                    <input class="field-input" id="pedido-mesa" type="text" placeholder="Ej: Mesa 3, Para llevar, Barra...">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Agregar Productos</label>
+                    <div class="producto-search">
+                        <input class="field-input" id="pedido-buscar-producto" type="text" placeholder="Buscar producto...">
+                        <div class="producto-results hidden" id="producto-results"></div>
+                    </div>
+                </div>
+                <div class="pedido-items" id="pedido-items">
+                    <p class="empty-items" id="pedido-empty-items">Ningún producto agregado</p>
+                </div>
+                <div class="pedido-total">
+                    <span>Total:</span>
+                    <strong id="pedido-total-display">$0.00</strong>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--ghost" data-modal="modal-pedido">Cancelar</button>
+                <button class="btn btn--primary" id="btn-confirmar-pedido">Confirmar Pedido</button>
+            </div>
+        </div>
+
+        <!-- Modal Nuevo Producto -->
+        <div class="modal hidden" id="modal-producto">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-producto-title">Nuevo Producto</h3>
+                <button class="modal-close" data-modal="modal-producto">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="producto-id">
+                <div class="field-group">
+                    <label class="field-label">Nombre del Producto</label>
+                    <input class="field-input" id="producto-nombre" type="text" placeholder="Ej: Cappuccino">
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Descripción</label>
+                    <textarea class="field-input field-textarea" id="producto-descripcion" placeholder="Descripción breve..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="field-label">Precio ($)</label>
+                        <input class="field-input" id="producto-precio" type="number" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Categoría</label>
+                        <select class="field-input field-select" id="producto-categoria">
+                            <option value="">Seleccionar...</option>
+                            <option value="Bebidas Calientes">Bebidas Calientes</option>
+                            <option value="Bebidas Frías">Bebidas Frías</option>
+                            <option value="Alimentos">Alimentos</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Estado</label>
+                    <select class="field-input field-select" id="producto-disponible">
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--ghost" data-modal="modal-producto">Cancelar</button>
+                <button class="btn btn--primary" id="btn-confirmar-producto">Guardar Producto</button>
+            </div>
+        </div>
+
+        <!-- Modal Nuevo Usuario -->
+        <div class="modal hidden" id="modal-usuario">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-usuario-title">Nuevo Usuario</h3>
+                <button class="modal-close" data-modal="modal-usuario">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="usuario-id">
+                <div class="field-group">
+                    <label class="field-label">Nombre Completo</label>
+                    <input class="field-input" id="usuario-nombre-completo" type="text" placeholder="Nombre y apellidos">
+                </div>
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="field-label">Nombre de Usuario</label>
+                        <input class="field-input" id="usuario-nombre" type="text" placeholder="nombre_usuario">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Contraseña</label>
+                        <input class="field-input" id="usuario-contrasena" type="password" placeholder="••••••••">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="field-label">Rol</label>
+                        <select class="field-input field-select" id="usuario-rol">
+                            <option value="">Seleccionar rol...</option>
+                            <option value="administrador">Administrador</option>
+                            <option value="cajero">Cajero</option>
+                            <option value="mesero">Mesero</option>
+                            <option value="barra">Barra</option>
+                            <option value="cocina">Cocina</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Estado</label>
+                        <select class="field-input field-select" id="usuario-estado">
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--ghost" data-modal="modal-usuario">Cancelar</button>
+                <button class="btn btn--primary" id="btn-confirmar-usuario">Guardar Usuario</button>
+            </div>
+        </div>
+
+        <!-- Modal Nuevo Insumo -->
+        <div class="modal hidden" id="modal-insumo">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modal-insumo-title">Nuevo Insumo</h3>
+                <button class="modal-close" data-modal="modal-insumo">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="insumo-id">
+                <div class="field-group">
+                    <label class="field-label">Nombre del Insumo</label>
+                    <input class="field-input" id="insumo-nombre" type="text" placeholder="Ej: Leche Entera">
+                </div>
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="field-label">Unidad de Medida</label>
+                        <input class="field-input" id="insumo-unidad" type="text" placeholder="Ej: litros, kg, pzas">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Existencia Actual</label>
+                        <input class="field-input" id="insumo-existencia" type="number" step="0.01" min="0" placeholder="0">
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Nivel Mínimo (alerta de stock)</label>
+                    <input class="field-input" id="insumo-minimo" type="number" step="0.01" min="0" placeholder="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--ghost" data-modal="modal-insumo">Cancelar</button>
+                <button class="btn btn--primary" id="btn-confirmar-insumo">Guardar Insumo</button>
+            </div>
+        </div>
+
+        <!-- Modal Merma -->
+        <div class="modal hidden" id="modal-merma">
+            <div class="modal-header">
+                <h3 class="modal-title">Registrar Merma</h3>
+                <button class="modal-close" data-modal="modal-merma">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="field-group">
+                    <label class="field-label">Producto</label>
+                    <select class="field-input field-select" id="merma-producto"></select>
+                </div>
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="field-label">Cantidad</label>
+                        <input class="field-input" id="merma-cantidad" type="number" min="1" placeholder="1">
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Motivo</label>
+                        <input class="field-input" id="merma-motivo" type="text" placeholder="Ej: Caducidad, Daño...">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--ghost" data-modal="modal-merma">Cancelar</button>
+                <button class="btn btn--primary" id="btn-confirmar-merma">Registrar</button>
+            </div>
+        </div>
+
+        <!-- Modal Movimiento Financiero -->
+        <div class="modal hidden" id="modal-movimiento">
+            <div class="modal-header">
+                <h3 class="modal-title">Registrar Movimiento</h3>
+                <button class="modal-close" data-modal="modal-movimiento">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-row">
+                    <div class="field-group">
+                        <label class="field-label">Tipo</label>
+                        <select class="field-input field-select" id="movimiento-tipo">
+                            <option value="ingreso">Ingreso</option>
+                            <option value="egreso">Egreso</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label">Monto ($)</label>
+                        <input class="field-input" id="movimiento-monto" type="number" step="0.01" min="0" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="field-group">
+                    <label class="field-label">Concepto</label>
+                    <input class="field-input" id="movimiento-concepto" type="text" placeholder="Descripción del movimiento...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--ghost" data-modal="modal-movimiento">Cancelar</button>
+                <button class="btn btn--primary" id="btn-confirmar-movimiento">Guardar</button>
+            </div>
+        </div>
+
+        <!-- Modal de Confirmación genérico -->
+        <div class="modal hidden" id="modal-confirm">
+            <div class="modal-header">
+                <h3 class="modal-title" id="confirm-title">Confirmar</h3>
+                <button class="modal-close" data-modal="modal-confirm">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirm-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn--ghost" data-modal="modal-confirm">Cancelar</button>
+                <button class="btn btn--danger" id="btn-confirm-ok">Confirmar</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TOAST NOTIFICATIONS -->
+    <div id="toast-container"></div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: aroma_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: cosadelacosa  # Asegúrate que coincida con tu .env
+      POSTGRES_DB: aroma_cafe
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  backend:
+    build: ./server
+    container_name: aroma_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./server:/app
+      - /app/node_modules # Evita que los nodos locales sobrescriban los del contenedor
+    depends_on:
+      - db
+    env_file:
+      - ./server/.env
+
+volumes:
+  postgres_data:

@@ -1,0 +1,26 @@
+# Dependencias
+node_modules/
+
+# Archivos de construcción
+dist/
+build/
+
+# Variables de entorno con secretos (opcional, a veces se incluye .env de ejemplo)
+.env
+.env.local
+.env.*.local
+
+# Docker (volúmenes de datos, aunque el compose está bien)
+postgres_data/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de editor
+.vscode/
+.idea/

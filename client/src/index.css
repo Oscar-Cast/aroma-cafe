@@ -1,0 +1,44 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* Aroma Café Color Palette */
+:root {
+  --cafe-noir: #4C3D19;
+  --kombu-green: #354024;
+  --moss-green: #889063;
+  --tan: #CFBB99;
+  --bone: #E5D7C4;
+
+  --background: #E5D7C4;
+  --foreground: #4C3D19;
+  --card: #FFFFFF;
+  --card-foreground: #4C3D19;
+  --popover: #FFFFFF;
+  --popover-foreground: #4C3D19;
+  --primary: #4C3D19;
+  --primary-foreground: #E5D7C4;
+  --secondary: #889063;
+  --secondary-foreground: #FFFFFF;
+  --muted: #CFBB99;
+  --muted-foreground: #4C3D19;
+  --accent: #354024;
+  --accent-foreground: #E5D7C4;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #CFBB99;
+  --input: #CFBB99;
+  --ring: #4C3D19;
+  --radius: 0.625rem;
+}
+
+@layer base {
+  * {
+     border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: 'Geist', system-ui, sans-serif;
+  }
+}

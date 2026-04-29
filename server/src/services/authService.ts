@@ -38,7 +38,7 @@ export const loginService = async (nombre_usuario: string, contrasena: string) =
             nombre:     usuario.nombre_usuario,
         },
         JWT_SECRET,
-        { expiresIn: '8h' }
+        { expiresIn: '9h' }
     );
  
     return {

@@ -14,7 +14,7 @@ const seed = async () => {
         console.log('✅ Usuario administrador creado con éxito');
         process.exit(0);
     } catch (err) {
-        console.error('❌ Error al crear usuario:', err);
+        console.error('❌ Error al crear usuario: revisa tu server/src/config/database.ts', err);
         process.exit(1);
     }
 };

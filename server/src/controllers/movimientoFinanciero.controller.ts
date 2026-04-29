@@ -1,15 +1,10 @@
-// server/src/controllers/movimientoFinanciero.controller.ts
-// NUEVO: controlador para la tabla movimientos_financieros.
-// El controlador original (movimiento.controller.ts) opera sobre
-// movimientos_inventario. Este es el correcto para el panel de
-// "Movimientos Financieros" del frontend.
-
 import { Request, Response } from 'express';
 import pool from '../config/database.js';
 
-// ── REGISTRAR MOVIMIENTO FINANCIERO ───────────────────────────────────
+// Registrar ingreso o egreso manual
 export const registrarMovimientoFinanciero = async (req: Request, res: Response) => {
-    const { tipo, monto, concepto, id_pedido } = req.body;
+    const { tipo, monto, concepto } = req.body;
+    const id_usuario = (req as any).user.id_usuario;
 
     if (!tipo || !monto || !concepto) {
         return res.status(400).json({ message: 'tipo, monto y concepto son requeridos' });
@@ -19,11 +14,20 @@ export const registrarMovimientoFinanciero = async (req: Request, res: Response)
     }
 
     try {
+        // Obtener turno activo
+        const turnoActivo = await pool.query(
+            `SELECT id_turno FROM turnos_caja WHERE estado = 'abierto' LIMIT 1`
+        );
+        if (turnoActivo.rowCount === 0) {
+            return res.status(400).json({ message: 'No hay turno activo. Abre un turno primero.' });
+        }
+        const id_turno = turnoActivo.rows[0].id_turno;
+
         const result = await pool.query(`
-            INSERT INTO movimientos_financieros (tipo, monto, concepto, id_pedido)
+            INSERT INTO movimientos_financieros (id_turno, tipo, monto, concepto)
             VALUES ($1, $2, $3, $4)
             RETURNING *
-        `, [tipo, monto, concepto, id_pedido || null]);
+        `, [id_turno, tipo, monto, concepto]);
 
         res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -32,20 +36,25 @@ export const registrarMovimientoFinanciero = async (req: Request, res: Response)
     }
 };
 
-// ── HISTORIAL DE MOVIMIENTOS FINANCIEROS ─────────────────────────────
+// Historial completo
 export const getHistorialMovimientosFinancieros = async (req: Request, res: Response) => {
     try {
         const result = await pool.query(`
             SELECT
-                mf.*,
-                p.mesa AS pedido_mesa
+                mf.id_movimiento_fin,
+                mf.tipo,
+                mf.monto,
+                mf.concepto,
+                mf.fecha_hora,
+                u.nombre_usuario AS usuario
             FROM movimientos_financieros mf
-            LEFT JOIN pedidos p ON mf.id_pedido = p.id_pedido
+            INNER JOIN turnos_caja t ON mf.id_turno = t.id_turno
+            INNER JOIN usuarios u ON t.id_usuario_apertura = u.id_usuario
             ORDER BY mf.fecha_hora DESC
         `);
         res.json(result.rows);
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error al obtener movimientos financieros' });
+        res.status(500).json({ message: 'Error al obtener historial de movimientos financieros' });
     }
 };

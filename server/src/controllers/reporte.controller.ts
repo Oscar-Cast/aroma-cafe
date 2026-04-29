@@ -1,84 +1,124 @@
-// server/src/controllers/reporte.controller.ts
-// CORRECCIÓN: la consulta de ventas por día usaba la columna 'fecha_alta'
-// que no existe en la tabla pedidos. La columna correcta es 'hora_registro'.
-// También se filtra solo pedidos en estado 'entregado' para que los ingresos
-// del reporte sean consistentes con lo que realmente se cobró.
-
 import { Request, Response } from 'express';
 import pool from '../config/database.js';
 
-// ── RESUMEN GENERAL (usado por el dashboard de reportes) ─────────────
-export const getResumenVentas = async (req: Request, res: Response) => {
-    try {
-        // 1. Ventas totales por día — últimos 7 días
-        // CORRECCIÓN: era 'fecha_alta', debe ser 'hora_registro::date'
-        const ventasDias = await pool.query(`
-            SELECT
-                hora_registro::date AS fecha,
-                SUM(monto_total)    AS total
-            FROM pedidos
-            WHERE
-                estado = 'entregado'
-                AND hora_registro >= CURRENT_DATE - INTERVAL '6 days'
-            GROUP BY hora_registro::date
-            ORDER BY fecha DESC
-            LIMIT 7
-        `);
+export const getVentasPorPeriodo = async (req: Request, res: Response) => {
+    const { inicio, fin } = req.query;
+    if (!inicio || !fin) {
+        return res.status(400).json({ message: 'Debe especificar inicio y fin (YYYY-MM-DD)' });
+    }
 
-        // 2. Productos más vendidos (top 5 por número de veces pedido)
-        const topProductos = await pool.query(`
+    try {
+        // Ingresos agrupados por día (ventas diarias)
+        const ventasQuery = await pool.query(`
+            SELECT
+                DATE(mf.fecha_hora) AS fecha,
+                SUM(mf.monto) AS total
+            FROM movimientos_financieros mf
+            WHERE mf.tipo = 'ingreso'
+              AND mf.fecha_hora::date BETWEEN $1 AND $2
+            GROUP BY DATE(mf.fecha_hora)
+            ORDER BY fecha ASC
+        `, [inicio, fin]);
+
+        // Total de ingresos
+        const totalIngresos = ventasQuery.rows.reduce((sum: number, row: any) => sum + parseFloat(row.total), 0);
+
+        // Egresos desglosados por concepto (agrupados)
+        const egresosQuery = await pool.query(`
+            SELECT
+                concepto,
+                SUM(monto) AS total
+            FROM movimientos_financieros mf
+            WHERE mf.tipo = 'egreso'
+              AND mf.fecha_hora::date BETWEEN $1 AND $2
+            GROUP BY concepto
+            ORDER BY total DESC
+        `, [inicio, fin]);
+
+        // Total de egresos
+        const totalEgresos = egresosQuery.rows.reduce((sum: number, row: any) => sum + parseFloat(row.total), 0);
+
+        // Productos vendidos (todos, sin límite de 10)
+        const productosQuery = await pool.query(`
             SELECT
                 pr.nombre_producto,
-                SUM(dp.cantidad) AS cantidad_vendida
+                pr.categoria,
+                SUM(dp.cantidad) AS cantidad_vendida,
+                SUM(dp.subtotal) AS total_vendido
             FROM detalle_pedidos dp
-            JOIN productos       pr ON dp.id_producto  = pr.id_producto
-            JOIN pedidos          p  ON dp.id_pedido    = p.id_pedido
-            WHERE p.estado = 'entregado'
-            GROUP BY pr.nombre_producto
+            JOIN pedidos p ON dp.id_pedido = p.id_pedido
+            JOIN productos pr ON dp.id_producto = pr.id_producto
+            WHERE p.hora_registro::date BETWEEN $1 AND $2
+              AND p.estado = 'entregado'
+            GROUP BY pr.nombre_producto, pr.categoria
             ORDER BY cantidad_vendida DESC
-            LIMIT 5
-        `);
+        `, [inicio, fin]);
 
-        // 3. Resumen del último cierre de caja
-        const ultimoCierre = await pool.query(`
+        // Ingresos por método de pago (de cuentas cerradas)
+        const metodoPagoQuery = await pool.query(`
             SELECT
-                total_ingresos,
-                total_egresos,
-                saldo,
-                fecha_cierre
-            FROM cierre_caja
-            ORDER BY fecha_cierre DESC
-            LIMIT 1
-        `);
+                c.metodo_pago,
+                SUM(c.total) AS total
+            FROM cuentas c
+            WHERE c.pagado = TRUE
+              AND c.fecha_cierre::date BETWEEN $1 AND $2
+            GROUP BY c.metodo_pago
+        `, [inicio, fin]);
+
+        // Ticket promedio
+        const totalCuentas = await pool.query(`
+            SELECT COUNT(*) AS cantidad FROM cuentas
+            WHERE pagado = TRUE AND fecha_cierre::date BETWEEN $1 AND $2
+        `, [inicio, fin]);
+        const numCuentas = parseInt(totalCuentas.rows[0]?.cantidad || '0');
+        const ticketPromedio = numCuentas > 0 ? totalIngresos / numCuentas : 0;
 
         res.json({
-            graficaVentas:      ventasDias.rows,
-            productosPopulares: topProductos.rows,
-            resumenFinanciero:  ultimoCierre.rows[0] || null,
+            ventasDiarias: ventasQuery.rows,
+            totalIngresos,
+            totalEgresos,
+            saldoNeto: totalIngresos - totalEgresos,
+            ticketPromedio,
+            productosVendidos: productosQuery.rows,       // lista completa
+            metodosPago: metodoPagoQuery.rows,
+            egresosDetalle: egresosQuery.rows,
+            periodo: { inicio, fin }
         });
-
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error al generar reportes' });
+        res.status(500).json({ message: 'Error al generar reporte' });
     }
 };
 
-// ── REPORTE MENSUAL (contabilidad) ────────────────────────────────────
-export const getReporteMensual = async (req: Request, res: Response) => {
+// Dashboard resumido (últimos 7 días)
+export const getResumenDashboard = async (req: Request, res: Response) => {
+    const hoy = new Date();
+    const hace7Dias = new Date(hoy);
+    hace7Dias.setDate(hace7Dias.getDate() - 7);
+    const inicio = hace7Dias.toISOString().split('T')[0];
+    const fin = hoy.toISOString().split('T')[0];
+
     try {
-        const result = await pool.query(`
-            SELECT
-                TO_CHAR(fecha_cierre, 'YYYY-MM') AS mes,
-                SUM(total_ingresos)              AS ingresos_mes,
-                SUM(total_egresos)               AS egresos_mes,
-                SUM(saldo)                       AS utilidad_neta
-            FROM cierre_caja
-            GROUP BY mes
-            ORDER BY mes DESC
-        `);
-        res.json(result.rows);
+        const ventas = await pool.query(`
+            SELECT SUM(monto) AS total FROM movimientos_financieros
+            WHERE tipo = 'ingreso' AND fecha_hora::date BETWEEN $1 AND $2
+        `, [inicio, fin]);
+        const productos = await pool.query(`
+            SELECT pr.nombre_producto, SUM(dp.cantidad) AS cantidad
+            FROM detalle_pedidos dp
+            JOIN pedidos p ON dp.id_pedido = p.id_pedido
+            JOIN productos pr ON dp.id_producto = pr.id_producto
+            WHERE p.estado = 'entregado' AND p.hora_registro::date BETWEEN $1 AND $2
+            GROUP BY pr.nombre_producto
+            ORDER BY cantidad DESC LIMIT 5
+        `, [inicio, fin]);
+
+        res.json({
+            ventas7dias: ventas.rows[0]?.total || 0,
+            topProductos: productos.rows
+        });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error al generar reporte mensual' });
+        res.status(500).json({ message: 'Error al obtener resumen' });
     }
 };

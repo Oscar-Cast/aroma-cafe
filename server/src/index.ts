@@ -56,12 +56,11 @@ app.use('/api/reportes',     reporteRoutes);
 
 // Movimientos (separados por tipo)
 app.use('/api/movimientos-inventario', movimientoRoutes);
-app.use('/api/movimientos',            movFinancieroRoutes); // ← financieros
 app.use('/api/mesas', mesaRoutes);
 app.use('/api/cuentas', cuentaRoutes);
 app.use('/api/mesas', mesaRoutes);
 app.use('api/turnos', turnoRoutes);
-
+app.use('/api/movimientos-financieros', movFinancieroRoutes);
 
 // ── Health check ──────────────────────────────────────────────────────
 app.get('/api/status', async (req, res) => {

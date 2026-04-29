@@ -17,6 +17,7 @@ import { MesasView } from './views/mesas-view'
 import { CobrosView } from './views/cobros-view'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { MovimientosFinancierosView } from './views/movimientos-financieros-view'
 
 export function MainDashboard() {
   const { user } = useAuth()
@@ -65,6 +66,8 @@ export function MainDashboard() {
         return <MermasView />
       case 'caja':
         return <CajaView />
+      case 'movimientos':
+        return <MovimientosFinancierosView />
       case 'reportes':
         return <ReportesView />
       case 'usuarios':

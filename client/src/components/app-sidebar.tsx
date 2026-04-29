@@ -90,6 +90,12 @@ const navItems: NavItem[] = [
     roles: ['administrador', 'cajero']
   },
   {
+    title: 'Movimientos',
+    icon: <DollarSign className="w-5 h-5" />,
+    href: 'movimientos',
+    roles: ['administrador', 'cajero']
+  },
+  {
     title: 'Reportes',
     icon: <BarChart3 className="w-5 h-5" />,
     href: 'reportes',

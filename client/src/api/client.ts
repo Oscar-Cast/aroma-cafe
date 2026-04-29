@@ -80,9 +80,9 @@ export const api = {
     request('/movimientos-inventario', { method: 'POST', body: JSON.stringify(data) }),
 
   // Movimientos financieros
-  getMovimientosFinancieros: () => request<any[]>('/movimientos'),
-  createMovimientoFinanciero: (data: any) =>
-    request('/movimientos', { method: 'POST', body: JSON.stringify(data) }),
+  getMovimientosFinancieros: () => request<any[]>('/movimientos-financieros'),
+  createMovimientoFinanciero: (data: { tipo: string; monto: number; concepto: string }) =>
+      request('/movimientos-financieros', { method: 'POST', body: JSON.stringify(data) }),
 
   // Caja / Turnos
     getTurnoActivo: () => request<any>('/caja/turno'),
@@ -98,6 +98,8 @@ export const api = {
   // Reportes
   getResumenVentas: () => request<any>('/reportes/resumen'),
   getReporteMensual: () => request<any>('/reportes/mensual'),
+  getVentasPorPeriodo: (inicio: string, fin: string) =>
+      request<any>(`/reportes/ventas?inicio=${inicio}&fin=${fin}`),
 
   // Usuarios
   getUsuarios: () => request<any[]>('/usuarios'),

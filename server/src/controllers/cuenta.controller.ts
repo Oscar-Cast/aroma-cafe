@@ -82,6 +82,7 @@ export const cerrarCuenta = async (req: Request, res: Response) => {
     try {
         await client.query('BEGIN');
 
+        // Verificar cuenta
         const cuentaResult = await client.query(
             `SELECT id_cuenta, id_mesa, estado FROM cuentas WHERE id_cuenta = $1 FOR UPDATE`, [id]
         );
@@ -95,6 +96,7 @@ export const cerrarCuenta = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'La cuenta ya está cerrada' });
         }
 
+        // Calcular subtotal desde pedidos
         const pedidosResult = await client.query(
             `SELECT SUM(monto_total) AS subtotal FROM pedidos WHERE id_cuenta = $1`, [id]
         );
@@ -103,7 +105,8 @@ export const cerrarCuenta = async (req: Request, res: Response) => {
         const prop = propina ? parseFloat(propina) : 0;
         const total = subtotal + prop;
 
-       await client.query(
+        // Actualizar cuenta
+        await client.query(
             `UPDATE cuentas SET
                 estado = 'cerrada',
                 subtotal_acumulado = $2,
@@ -112,17 +115,18 @@ export const cerrarCuenta = async (req: Request, res: Response) => {
                 metodo_pago = $5,
                 pagado = TRUE,
                 fecha_cierre = CURRENT_TIMESTAMP,
-                id_usuario_cierre = $6,
-                id_turno = $7   -- <-- agregar este campo
+                id_usuario_cierre = $6
              WHERE id_cuenta = $1`,
-            [id, subtotal, prop, total, metodo_pago, id_usuario, id_turno]
+            [id, subtotal, prop, total, metodo_pago, id_usuario]
         );
 
+        // Liberar mesa
         await client.query(
             `UPDATE mesas SET estado = 'disponible' WHERE id_mesa = $1`,
             [cuenta.id_mesa]
         );
 
+        // Obtener turno activo – IMPORTANTE: declarar la variable antes de usarla
         const turnoActivo = await client.query(
             `SELECT id_turno FROM turnos_caja WHERE estado = 'abierto' LIMIT 1`
         );
@@ -130,12 +134,14 @@ export const cerrarCuenta = async (req: Request, res: Response) => {
             await client.query('ROLLBACK');
             return res.status(400).json({ message: 'No hay turno abierto para registrar el ingreso' });
         }
-        const id_turno = turnoActivo.rows[0].id_turno;
+        // Declaración explícita de idTurno (¡aquí se crea!)
+        const idTurno = turnoActivo.rows[0].id_turno;
 
+        // Insertar movimiento financiero usando idTurno
         await client.query(
             `INSERT INTO movimientos_financieros (id_turno, tipo, monto, concepto)
              VALUES ($1, 'ingreso', $2, $3)`,
-            [id_turno, total, `Cierre de cuenta ${id} - Mesa ${cuentaResult.rows[0].id_mesa}`]
+            [idTurno, total, `Cierre de cuenta ${id} - Mesa ${cuenta.id_mesa}`]
         );
 
         await client.query('COMMIT');

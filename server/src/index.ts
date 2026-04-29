@@ -25,6 +25,10 @@ import cajaRoutes           from './routes/caja.routes.js';
 import mermaRoutes          from './routes/merma.routes.js';
 import reporteRoutes        from './routes/reporte.routes.js';
 import usuarioRoutes        from './routes/usuario.routes.js';             // ← NUEVO
+import mesaRoutes from './routes/mesa.routes.js';
+import cuentaRoutes from './routes/cuenta.routes.js';
+import mesaRoutes from './routes/mesa.routes.js';
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -52,6 +56,11 @@ app.use('/api/reportes',     reporteRoutes);
 // Movimientos (separados por tipo)
 app.use('/api/movimientos-inventario', movimientoRoutes);
 app.use('/api/movimientos',            movFinancieroRoutes); // ← financieros
+app.use('/api/mesas', mesaRoutes);
+app.use('/api/cuentas', cuentaRoutes);
+app.use('/api/mesas', mesaRoutes);
+
+
 
 // ── Health check ──────────────────────────────────────────────────────
 app.get('/api/status', async (req, res) => {
@@ -81,5 +90,5 @@ app.use((req, res) => {
 // ── Arranque ──────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`☕ Aroma a Café — Servidor corriendo en http://localhost:${PORT}`);
+    console.log(` Aroma a Café — Backend activo`);
 });

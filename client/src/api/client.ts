@@ -97,4 +97,16 @@ export const api = {
     request(`/usuarios/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   bajaUsuario: (id: number) =>
     request(`/usuarios/${id}/baja`, { method: 'PATCH' }),
+
+  // Mesas
+    getMesas: () => request<any[]>('/mesas'),
+    createMesa: (data: any) => request('/mesas', { method: 'POST', body: JSON.stringify(data) }),
+    updateMesa: (id: number, data: any) => request(`/mesas/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+    deleteMesa: (id: number) => request(`/mesas/${id}`, { method: 'DELETE' }),
+    
+    // Cuentas
+    getCuentasAbiertas: () => request<any[]>('/cuentas/abiertas'),
+    cerrarCuenta: (id: number, data: { metodo_pago: string; propina?: number }) =>
+      request(`/cuentas/${id}/cerrar`, { method: 'PATCH', body: JSON.stringify(data) }),
+    
 };

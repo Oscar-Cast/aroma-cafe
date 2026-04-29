@@ -26,7 +26,8 @@ export function PedidosView() {
   const [selectedMesa, setSelectedMesa] = useState('')
   const [carrito, setCarrito] = useState<{ producto: Producto; cantidad: number }[]>([])
   const [activeTab, setActiveTab] = useState('todos')
-
+  const [mesas, setMesas] = useState<string[]>([]);
+  
   const cargarDatos = async () => {
     try {
       const [pedidosData, productosData] = await Promise.all([api.getPedidos(), api.getProductos()])
@@ -39,8 +40,27 @@ export function PedidosView() {
     }
   }
 
-  useEffect(() => { cargarDatos() }, [])
+  useEffect(() => {
+    const cargarDatos = async () => {
+      try {
+        const [pedidosData, productosData, mesasData] = await Promise.all([
+          api.getPedidos(),
+          api.getProductos(),
+          api.getMesas()
+        ]);
+        setPedidos(pedidosData);
+        setProductos(productosData.filter((p) => p.disponible === 'activo'));
+        setMesas(mesasData.map((m: any) => m.numero_mesa));
+      } catch (error) {
+        toast({ title: 'Error', description: 'No se pudieron cargar los datos', variant: 'destructive' });
+      } finally {
+        setLoading(false);
+      }
+    };
+    cargarDatos();
+  }, []);
 
+  
   const agregarAlCarrito = (producto: Producto) => {
     setCarrito(prev => {
       const existente = prev.find(item => item.producto.id_producto === producto.id_producto)
@@ -114,7 +134,6 @@ export function PedidosView() {
   const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
   const formatCurrency = (amount: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount)
 
-  const mesas = ['Mesa 1', 'Mesa 2', 'Mesa 3', 'Mesa 4', 'Mesa 5', 'Para llevar', 'Domicilio']
   const categorias = [...new Set(productos.map(p => p.categoria))]
   const filteredPedidos = pedidos.filter(p => activeTab === 'todos' ? true : p.estado === activeTab)
 

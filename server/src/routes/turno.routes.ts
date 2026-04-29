@@ -1,17 +1,13 @@
 import { Router } from 'express';
-import { getTurnoActivo, abrirTurno, cerrarTurno, getHistorialCierres } from '../controllers/caja.controller.js';
+import { getTurnoActivo, abrirTurno, cerrarTurno, getHistorialCierres } from '../controllers/turno.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { hasRole } from '../middlewares/checkRole.js';
 
 const router = Router();
 
-// Obtener estado actual del turno
-router.get('/turno', authMiddleware, hasRole('administrador', 'cajero'), getTurnoActivo);
-// Abrir turno
+router.get('/activo', authMiddleware, getTurnoActivo);
 router.post('/abrir', authMiddleware, hasRole('administrador', 'cajero'), abrirTurno);
-// Cerrar turno
 router.post('/cerrar', authMiddleware, hasRole('administrador', 'cajero'), cerrarTurno);
-// Historial de cierres
 router.get('/historial', authMiddleware, hasRole('administrador', 'cajero'), getHistorialCierres);
 
 export default router;

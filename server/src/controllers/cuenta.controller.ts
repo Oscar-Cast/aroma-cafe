@@ -103,7 +103,7 @@ export const cerrarCuenta = async (req: Request, res: Response) => {
         const prop = propina ? parseFloat(propina) : 0;
         const total = subtotal + prop;
 
-        await client.query(
+       await client.query(
             `UPDATE cuentas SET
                 estado = 'cerrada',
                 subtotal_acumulado = $2,
@@ -112,9 +112,10 @@ export const cerrarCuenta = async (req: Request, res: Response) => {
                 metodo_pago = $5,
                 pagado = TRUE,
                 fecha_cierre = CURRENT_TIMESTAMP,
-                id_usuario_cierre = $6
+                id_usuario_cierre = $6,
+                id_turno = $7   -- <-- agregar este campo
              WHERE id_cuenta = $1`,
-            [id, subtotal, prop, total, metodo_pago, id_usuario]
+            [id, subtotal, prop, total, metodo_pago, id_usuario, id_turno]
         );
 
         await client.query(

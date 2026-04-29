@@ -5,7 +5,7 @@ node_modules/
 dist/
 build/
 
-# Variables de entorno con secretos (opcional, a veces se incluye .env de ejemplo)
+# Variables de entorno con secretos
 .env
 .env.local
 .env.*.local
@@ -24,3 +24,6 @@ Thumbs.db
 # Archivos de editor
 .vscode/
 .idea/
+
+# para no pasar el 
+server/.env

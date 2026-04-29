@@ -28,6 +28,7 @@ import usuarioRoutes        from './routes/usuario.routes.js';             // �
 import mesaRoutes from './routes/mesa.routes.js';
 import cuentaRoutes from './routes/cuenta.routes.js';
 import mesaRoutes from './routes/mesa.routes.js';
+import turnoRoutes from './routes/turno.routes.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -59,7 +60,7 @@ app.use('/api/movimientos',            movFinancieroRoutes); // ← financieros
 app.use('/api/mesas', mesaRoutes);
 app.use('/api/cuentas', cuentaRoutes);
 app.use('/api/mesas', mesaRoutes);
-
+app.use('api/turnos', turnoRoutes);
 
 
 // ── Health check ──────────────────────────────────────────────────────

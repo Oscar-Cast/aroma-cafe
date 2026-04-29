@@ -1,4 +1,7 @@
+import { getGlobalLogout } from '../providers/AuthProvider';
+
 const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -24,6 +27,12 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   });
 
   if (!response.ok) {
+
+  	if (response.status === 401) {
+  		const logoutFn = getGlobalLogout();
+  		if (logoutFn) logoutFn();
+  	}
+  	
     const errorText = await response.text();
     throw new ApiError(response.status, errorText || 'Error desconocido');
   }
@@ -75,10 +84,11 @@ export const api = {
   createMovimientoFinanciero: (data: any) =>
     request('/movimientos', { method: 'POST', body: JSON.stringify(data) }),
 
-  // Caja
-  getCierres: () => request<any[]>('/caja/historial'),
-  realizarCierre: (data: { total_egresos: number }) =>
-    request('/caja/cierre', { method: 'POST', body: JSON.stringify(data) }),
+  // Caja / Turnos
+    getTurnoActivo: () => request<any>('/caja/turno'),
+    abrirTurno: (data: { monto_inicial: number }) => request('/caja/abrir', { method: 'POST', body: JSON.stringify(data) }),
+    cerrarTurno: () => request('/caja/cerrar', { method: 'POST' }),
+    getHistorialCierres: () => request<any[]>('/caja/historial'),
 
   // Mermas
   getMermas: () => request<any[]>('/mermas'),
@@ -108,5 +118,7 @@ export const api = {
     getCuentasAbiertas: () => request<any[]>('/cuentas/abiertas'),
     cerrarCuenta: (id: number, data: { metodo_pago: string; propina?: number }) =>
       request(`/cuentas/${id}/cerrar`, { method: 'PATCH', body: JSON.stringify(data) }),
+
+
     
 };

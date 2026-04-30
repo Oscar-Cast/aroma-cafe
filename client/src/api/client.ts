@@ -82,7 +82,7 @@ export const api = {
   // Movimientos financieros
   getMovimientosFinancieros: () => request<any[]>('/movimientos-financieros'),
   createMovimientoFinanciero: (data: { tipo: string; monto: number; concepto: string }) =>
-      request('/movimientos-financieros', { method: 'POST', body: JSON.stringify(data) }),
+    request('/movimientos-financieros', { method: 'POST', body: JSON.stringify(data) }),
 
   // Caja / Turnos
     getTurnoActivo: () => request<any>('/caja/turno'),

@@ -208,6 +208,69 @@ export function ReportesView() {
         </CardContent>
       </Card>
 
+	{/* Mermas */}
+	<Card className="border-[#CFBB99] bg-white">
+	  <CardHeader>
+	    <CardTitle className="text-lg text-[#4C3D19]">Mermas del período</CardTitle>
+	  </CardHeader>
+	  <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+	    {/* Mermas productos */}
+	    <div>
+	      <h3 className="text-md font-semibold text-[#4C3D19] mb-2">Productos</h3>
+	      <ScrollArea className="h-64">
+	        <Table>
+	          <TableHeader>
+	            <TableRow>
+	              <TableHead>Fecha</TableHead>
+	              <TableHead>Producto</TableHead>
+	              <TableHead className="text-center">Cant.</TableHead>
+	              <TableHead>Motivo</TableHead>
+	              <TableHead className="text-right">Valor</TableHead>
+	            </TableRow>
+	          </TableHeader>
+	          <TableBody>
+	            {datos.mermasProductos?.map((m: any) => (
+	              <TableRow key={m.id_merma_prod}>
+	                <TableCell className="text-sm">{formatDate(m.fecha_hora)}</TableCell>
+	                <TableCell>{m.nombre_producto}</TableCell>
+	                <TableCell className="text-center">{m.cantidad}</TableCell>
+	                <TableCell>{m.motivo}</TableCell>
+	                <TableCell className="text-right text-red-600">{formatCurrency(parseFloat(m.valor_perdida))}</TableCell>
+	              </TableRow>
+	            ))}
+	          </TableBody>
+	        </Table>
+	      </ScrollArea>
+	    </div>
+	    {/* Mermas insumos */}
+	    <div>
+	      <h3 className="text-md font-semibold text-[#4C3D19] mb-2">Insumos</h3>
+	      <ScrollArea className="h-64">
+	        <Table>
+	          <TableHeader>
+	            <TableRow>
+	              <TableHead>Fecha</TableHead>
+	              <TableHead>Insumo</TableHead>
+	              <TableHead className="text-center">Cant.</TableHead>
+	              <TableHead>Motivo</TableHead>
+	            </TableRow>
+	          </TableHeader>
+	          <TableBody>
+	            {datos.mermasInsumos?.map((m: any) => (
+	              <TableRow key={m.id_movimiento}>
+	                <TableCell className="text-sm">{formatDate(m.fecha_movimiento)}</TableCell>
+	                <TableCell>{m.nombre_insumo}</TableCell>
+	                <TableCell className="text-center">{m.cantidad} {m.unidad_medida}</TableCell>
+	                <TableCell>{m.tipo_movimiento === 'merma_caducidad' ? 'Caducidad' : 'Daño'}</TableCell>
+	              </TableRow>
+	            ))}
+	          </TableBody>
+	        </Table>
+	      </ScrollArea>
+	    </div>
+	  </CardContent>
+	</Card>
+
       {/* Egresos y métodos de pago */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="border-[#CFBB99] bg-white">

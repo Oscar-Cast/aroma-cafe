@@ -60,7 +60,7 @@ export function MovimientosFinancierosView() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-[#4C3D19]">Movimientos Financieros</h1>
+        <h1 className="text-3xl font-bold text-[#4C3D19]">Movimientos de Caja</h1>
         <p className="text-[#889063] mt-1">Registra ingresos y egresos manuales</p>
       </div>
 

@@ -1,29 +1,13 @@
-// server/src/routes/movimiento.routes.ts
-// CORRECCIÓN: el frontend llama a /api/movimientos para movimientos FINANCIEROS
-// (ingresos/egresos), pero el controlador existente maneja movimientos de
-// INVENTARIO (insumos). Se separan en dos archivos de rutas distintos.
-// Este archivo corresponde a movimientos_financieros.
-
 import { Router } from 'express';
-import { registrarMovimientoFinanciero, getHistorialMovimientosFinancieros }
-    from '../controllers/movimientoFinanciero.controller.js';
+import { registrarMovimiento, getHistorialMovimientos } from '../controllers/movimiento.controller.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
-import { hasRole }        from '../middlewares/checkRole.js';
 
 const router = Router();
 
-router.get(
-    '/',
-    authMiddleware,
-    hasRole('administrador', 'cajero'),
-    getHistorialMovimientosFinancieros
-);
+// Registrar un movimiento de inventario (entrada / salida / merma)
+router.post('/', authMiddleware, registrarMovimiento);
 
-router.post(
-    '/',
-    authMiddleware,
-    hasRole('administrador', 'cajero'),
-    registrarMovimientoFinanciero
-);
+// Obtener historial de movimientos de inventario
+router.get('/', authMiddleware, getHistorialMovimientos);
 
 export default router;

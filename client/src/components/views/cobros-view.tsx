@@ -43,8 +43,11 @@ export function CobrosView() {
 
   const cargarDatos = async () => {
     try {
-      const abiertas = await api.getCuentasAbiertas()
-      setCuentasAbiertas(abiertas)
+      const abiertas = await api.getCuentasAbiertas();
+      setCuentasAbiertas(abiertas.map((c: any) => ({
+        ...c,
+        subtotal_acumulado: parseFloat(c.subtotal_acumulado)
+      })));
       setCuentasCerradas([])
     } catch (error) {
       toast({ title: 'Error', description: 'No se pudieron cargar las cuentas', variant: 'destructive' })
@@ -197,7 +200,19 @@ export function CobrosView() {
               <div className="space-y-2">
                 <Label className="text-[#4C3D19]">Propina (opcional)</Label>
                 <div className="flex gap-2">
-                  <Input type="number" min={0} step={5} value={propina} onChange={(e) => setPropina(parseFloat(e.target.value) || 0)} className="border-[#CFBB99]" placeholder="0.00" />
+				<Input
+				  type="number"
+				  min={0}
+				  step={1}
+				  value={propina}
+				  onChange={(e) => {
+				    const val = parseFloat(e.target.value);
+				    setPropina(isNaN(val) ? 0 : val);
+				  }}
+				  onBlur={() => setPropina(Number(propina))}
+				  className="border-[#CFBB99]"
+				  placeholder="0"
+				/>
                   <div className="flex gap-1">
                     <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(selectedCuenta.subtotal_acumulado * 0.10))} className="border-[#CFBB99] text-[#4C3D19]">10%</Button>
                     <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(selectedCuenta.subtotal_acumulado * 0.15))} className="border-[#CFBB99] text-[#4C3D19]">15%</Button>
@@ -215,7 +230,9 @@ export function CobrosView() {
               </div>
               <div className="bg-[#4C3D19] rounded-lg p-4">
                 <div className="flex justify-between items-center text-[#E5D7C4]">
+                <p className="text-xs text-red-500">Propina actual: {propina}</p>
                   <span className="text-lg">Total a Cobrar</span>
+                  <p className="text-xs text-red-500">Depuración: subtotal={selectedCuenta.subtotal_acumulado} propina={propina} suma={selectedCuenta.subtotal_acumulado + propina}</p>
                   <span className="text-3xl font-bold">{formatCurrency(selectedCuenta.subtotal_acumulado + propina)}</span>
                 </div>
               </div>

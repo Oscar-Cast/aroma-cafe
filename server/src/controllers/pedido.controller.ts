@@ -83,48 +83,76 @@ export const getPedidos = async (req: Request, res: Response) => {
 
 // ── CREAR PEDIDO ─────────────────────────────────────────────────────
 export const crearPedido = async (req: Request, res: Response) => {
-    const { mesa, productos } = req.body;
+    const { mesa, productos, notas } = req.body;
     const id_usuario = (req as any).user.id_usuario;
 
-    if (!mesa || !productos || productos.length === 0) {
-        return res.status(400).json({ message: 'Mesa y productos son obligatorios' });
+    if (!productos || productos.length === 0) {
+        return res.status(400).json({ message: 'El pedido debe tener al menos un producto' });
+    }
+    if (!mesa) return res.status(400).json({ message: 'Debe especificar una mesa' });
+
+    // Obtener productos completos para saber su categoría
+    const ids = productos.map((p: any) => p.id_producto);
+    const prodsInfo = await pool.query(`SELECT id_producto, categoria FROM productos WHERE id_producto = ANY($1)`, [ids]);
+    const prodMap = new Map(prodsInfo.rows.map((p: any) => [p.id_producto, p.categoria]));
+
+    // Agrupar productos por área: "barra" (bebidas calientes, frías, postres) y "cocina" (alimentos)
+    const barraProds = productos.filter((p: any) => {
+        const cat = prodMap.get(p.id_producto);
+        return cat && ['Bebidas Calientes', 'Bebidas Frías', 'Postres', 'Cafetería'].includes(cat);
+    });
+    const cocinaProds = productos.filter((p: any) => {
+        const cat = prodMap.get(p.id_producto);
+        return cat && ['Alimentos'].includes(cat);
+    });
+
+    const grupos = [
+        { area: 'barra', productos: barraProds },
+        { area: 'cocina', productos: cocinaProds },
+    ].filter(g => g.productos.length > 0);
+
+    if (grupos.length === 0) {
+        return res.status(400).json({ message: 'Ningún producto válido' });
     }
 
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
 
-        // Obtener o crear cuenta
-        let id_cuenta: number;
-        try {
-            id_cuenta = await obtenerOCrearCuenta(mesa, id_usuario);
-        } catch (err: any) {
-            await client.query('ROLLBACK');
-            return res.status(400).json({ message: err.message });
-        }
+        // Obtener o crear cuenta (usando la función existente)
+        const id_cuenta = await obtenerOCrearCuenta(mesa, id_usuario);
 
-        const monto_total = productos.reduce(
-            (acc: number, p: any) => acc + p.precio_unitario * p.cantidad, 0
-        );
+        let totalGeneral = 0;
+        const pedidosCreados = [];
 
-        const pedidoQuery = `
-            INSERT INTO pedidos (id_cuenta, estado, monto_total, id_usuario)
-            VALUES ($1, 'pendiente', $2, $3)
-            RETURNING id_pedido`;
-        const nuevoPedido = await client.query(pedidoQuery, [id_cuenta, monto_total, id_usuario]);
-        const id_pedido = nuevoPedido.rows[0].id_pedido;
+        for (const grupo of grupos) {
+            const monto = grupo.productos.reduce((sum: number, p: any) => sum + p.precio_unitario * p.cantidad, 0);
+            totalGeneral += monto;
 
-        for (const prod of productos) {
-            const subtotal = prod.cantidad * prod.precio_unitario;
-            await client.query(
-                `INSERT INTO detalle_pedidos (id_pedido, id_producto, cantidad, precio_unitario, subtotal)
-                 VALUES ($1, $2, $3, $4, $5)`,
-                [id_pedido, prod.id_producto, prod.cantidad, prod.precio_unitario, subtotal]
-            );
+            const pedidoQuery = `
+                INSERT INTO pedidos (id_cuenta, estado, monto_total, id_usuario, notas)
+                VALUES ($1, 'pendiente', $2, $3, $4)
+                RETURNING id_pedido`;
+            const nuevoPedido = await client.query(pedidoQuery, [id_cuenta, monto, id_usuario, notas || null]);
+            const id_pedido = nuevoPedido.rows[0].id_pedido;
+
+            for (const prod of grupo.productos) {
+                const subtotal = prod.cantidad * prod.precio_unitario;
+                await client.query(
+                    `INSERT INTO detalle_pedidos (id_pedido, id_producto, cantidad, precio_unitario, subtotal)
+                     VALUES ($1, $2, $3, $4, $5)`,
+                    [id_pedido, prod.id_producto, prod.cantidad, prod.precio_unitario, subtotal]
+                );
+            }
+            pedidosCreados.push(id_pedido);
         }
 
         await client.query('COMMIT');
-        res.status(201).json({ message: 'Pedido registrado con éxito', id_pedido, monto_total });
+        res.status(201).json({
+            message: 'Pedidos registrados con éxito',
+            pedidos: pedidosCreados,
+            monto_total: totalGeneral
+        });
     } catch (error) {
         await client.query('ROLLBACK');
         console.error(error);

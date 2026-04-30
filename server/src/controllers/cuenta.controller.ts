@@ -1,5 +1,3 @@
-// server/src/controllers/cuenta.controller.ts
-
 import { Request, Response } from 'express';
 import pool from '../config/database.js';
 
@@ -100,7 +98,7 @@ export const cerrarCuenta = async (req: Request, res: Response) => {
         const pedidosResult = await client.query(
             `SELECT SUM(monto_total) AS subtotal FROM pedidos WHERE id_cuenta = $1`, [id]
         );
-        const subtotal = pedidosResult.rows[0].subtotal || 0;
+        const subtotal = parseFloat(pedidosResult.rows[0].subtotal) || 0;
 
         const prop = propina ? parseFloat(propina) : 0;
         const total = subtotal + prop;
@@ -126,7 +124,7 @@ export const cerrarCuenta = async (req: Request, res: Response) => {
             [cuenta.id_mesa]
         );
 
-        // Obtener turno activo – IMPORTANTE: declarar la variable antes de usarla
+        // Obtener turno activo
         const turnoActivo = await client.query(
             `SELECT id_turno FROM turnos_caja WHERE estado = 'abierto' LIMIT 1`
         );
@@ -134,14 +132,20 @@ export const cerrarCuenta = async (req: Request, res: Response) => {
             await client.query('ROLLBACK');
             return res.status(400).json({ message: 'No hay turno abierto para registrar el ingreso' });
         }
-        // Declaración explícita de idTurno (¡aquí se crea!)
         const idTurno = turnoActivo.rows[0].id_turno;
 
-        // Insertar movimiento financiero usando idTurno
-        await client.query(
-            `INSERT INTO movimientos_financieros (id_turno, tipo, monto, concepto)
-             VALUES ($1, 'ingreso', $2, $3)`,
-            [idTurno, total, `Cierre de cuenta ${id} - Mesa ${cuenta.id_mesa}`]
+        // Obtener un id_pedido de la cuenta para vincular el movimiento
+        const pedidoRef = await client.query(
+            `SELECT id_pedido FROM pedidos WHERE id_cuenta = $1 LIMIT 1`,
+            [id]
+        );
+        const id_pedido_ref = pedidoRef.rows[0]?.id_pedido || null;
+
+        // Insertar movimiento financiero con referencia al pedido
+       await client.query(
+            `INSERT INTO movimientos_financieros (id_turno, tipo, monto, concepto, id_pedido)
+             VALUES ($1, 'ingreso', $2, $3, $4)`,
+            [idTurno, total, `Cierre de cuenta ${id} - Mesa ${cuenta.id_mesa}`, id_pedido_ref]
         );
 
         await client.query('COMMIT');

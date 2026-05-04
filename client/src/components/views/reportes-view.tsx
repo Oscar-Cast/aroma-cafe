@@ -13,41 +13,56 @@ export function ReportesView() {
   const { toast } = useToast()
   const [datos, setDatos] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [cierres, setCierres] = useState<any[]>([])
   const [periodo, setPeriodo] = useState('7d')
   const [desde, setDesde] = useState('')
   const [hasta, setHasta] = useState('')
 
   const cargarReportes = async () => {
-    setLoading(true)
-    try {
-      let inicio = '', fin = ''
-      const hoy = new Date().toISOString().split('T')[0]
-      if (periodo === 'today') { inicio = hoy; fin = hoy }
-      else if (periodo === '7d') {
-        const h = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
-        inicio = h.toISOString().split('T')[0]; fin = hoy
-      } else if (periodo === '30d') {
-        const h = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000)
-        inicio = h.toISOString().split('T')[0]; fin = hoy
-      } else if (periodo === 'custom' && desde && hasta) {
-        inicio = desde; fin = hasta
-      } else {
-        const h = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
-        inicio = h.toISOString().split('T')[0]; fin = hoy
+      setLoading(true)
+      try {
+          let inicio = '', fin = ''
+          const hoy = new Date().toISOString().split('T')[0]
+          if (periodo === 'today') {
+              inicio = hoy; fin = hoy
+          } else if (periodo === '7d') {
+              const h = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
+              inicio = h.toISOString().split('T')[0]; fin = hoy
+          } else if (periodo === '30d') {
+              const h = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000)
+              inicio = h.toISOString().split('T')[0]; fin = hoy
+          } else if (periodo === 'custom' && desde && hasta) {
+              inicio = desde; fin = hasta
+          } else {
+              const h = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
+              inicio = h.toISOString().split('T')[0]; fin = hoy
+          }
+  
+          const token = localStorage.getItem('token')
+  
+          // Obtener resumen de ventas
+          const respResumen = await fetch(`/api/reportes/resumen?inicio=${inicio}&fin=${fin}`, {
+              headers: { Authorization: `Bearer ${token}` }
+          })
+          if (!respResumen.ok) throw new Error('Error al cargar reporte de ventas')
+          const dataVentas = await respResumen.json()
+          setDatos(dataVentas)
+  
+          // Obtener cierres de caja del período
+          const respCierres = await fetch(`/api/caja/historial?inicio=${inicio}&fin=${fin}`, {
+              headers: { Authorization: `Bearer ${token}` }
+          })
+          if (respCierres.ok) {
+              const dataCierres = await respCierres.json()
+              setCierres(dataCierres)
+          } else {
+              setCierres([])
+          }
+      } catch (error) {
+          toast({ title: 'Error', description: 'No se pudieron cargar los reportes', variant: 'destructive' })
+      } finally {
+          setLoading(false)
       }
-
-      const token = localStorage.getItem('token')
-      const response = await fetch(`/api/reportes/resumen?inicio=${inicio}&fin=${fin}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      if (!response.ok) throw new Error('Error al cargar reporte')
-      const data = await response.json()
-      setDatos(data)
-    } catch (error) {
-      toast({ title: 'Error', description: 'No se pudieron cargar los reportes', variant: 'destructive' })
-    } finally {
-      setLoading(false)
-    }
   }
 
   useEffect(() => { cargarReportes() }, [periodo, desde, hasta])
@@ -268,6 +283,65 @@ export function ReportesView() {
 	        </Table>
 	      </ScrollArea>
 	    </div>
+	  </CardContent>
+	</Card>
+
+	{/* Historial de cierres de turno */}
+	<Card className="border-[#CFBB99] bg-white">
+	  <CardHeader>
+	    <CardTitle className="text-lg text-[#4C3D19]">Cierres de turno</CardTitle>
+	    <CardDescription className="text-[#889063]">
+	      {cierres.length} cierre(s) en el período seleccionado
+	    </CardDescription>
+	  </CardHeader>
+	  <CardContent>
+	    <ScrollArea className="h-80">
+	      <Table>
+	        <TableHeader>
+	          <TableRow>
+	            <TableHead>Fecha</TableHead>
+	            <TableHead>Responsable</TableHead>
+	            <TableHead className="text-right">Fondo inicial</TableHead>
+	            <TableHead className="text-right">Ingresos</TableHead>
+	            <TableHead className="text-right">Egresos</TableHead>
+	            <TableHead className="text-right">Saldo</TableHead>
+	            <TableHead className="text-right">Ganancia</TableHead>
+	            <TableHead className="text-right">Efectivo contado</TableHead>
+	            <TableHead className="text-right">Diferencia</TableHead>
+	          </TableRow>
+	        </TableHeader>
+	        <TableBody>
+	          {cierres.map((c: any) => {
+	            const ganancia = c.total_ingresos - c.total_egresos;
+	            return (
+	              <TableRow key={c.id_cierre}>
+	                <TableCell className="text-sm">
+	                  <div>{new Date(c.fecha_apertura).toLocaleDateString('es-MX', { day:'2-digit', month:'short' })}</div>
+	                  <div className="text-xs text-[#889063]">
+	                    {new Date(c.fecha_apertura).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })} - {new Date(c.fecha_cierre).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })}
+	                  </div>
+	                </TableCell>
+	                <TableCell>{c.nombre_usuario}</TableCell>
+	                <TableCell className="text-right">{formatCurrency(c.monto_inicial)}</TableCell>
+	                <TableCell className="text-right text-green-600">{formatCurrency(c.total_ingresos)}</TableCell>
+	                <TableCell className="text-right text-red-600">{formatCurrency(c.total_egresos)}</TableCell>
+	                <TableCell className="text-right">{formatCurrency(c.saldo)}</TableCell>
+	                <TableCell className="text-right font-bold text-green-700">{formatCurrency(ganancia)}</TableCell>
+	                <TableCell className="text-right">{c.efectivo_contado != null ? formatCurrency(c.efectivo_contado) : '-'}</TableCell>
+	                <TableCell className="text-right">{c.diferencia != null ? formatCurrency(c.diferencia) : '-'}</TableCell>
+	              </TableRow>
+	            );
+	          })}
+	          {cierres.length === 0 && (
+	            <TableRow>
+	              <TableCell colSpan={9} className="text-center text-[#889063] py-6">
+	                No hay cierres registrados en este período
+	              </TableCell>
+	            </TableRow>
+	          )}
+	        </TableBody>
+	      </Table>
+	    </ScrollArea>
 	  </CardContent>
 	</Card>
 

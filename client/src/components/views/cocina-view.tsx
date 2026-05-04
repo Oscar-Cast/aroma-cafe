@@ -17,8 +17,8 @@ export function CocinaView() {
   const cargarPedidos = async () => {
     try {
       const data = await api.getPedidos()
+      // Solo filtrar por categoría Alimentos, sin ocultar por estado
       const filtrados = data
-        .filter((p: Pedido) => p.estado !== 'entregado')
         .map((p: Pedido) => ({
           ...p,
           detalles: p.detalles?.filter((d: any) => d.categoria === 'Alimentos')
@@ -37,7 +37,7 @@ export function CocinaView() {
   const cambiarEstado = async (pedidoId: number, nuevoEstado: OrderStatus) => {
     try {
       await api.updatePedidoEstado(pedidoId, nuevoEstado)
-      toast({ title: 'Estado actualizado', description: `Pedido #${pedidoId} marcado como "${nuevoEstado}"` })
+      toast({ title: 'Estado actualizado', description: `Pedido marcado como "${nuevoEstado}"` })
       cargarPedidos()
     } catch (error) {
       toast({ title: 'Error', description: 'No se pudo actualizar el estado', variant: 'destructive' })
@@ -49,6 +49,7 @@ export function CocinaView() {
       'pendiente': 'bg-amber-100 text-amber-700 border-amber-200',
       'en preparación': 'bg-blue-100 text-blue-700 border-blue-200',
       'listo': 'bg-green-100 text-green-700 border-green-200',
+      'entregado': 'bg-gray-100 text-gray-700 border-gray-200',
     }
     return <Badge className={styles[estado] || ''} variant="outline">{estado}</Badge>
   }
@@ -79,7 +80,6 @@ export function CocinaView() {
         </div>
       </div>
 
-      {/* Stats y columnas igual que BarraView, sin cambios relevantes salvo los filtros */}
       <div className="grid grid-cols-3 gap-4">
         <Card className="border-amber-200 bg-amber-50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-amber-700">Pendientes</p><p className="text-3xl font-bold text-amber-800">{pendientes.length}</p></div><Clock className="w-10 h-10 text-amber-500" /></div></CardContent></Card>
         <Card className="border-blue-200 bg-blue-50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-blue-700">En Preparación</p><p className="text-3xl font-bold text-blue-800">{enPreparacion.length}</p></div><ChefHat className="w-10 h-10 text-blue-500" /></div></CardContent></Card>
@@ -94,7 +94,7 @@ export function CocinaView() {
             <Card key={pedido.id_pedido} className="border-amber-200 bg-amber-50/50">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base text-[#4C3D19]">Pedido #{pedido.id_pedido}</CardTitle>
+                  <CardTitle className="text-base text-[#4C3D19]">Pedido #{pedido.numero_pedido ?? pedido.id_pedido}</CardTitle>
                   <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200">{getElapsedTime(pedido.hora_registro)}</Badge>
                 </div>
                 <CardDescription className="text-amber-700">{pedido.mesa} • {formatTime(pedido.hora_registro)}</CardDescription>
@@ -107,6 +107,7 @@ export function CocinaView() {
                     </div>
                   ))}
                 </div>
+                {pedido.notas && <div className="text-sm text-amber-700 bg-amber-50 p-2 rounded">📝 {pedido.notas}</div>}
                 <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white" onClick={() => cambiarEstado(pedido.id_pedido, 'en preparación')}>
                   <ChefHat className="w-4 h-4 mr-2" /> Comenzar Preparación
                 </Button>
@@ -122,7 +123,7 @@ export function CocinaView() {
             <Card key={pedido.id_pedido} className="border-blue-200 bg-blue-50/50">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base text-[#4C3D19]">Pedido #{pedido.id_pedido}</CardTitle>
+                  <CardTitle className="text-base text-[#4C3D19]">Pedido #{pedido.numero_pedido ?? pedido.id_pedido}</CardTitle>
                   <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-200">{getElapsedTime(pedido.hora_registro)}</Badge>
                 </div>
                 <CardDescription className="text-blue-700">{pedido.mesa} • {formatTime(pedido.hora_registro)}</CardDescription>
@@ -150,7 +151,7 @@ export function CocinaView() {
             <Card key={pedido.id_pedido} className="border-green-200 bg-green-50/50">
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base text-[#4C3D19]">Pedido #{pedido.id_pedido}</CardTitle>
+                  <CardTitle className="text-base text-[#4C3D19]">Pedido #{pedido.numero_pedido ?? pedido.id_pedido}</CardTitle>
                   {getStatusBadge(pedido.estado)}
                 </div>
                 <CardDescription className="text-green-700">{pedido.mesa} • {formatTime(pedido.hora_registro)}</CardDescription>

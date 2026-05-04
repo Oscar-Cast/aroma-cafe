@@ -9,9 +9,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { DollarSign, TrendingUp, TrendingDown, Clock, Play, StopCircle, Plus, Trash2 } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { DollarSign, TrendingUp, TrendingDown, Clock, Play, StopCircle } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
 export function CajaView() {
   const { user } = useAuth()
@@ -23,6 +23,8 @@ export function CajaView() {
   const [showAbrirDialog, setShowAbrirDialog] = useState(false)
   const [montoInicial, setMontoInicial] = useState('500')
   const [showCerrarDialog, setShowCerrarDialog] = useState(false)
+  const [efectivoContado, setEfectivoContado] = useState('')
+  const [diferencia, setDiferencia] = useState<number | null>(null)
 
   const cargarDatos = async () => {
     setLoading(true)
@@ -66,8 +68,10 @@ export function CajaView() {
     try {
       const data = await api.getTurnoActivo();
       if (data.activo) {
-        setTurno(data.turno);         // ahora incluye desglose
+        setTurno(data.turno);
         setMovimientos(data.movimientos || []);
+        setEfectivoContado('0');         // ← inicia en cero
+        setDiferencia(null);             // la diferencia se calculará al escribir
         setShowCerrarDialog(true);
       } else {
         toast({ title: 'Error', description: 'No hay turno activo', variant: 'destructive' });
@@ -78,26 +82,37 @@ export function CajaView() {
   };
 
   const handleCerrarTurno = async () => {
-    try {
-      const result = await api.cerrarTurno(); // sin argumentos
-      toast({ title: 'Turno cerrado', description: `Saldo final: ${formatCurrency(result.cierre.saldo)}` });
-      setShowCerrarDialog(false);
-      cargarDatos();
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' });
-    }
-  };
+    // Leer el valor directamente del input para evitar inconsistencias de estado
+    const inputElement = document.querySelector('input[placeholder="0.00"]') as HTMLInputElement;
+    const valorEnInput = inputElement ? inputElement.value : efectivoContado;
+    const contado = parseFloat(valorEnInput) || 0;
 
- 
+    console.log('Valor en input:', valorEnInput, ' | contado enviado:', contado);
+
+    try {
+        const result = await api.cerrarTurno({ efectivo_contado: contado });
+        toast({ title: 'Turno cerrado', description: `Saldo final: ${formatCurrency(result.cierre.saldo)}` });
+        setShowCerrarDialog(false);
+        setEfectivoContado('');
+        setDiferencia(null);
+        cargarDatos();
+    } catch (err: any) {
+        toast({ title: 'Error', description: err.message, variant: 'destructive' });
+    }
+};
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount)
+
   const formatDate = (dateString: string) =>
-    new Date(dateString).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+    new Date(dateString).toLocaleDateString('es-MX', {
+      day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    })
 
   if (loading) return <div className="text-center py-12">Cargando...</div>
 
   return (
     <div className="space-y-6">
+      {/* Encabezado y botones principales */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-[#4C3D19]">Caja</h1>
@@ -117,6 +132,7 @@ export function CajaView() {
         </div>
       </div>
 
+      {/* Contenido cuando no hay turno */}
       {!turno ? (
         <Card className="border-[#CFBB99] bg-amber-50">
           <CardContent className="pt-6">
@@ -125,21 +141,47 @@ export function CajaView() {
         </Card>
       ) : (
         <>
+          {/* Tarjetas de resumen */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Card className="border-[#CFBB99]"><CardHeader><CardTitle className="text-sm text-[#889063]">Fondo Inicial</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{formatCurrency(turno.monto_inicial)}</div></CardContent></Card>
-            <Card className="border-green-200 bg-green-50"><CardHeader><CardTitle className="text-sm text-green-700">Ingresos</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-green-700">{formatCurrency(turno.totalIngresos)}</div></CardContent></Card>
-            <Card className="border-red-200 bg-red-50"><CardHeader><CardTitle className="text-sm text-red-700">Egresos</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-red-700">{formatCurrency(turno.totalEgresos)}</div></CardContent></Card>
-            <Card className="border-[#CFBB99]"><CardHeader><CardTitle className="text-sm text-[#889063]">Saldo Actual</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{formatCurrency(turno.saldo)}</div></CardContent></Card>
+            <Card className="border-[#CFBB99]">
+              <CardHeader><CardTitle className="text-sm text-[#889063]">Fondo Inicial</CardTitle></CardHeader>
+              <CardContent><div className="text-2xl font-bold">{formatCurrency(turno.monto_inicial)}</div></CardContent>
+            </Card>
+            <Card className="border-green-200 bg-green-50">
+              <CardHeader><CardTitle className="text-sm text-green-700">Ingresos</CardTitle></CardHeader>
+              <CardContent><div className="text-2xl font-bold text-green-700">{formatCurrency(turno.totalIngresos)}</div></CardContent>
+            </Card>
+            <Card className="border-red-200 bg-red-50">
+              <CardHeader><CardTitle className="text-sm text-red-700">Egresos</CardTitle></CardHeader>
+              <CardContent><div className="text-2xl font-bold text-red-700">{formatCurrency(turno.totalEgresos)}</div></CardContent>
+            </Card>
+            <Card className="border-[#CFBB99]">
+              <CardHeader><CardTitle className="text-sm text-[#889063]">Saldo Actual</CardTitle></CardHeader>
+              <CardContent><div className="text-2xl font-bold">{formatCurrency(turno.saldo)}</div></CardContent>
+            </Card>
           </div>
+
+          {/* Movimientos del turno */}
           <Card className="border-[#CFBB99]">
             <CardHeader><CardTitle className="text-[#4C3D19]">Movimientos del Turno</CardTitle></CardHeader>
             <CardContent>
               <Table>
-                <TableHeader><TableRow><TableHead>Tipo</TableHead><TableHead>Concepto</TableHead><TableHead className="text-right">Monto</TableHead><TableHead>Hora</TableHead></TableRow></TableHeader>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Concepto</TableHead>
+                    <TableHead className="text-right">Monto</TableHead>
+                    <TableHead>Hora</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {movimientos.map((mov: any) => (
                     <TableRow key={mov.id_movimiento_fin}>
-                      <TableCell><span className={mov.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600'}>{mov.tipo}</span></TableCell>
+                      <TableCell>
+                        <span className={mov.tipo === 'ingreso' ? 'text-green-600' : 'text-red-600'}>
+                          {mov.tipo}
+                        </span>
+                      </TableCell>
                       <TableCell>{mov.concepto}</TableCell>
                       <TableCell className="text-right">{formatCurrency(parseFloat(mov.monto))}</TableCell>
                       <TableCell>{formatDate(mov.fecha_hora)}</TableCell>
@@ -152,11 +194,23 @@ export function CajaView() {
         </>
       )}
 
+      {/* Historial de cierres */}
       <Card className="border-[#CFBB99]">
         <CardHeader><CardTitle className="text-[#4C3D19]">Historial de Cierres</CardTitle></CardHeader>
         <CardContent>
           <Table>
-            <TableHeader><TableRow><TableHead>Fecha</TableHead><TableHead>Responsable</TableHead><TableHead className="text-right">Ingresos</TableHead><TableHead className="text-right">Egresos</TableHead><TableHead className="text-right">Saldo</TableHead></TableRow></TableHeader>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Fecha</TableHead>
+                <TableHead>Responsable</TableHead>
+                <TableHead className="text-right">Ingresos</TableHead>
+                <TableHead className="text-right">Egresos</TableHead>
+                <TableHead className="text-right">Saldo</TableHead>
+                <TableHead className="text-right">Ganancia</TableHead>
+                <TableHead className="text-right">Efectivo contado</TableHead>
+                <TableHead className="text-right">Diferencia</TableHead>
+              </TableRow>
+            </TableHeader>
             <TableBody>
               {historial.map((c: any) => (
                 <TableRow key={c.id_cierre}>
@@ -165,6 +219,11 @@ export function CajaView() {
                   <TableCell className="text-right text-green-600">{formatCurrency(c.total_ingresos)}</TableCell>
                   <TableCell className="text-right text-red-600">{formatCurrency(c.total_egresos)}</TableCell>
                   <TableCell className="text-right font-bold">{formatCurrency(c.saldo)}</TableCell>
+                  <TableCell className="text-right font-bold text-green-700">
+                    {formatCurrency(c.total_ingresos - c.total_egresos)}
+                  </TableCell>
+                  <TableCell className="text-right">{c.efectivo_contado != null ? formatCurrency(c.efectivo_contado) : '-'}</TableCell>
+                  <TableCell className="text-right">{c.diferencia != null ? formatCurrency(c.diferencia) : '-'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -175,148 +234,225 @@ export function CajaView() {
       {/* Diálogo abrir turno */}
       <Dialog open={showAbrirDialog} onOpenChange={setShowAbrirDialog}>
         <DialogContent>
-          <DialogHeader><DialogTitle className="text-[#4C3D19]">Abrir Nuevo Turno</DialogTitle><DialogDescription>Monto inicial en caja</DialogDescription></DialogHeader>
-          <div className="space-y-4"><Label>Monto Inicial</Label><Input type="number" value={montoInicial} onChange={(e) => setMontoInicial(e.target.value)} /></div>
-          <DialogFooter><Button variant="outline" onClick={() => setShowAbrirDialog(false)}>Cancelar</Button><Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleAbrirTurno}>Abrir Turno</Button></DialogFooter>
+          <DialogHeader>
+            <DialogTitle className="text-[#4C3D19]">Abrir Nuevo Turno</DialogTitle>
+            <DialogDescription>Monto inicial en caja</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Label>Monto Inicial</Label>
+            <Input
+              type="number"
+              value={montoInicial}
+              onChange={(e) => setMontoInicial(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAbrirDialog(false)}>Cancelar</Button>
+            <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleAbrirTurno}>
+              Abrir Turno
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Diálogo cierre detallado */}
       <Dialog open={showCerrarDialog} onOpenChange={setShowCerrarDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-[#4C3D19]">Cierre de Turno</DialogTitle>
             <DialogDescription className="text-[#889063]">Resumen final del turno</DialogDescription>
           </DialogHeader>
           {turno && (
-            <div className="space-y-4">
-              {/* Resumen de totales */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-green-50 p-3 rounded">
-                  <p className="text-sm text-green-700">Ingresos totales</p>
-                  <p className="text-xl font-bold">{formatCurrency(turno.totalIngresos)}</p>
+            <ScrollArea className="max-h-[65vh] pr-4">
+              <div className="space-y-4">
+                {/* Totales generales */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-green-50 p-3 rounded">
+                    <p className="text-sm text-green-700">Ingresos totales</p>
+                    <p className="text-xl font-bold">{formatCurrency(turno.totalIngresos)}</p>
+                  </div>
+                  <div className="bg-red-50 p-3 rounded">
+                    <p className="text-sm text-red-700">Egresos totales</p>
+                    <p className="text-xl font-bold">{formatCurrency(turno.totalEgresos)}</p>
+                  </div>
                 </div>
-                <div className="bg-red-50 p-3 rounded">
-                  <p className="text-sm text-red-700">Egresos totales</p>
-                  <p className="text-xl font-bold">{formatCurrency(turno.totalEgresos)}</p>
-                </div>
-              </div>
-      
-              {/* Métodos de pago y propinas */}
-              <div className="bg-[#E5D7C4]/30 p-3 rounded">
-                <p className="font-medium text-[#4C3D19] mb-2">Métodos de pago y propinas</p>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Método</TableHead>
-                      <TableHead className="text-right">Total cobrado</TableHead>
-                      <TableHead className="text-right">Propinas</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {['efectivo', 'tarjeta', 'transferencia'].map(metodo => (
-                      <TableRow key={metodo}>
-                        <TableCell className="capitalize">{metodo}</TableCell>
-                        <TableCell className="text-right">
-                          {turno?.desglose ? formatCurrency(turno.desglose[metodo]) : '-'}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {turno?.desglose ? formatCurrency(turno.desglose[`propinas_${metodo}`]) : '-'}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-      
-              {/* Movimientos de caja del turno */}
-              <div className="bg-[#E5D7C4]/30 p-3 rounded">
-                <p className="font-medium text-[#4C3D19] mb-2">Movimientos del turno</p>
-                <ScrollArea className="h-40">
+
+                {/* Métodos de pago y propinas */}
+                <div className="bg-[#E5D7C4]/30 p-3 rounded">
+                  <p className="font-medium text-[#4C3D19] mb-2">Métodos de pago y propinas</p>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead>Concepto</TableHead>
-                        <TableHead className="text-right">Monto</TableHead>
+                        <TableHead>Método</TableHead>
+                        <TableHead className="text-right">Total cobrado</TableHead>
+                        <TableHead className="text-right">Propinas</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {movimientos.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={3} className="text-center text-[#889063]">
-                            No hay movimientos registrados
+                      {['efectivo', 'tarjeta', 'transferencia'].map(metodo => (
+                        <TableRow key={metodo}>
+                          <TableCell className="capitalize">{metodo}</TableCell>
+                          <TableCell className="text-right">
+                            {turno?.desglose ? formatCurrency(turno.desglose[metodo]) : '-'}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {turno?.desglose ? formatCurrency(turno.desglose[`propinas_${metodo}`]) : '-'}
                           </TableCell>
                         </TableRow>
-                      ) : (
-                        movimientos.map((mov: any) => (
-                          <TableRow key={mov.id_movimiento_fin}>
-                            <TableCell>
-                              <span className={mov.tipo === 'ingreso' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
-                                {mov.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'}
-                              </span>
-                            </TableCell>
-                            <TableCell>{mov.concepto}</TableCell>
-                            <TableCell className="text-right">{formatCurrency(parseFloat(mov.monto || '0'))}</TableCell>
-                          </TableRow>
-                        ))
-                      )}
+                      ))}
                     </TableBody>
                   </Table>
-                </ScrollArea>
-              </div>
-      
-              {/* Totales finales */}
-              <div className="bg-[#E5D7C4]/30 p-3 rounded">
+                </div>
+
+                {/* Movimientos del turno */}
+                <div className="bg-[#E5D7C4]/30 p-3 rounded">
+                  <p className="font-medium text-[#4C3D19] mb-2">Movimientos del turno</p>
+                  <div className="max-h-40 overflow-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Tipo</TableHead>
+                          <TableHead>Concepto</TableHead>
+                          <TableHead className="text-right">Monto</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {movimientos.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={3} className="text-center text-[#889063]">No hay movimientos</TableCell>
+                          </TableRow>
+                        ) : (
+                          movimientos.map((mov: any) => (
+                            <TableRow key={mov.id_movimiento_fin}>
+                              <TableCell>
+                                <span className={mov.tipo === 'ingreso' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+                                  {mov.tipo === 'ingreso' ? 'Ingreso' : 'Egreso'}
+                                </span>
+                              </TableCell>
+                              <TableCell>{mov.concepto}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(parseFloat(mov.monto || '0'))}</TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+
+                {/* Arqueo de efectivo */}
                 {(() => {
-                  const manualIngresos = movimientos
-                    .filter((m: any) => m.tipo === 'ingreso' && !m.id_pedido)
-                    .reduce((sum: number, m: any) => sum + parseFloat(m.monto || '0'), 0);
-                  const manualEgresos = movimientos
-                    .filter((m: any) => m.tipo === 'egreso' && !m.id_pedido)
-                    .reduce((sum: number, m: any) => sum + parseFloat(m.monto || '0'), 0);
+                  const egresosEfectivo = movimientos
+                    .filter(m => m.tipo === 'egreso')
+                    .reduce((sum, m) => sum + parseFloat(m.monto || '0'), 0)
+                  const cobrosEfectivo = turno.desglose?.efectivo || 0
+                  const propinasTotales =
+                    (turno.desglose?.propinas_efectivo || 0) +
+                    (turno.desglose?.propinas_tarjeta || 0) +
+                    (turno.desglose?.propinas_transferencia || 0)
+                  const efectivoEsperado =
+                    parseFloat(turno.monto_inicial) + cobrosEfectivo - egresosEfectivo - propinasTotales
                   return (
-                    <>
-                      <div className="flex justify-between text-sm text-[#4C3D19] mb-1">
-                        <span>Saldo total del turno:</span>
-                        <span className="font-medium">{formatCurrency(turno.saldo)}</span>
+                    <div className="bg-white p-3 rounded border border-[#CFBB99]">
+                      <p className="font-medium text-[#4C3D19] mb-2">Arqueo de efectivo</p>
+                      <div className="text-sm space-y-2">
+                        <div className="flex justify-between">
+                          <span>Fondo inicial:</span>
+                          <span className="font-medium">{formatCurrency(turno.monto_inicial)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Cobros en efectivo:</span>
+                          <span className="font-medium text-green-600">+{formatCurrency(cobrosEfectivo)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Egresos en efectivo:</span>
+                          <span className="font-medium text-red-600">-{formatCurrency(egresosEfectivo)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Propinas a entregar (todas):</span>
+                          <span className="font-medium text-amber-700">-{formatCurrency(propinasTotales)}</span>
+                        </div>
+                        <div className="border-t border-[#CFBB99] pt-2 flex justify-between font-semibold">
+                          <span>Efectivo esperado en caja:</span>
+                          <span className="text-[#4C3D19]">{formatCurrency(efectivoEsperado)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 pt-2">
+                          <Label className="text-[#4C3D19] whitespace-nowrap">Efectivo contado:</Label>
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={efectivoContado}
+                            onChange={(e) => {
+                              setEfectivoContado(e.target.value)
+                              const val = parseFloat(e.target.value)
+                              if (!isNaN(val)) {
+                                setDiferencia(val - efectivoEsperado)
+                              } else {
+                                setDiferencia(null)
+                              }
+                            }}
+                            className="w-36 border-[#CFBB99]"
+                            placeholder="0.00"
+                          />
+                        </div>
+                        {diferencia !== null && (
+                          <div className={`flex justify-between font-semibold ${diferencia === 0 ? 'text-green-700' : diferencia > 0 ? 'text-blue-700' : 'text-red-700'}`}>
+                            <span>Diferencia:</span>
+                            <span>{diferencia === 0 ? 'Cuadre perfecto' : formatCurrency(diferencia)}</span>
+                          </div>
+                        )}
                       </div>
-                      {turno.desglose && (
-                        <div className="flex justify-between text-sm text-[#4C3D19] mb-1">
-                          <span>Propinas a entregar al personal:</span>
-                          <span className="font-medium text-amber-700">
-                            {formatCurrency(
-                              (turno.desglose.propinas_efectivo || 0) +
-                              (turno.desglose.propinas_tarjeta || 0) +
-                              (turno.desglose.propinas_transferencia || 0)
-                            )}
-                          </span>
-                        </div>
-                      )}
-                      
-                      {manualEgresos > 0 && (
-                        <div className="flex justify-between text-sm text-[#4C3D19] mb-1">
-                          <span>Egresos del turno:</span>
-                          <span className="font-medium text-red-600">{formatCurrency(manualEgresos)}</span>
-                        </div>
-                      )}
-                      <div className="border-t border-[#CFBB99] mt-2 pt-2 flex justify-between text-lg font-bold text-[#4C3D19]">
-                        <span>Saldo neto del negocio</span>
-                        <span className="text-green-700">
+                      <p className="text-xs text-[#889063] mt-2">
+                        Recuerde separar el fondo inicial ({formatCurrency(turno.monto_inicial)}) para el próximo turno.
+                      </p>
+                    </div>
+                  )
+                })()}
+
+                {/* Totales finales */}
+                <div className="bg-[#E5D7C4]/30 p-3 rounded">
+                  <div className="text-sm space-y-1">
+                    <div className="flex justify-between">
+                      <span>Saldo del sistema (incluye fondo):</span>
+                      <span className="font-medium">{formatCurrency(turno.saldo)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Menos fondo inicial:</span>
+                      <span className="font-medium">-{formatCurrency(turno.monto_inicial)}</span>
+                    </div>
+                    <div className="border-t border-[#CFBB99] pt-2 mt-2 flex justify-between font-bold text-[#4C3D19]">
+                      <span>Ganancia bruta del turno:</span>
+                      <span className="text-green-700">{formatCurrency(turno.totalIngresos - turno.totalEgresos)}</span>
+                    </div>
+                    {turno.desglose && (
+                      <div className="flex justify-between text-sm mt-2">
+                        <span>Propinas a entregar:</span>
+                        <span className="font-medium text-amber-700">
                           {formatCurrency(
-                            turno.saldo -
-                            ((turno.desglose?.propinas_efectivo || 0) +
-                             (turno.desglose?.propinas_tarjeta || 0) +
-                             (turno.desglose?.propinas_transferencia || 0) +
-                             manualEgresos) 
+                            (turno.desglose.propinas_efectivo || 0) +
+                            (turno.desglose.propinas_tarjeta || 0) +
+                            (turno.desglose.propinas_transferencia || 0)
                           )}
                         </span>
                       </div>
-                    </>
-                  );
-                })()}
+                    )}
+                    <div className="border-t border-[#CFBB99] pt-2 mt-2 flex justify-between font-bold text-[#4C3D19]">
+                      <span>Ganancia neta (después de propinas):</span>
+                      <span className="text-green-700">
+                        {formatCurrency(
+                          turno.totalIngresos - turno.totalEgresos -
+                          ((turno.desglose?.propinas_efectivo || 0) +
+                           (turno.desglose?.propinas_tarjeta || 0) +
+                           (turno.desglose?.propinas_transferencia || 0))
+                        )}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-[#889063] mt-2">
+                    * El fondo inicial se retira al finalizar el turno y no se considera ganancia.
+                  </p>
+                </div>
               </div>
-            </div>
+            </ScrollArea>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowCerrarDialog(false)}>Cancelar</Button>
@@ -329,4 +465,3 @@ export function CajaView() {
     </div>
   )
 }
-

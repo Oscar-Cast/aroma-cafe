@@ -194,43 +194,50 @@ export function CajaView() {
         </>
       )}
 
-      {/* Historial de cierres */}
-      <Card className="border-[#CFBB99]">
-        <CardHeader><CardTitle className="text-[#4C3D19]">Historial de Cierres</CardTitle></CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Responsable</TableHead>
-                <TableHead className="text-right">Ingresos</TableHead>
-                <TableHead className="text-right">Egresos</TableHead>
-                <TableHead className="text-right">Saldo</TableHead>
-                <TableHead className="text-right">Ganancia</TableHead>
-                <TableHead className="text-right">Efectivo contado</TableHead>
-                <TableHead className="text-right">Diferencia</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {historial.map((c: any) => (
-                <TableRow key={c.id_cierre}>
-                  <TableCell>{formatDate(c.fecha_cierre)}</TableCell>
-                  <TableCell>{c.nombre_usuario}</TableCell>
-                  <TableCell className="text-right text-green-600">{formatCurrency(c.total_ingresos)}</TableCell>
-                  <TableCell className="text-right text-red-600">{formatCurrency(c.total_egresos)}</TableCell>
-                  <TableCell className="text-right font-bold">{formatCurrency(c.saldo)}</TableCell>
-                  <TableCell className="text-right font-bold text-green-700">
-                    {formatCurrency(c.total_ingresos - c.total_egresos)}
-                  </TableCell>
-                  <TableCell className="text-right">{c.efectivo_contado != null ? formatCurrency(c.efectivo_contado) : '-'}</TableCell>
-                  <TableCell className="text-right">{c.diferencia != null ? formatCurrency(c.diferencia) : '-'}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
+      {/* Métodos de pago y propinas en tiempo real */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-[#CFBB99]">
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-[#889063]">Efectivo</CardTitle></CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold text-green-700">
+              {turno?.desglose ? formatCurrency(turno.desglose.efectivo) : '$0.00'}
+            </div>
+            <p className="text-xs text-[#889063]">Propinas: {turno?.desglose ? formatCurrency(turno.desglose.propinas_efectivo) : '$0.00'}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-[#CFBB99]">
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-[#889063]">Tarjeta</CardTitle></CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold text-blue-600">
+              {turno?.desglose ? formatCurrency(turno.desglose.tarjeta) : '$0.00'}
+            </div>
+            <p className="text-xs text-[#889063]">Propinas: {turno?.desglose ? formatCurrency(turno.desglose.propinas_tarjeta) : '$0.00'}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-[#CFBB99]">
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-[#889063]">Transferencia</CardTitle></CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold text-purple-600">
+              {turno?.desglose ? formatCurrency(turno.desglose.transferencia) : '$0.00'}
+            </div>
+            <p className="text-xs text-[#889063]">Propinas: {turno?.desglose ? formatCurrency(turno.desglose.propinas_transferencia) : '$0.00'}</p>
+          </CardContent>
+        </Card>
+        <Card className="border-amber-200 bg-amber-50">
+          <CardHeader className="pb-2"><CardTitle className="text-sm text-amber-700">Propinas totales</CardTitle></CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold text-amber-700">
+              {turno?.desglose
+                ? formatCurrency(
+                    turno.desglose.propinas_efectivo +
+                    turno.desglose.propinas_tarjeta +
+                    turno.desglose.propinas_transferencia
+                  )
+                : '$0.00'}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       {/* Diálogo abrir turno */}
       <Dialog open={showAbrirDialog} onOpenChange={setShowAbrirDialog}>
         <DialogContent>

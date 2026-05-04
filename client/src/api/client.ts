@@ -87,7 +87,8 @@ export const api = {
   // Caja / Turnos
     getTurnoActivo: () => request<any>('/caja/turno'),
     abrirTurno: (data: { monto_inicial: number }) => request('/caja/abrir', { method: 'POST', body: JSON.stringify(data) }),
-    cerrarTurno: () => request('/caja/cerrar', { method: 'POST' }),
+    cerrarTurno: (data?: { efectivo_contado?: number }) =>
+        request('/caja/cerrar', { method: 'POST', body: JSON.stringify(data) }),
     getHistorialCierres: () => request<any[]>('/caja/historial'),
 
   // Mermas

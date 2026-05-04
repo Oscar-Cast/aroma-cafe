@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import pool from '../config/database.js';
 
-// Obtener el turno activo (con resumen de ingresos/egresos del día)
+// Obtener el turno activo (con resumen y desglose)
 export const getTurnoActivo = async (req: Request, res: Response) => {
     try {
         const turnoResult = await pool.query(
@@ -20,7 +20,7 @@ export const getTurnoActivo = async (req: Request, res: Response) => {
 
         // Movimientos financieros del turno
         const movimientos = await pool.query(
-            `SELECT id_movimiento_fin, tipo, monto, concepto, fecha_hora, id_pedido
+            `SELECT id_movimiento_fin, tipo, monto, concepto, fecha_hora
              FROM movimientos_financieros
              WHERE id_turno = $1
              ORDER BY fecha_hora DESC`,
@@ -36,7 +36,7 @@ export const getTurnoActivo = async (req: Request, res: Response) => {
             .reduce((sum: number, m: any) => sum + parseFloat(m.monto), 0);
         const saldo = parseFloat(turno.monto_inicial) + totalIngresos - totalEgresos;
 
-        // Desglose por método de pago y propinas
+        // Desglose por método de pago y propinas (cuentas cerradas en el turno)
         const desgloseQuery = await pool.query(`
             SELECT 
                 c.metodo_pago,
@@ -68,26 +68,9 @@ export const getTurnoActivo = async (req: Request, res: Response) => {
             }
         });
 
-        // Movimientos manuales (sin id_pedido) para calcular efectivo
-        const ingresosManuales = movimientos.rows
-            .filter(m => m.tipo === 'ingreso' && !m.id_pedido)
-            .reduce((sum, m) => sum + parseFloat(m.monto), 0);
-        const egresosManuales = movimientos.rows
-            .filter(m => m.tipo === 'egreso' && !m.id_pedido)
-            .reduce((sum, m) => sum + parseFloat(m.monto), 0);
-
-        const efectivoEsperado = parseFloat(turno.monto_inicial) + desglose.efectivo + ingresosManuales - egresosManuales;
-
         res.json({
             activo: true,
-            turno: {
-                ...turno,
-                totalIngresos,
-                totalEgresos,
-                saldo,
-                desglose,
-                efectivo_esperado: efectivoEsperado,
-            },
+            turno: { ...turno, totalIngresos, totalEgresos, saldo, desglose },
             movimientos: movimientos.rows,
         });
     } catch (error) {
@@ -105,7 +88,6 @@ export const abrirTurno = async (req: Request, res: Response) => {
         return res.status(400).json({ message: 'Monto inicial requerido y debe ser >= 0' });
     }
 
-    // Verificar que no haya un turno abierto
     const turnoAbierto = await pool.query(
         `SELECT id_turno FROM turnos_caja WHERE estado = 'abierto' LIMIT 1`
     );
@@ -126,18 +108,19 @@ export const abrirTurno = async (req: Request, res: Response) => {
     }
 };
 
-// Cerrar turno
+// Cerrar turno (con cálculo de arqueo)
 export const cerrarTurno = async (req: Request, res: Response) => {
     const id_usuario = (req as any).user.id_usuario;
-    const { efectivo_contado } = req.body;   // puede ser undefined si el campo quedó vacío
+    const { efectivo_contado } = req.body;
 
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
 
-        // 1. Obtener turno activo
+        // Obtener turno activo
         const turnoResult = await client.query(
-            `SELECT id_turno, monto_inicial, fecha_apertura FROM turnos_caja WHERE estado = 'abierto' LIMIT 1 FOR UPDATE`
+            `SELECT id_turno, monto_inicial, fecha_apertura FROM turnos_caja
+             WHERE estado = 'abierto' LIMIT 1 FOR UPDATE`
         );
         if (turnoResult.rowCount === 0) {
             await client.query('ROLLBACK');
@@ -145,7 +128,7 @@ export const cerrarTurno = async (req: Request, res: Response) => {
         }
         const turno = turnoResult.rows[0];
 
-        // 2. Totales de movimientos financieros del turno (ingresos / egresos)
+        // Totales de movimientos financieros del turno
         const movs = await client.query(
             `SELECT tipo, SUM(monto) AS total FROM movimientos_financieros
              WHERE id_turno = $1 GROUP BY tipo`,
@@ -155,16 +138,15 @@ export const cerrarTurno = async (req: Request, res: Response) => {
         const totalEgresos = parseFloat(movs.rows.find((r: any) => r.tipo === 'egreso')?.total || '0');
         const saldo = parseFloat(turno.monto_inicial) + totalIngresos - totalEgresos;
 
-        // 3. Desglose por método de pago y propinas (de cuentas cerradas en el período del turno)
+        // Desglose de cuentas cerradas en el turno (filtrar por fecha de cierre)
         const desgloseQuery = await client.query(`
-            SELECT 
-                c.metodo_pago,
-                SUM(c.total) AS total_metodo,
-                SUM(c.propina) AS total_propina
+            SELECT c.metodo_pago,
+                   SUM(c.total) AS total_metodo,
+                   SUM(c.propina) AS total_propina
             FROM cuentas c
             WHERE c.pagado = TRUE
-                AND c.fecha_cierre >= $1
-                AND c.fecha_cierre <= CURRENT_TIMESTAMP
+              AND c.fecha_cierre >= $1
+              AND c.fecha_cierre <= CURRENT_TIMESTAMP
             GROUP BY c.metodo_pago
         `, [turno.fecha_apertura]);
 
@@ -175,27 +157,22 @@ export const cerrarTurno = async (req: Request, res: Response) => {
         const propinasTarjeta = parseFloat(desgloseQuery.rows.find((r: any) => r.metodo_pago === 'tarjeta')?.total_propina || '0');
         const propinasTransferencia = parseFloat(desgloseQuery.rows.find((r: any) => r.metodo_pago === 'transferencia')?.total_propina || '0');
 
-        // 4. Efectivo esperado en caja (base para el arqueo)
-        //    = fondo inicial + cobros en efectivo - egresos en efectivo - total de propinas
+        // Efectivo esperado en caja
         const egresosEfectivo = movs.rows
             .filter((r: any) => r.tipo === 'egreso')
             .reduce((sum: number, r: any) => sum + parseFloat(r.total), 0);
         const propinasTotales = propinasEfectivo + propinasTarjeta + propinasTransferencia;
         const efectivoEsperado = parseFloat(turno.monto_inicial) + detalleEfectivo - egresosEfectivo - propinasTotales;
 
+        // Efectivo contado y diferencia
         const efectivoContado = parseFloat(efectivo_contado) || 0;
         const diferencia = efectivoContado - efectivoEsperado;
 
-        if (efectivo_contado !== undefined && efectivo_contado !== null) {
-            efectivoContado = parseFloat(efectivo_contado);
-            diferencia = efectivoContado - efectivoEsperado;
-        }
-
-        // 6. Cerrar turno y guardar cierre
+        // Cerrar turno y guardar cierre
         await client.query(`UPDATE turnos_caja SET estado = 'cerrado' WHERE id_turno = $1`, [turno.id_turno]);
 
         await client.query(
-            `INSERT INTO cierre_caja 
+            `INSERT INTO cierre_caja
                 (id_turno, total_ingresos, total_egresos, saldo, detalle_efectivo, detalle_tarjeta, detalle_transferencia,
                  propinas_efectivo, propinas_tarjeta, propinas_transferencia, efectivo_contado, diferencia, id_usuario)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
@@ -204,7 +181,6 @@ export const cerrarTurno = async (req: Request, res: Response) => {
         );
 
         await client.query('COMMIT');
-
         res.json({
             message: 'Turno cerrado correctamente',
             cierre: {
@@ -225,7 +201,7 @@ export const cerrarTurno = async (req: Request, res: Response) => {
     }
 };
 
-// Historial de cierres 
+// Historial de cierres (con filtro de fechas opcional)
 export const getHistorialCierres = async (req: Request, res: Response) => {
     try {
         const { inicio, fin } = req.query;

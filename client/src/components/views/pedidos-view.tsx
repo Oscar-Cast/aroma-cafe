@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import { api } from '@/api/client'
-import { Pedido, Producto, DetallePedido, OrderStatus } from '@/lib/types'
+import { Pedido, Producto, OrderStatus } from '@/lib/types'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -24,43 +25,30 @@ export function PedidosView() {
   const [loading, setLoading] = useState(true)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [selectedMesa, setSelectedMesa] = useState('')
+  const [mesas, setMesas] = useState<string[]>([])
   const [carrito, setCarrito] = useState<{ producto: Producto; cantidad: number }[]>([])
+  const [notas, setNotas] = useState('')
   const [activeTab, setActiveTab] = useState('todos')
-  const [mesas, setMesas] = useState<string[]>([]);
-  
+
   const cargarDatos = async () => {
     try {
-      const [pedidosData, productosData] = await Promise.all([api.getPedidos(), api.getProductos()])
-      setPedidos(pedidosData)
-      setProductos(productosData.filter((p: Producto) => p.disponible === 'activo'))
+      const [pedidosData, productosData, mesasData] = await Promise.all([
+        api.getPedidos(),
+        api.getProductos(),
+        api.getMesas()
+      ]);
+      setPedidos(pedidosData);
+      setProductos(productosData.filter((p: Producto) => p.disponible === 'activo'));
+      setMesas(mesasData.map((m: any) => m.numero_mesa));
     } catch (error) {
-      toast({ title: 'Error', description: 'No se pudieron cargar los datos', variant: 'destructive' })
+      toast({ title: 'Error', description: 'No se pudieron cargar los datos', variant: 'destructive' });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        const [pedidosData, productosData, mesasData] = await Promise.all([
-          api.getPedidos(),
-          api.getProductos(),
-          api.getMesas()
-        ]);
-        setPedidos(pedidosData);
-        setProductos(productosData.filter((p) => p.disponible === 'activo'));
-        setMesas(mesasData.map((m: any) => m.numero_mesa));
-      } catch (error) {
-        toast({ title: 'Error', description: 'No se pudieron cargar los datos', variant: 'destructive' });
-      } finally {
-        setLoading(false);
-      }
-    };
-    cargarDatos();
-  }, []);
+  useEffect(() => { cargarDatos() }, [])
 
-  
   const agregarAlCarrito = (producto: Producto) => {
     setCarrito(prev => {
       const existente = prev.find(item => item.producto.id_producto === producto.id_producto)
@@ -87,18 +75,20 @@ export function PedidosView() {
       return
     }
     try {
-      await api.createPedido({
+      const result = await api.createPedido({
         mesa: selectedMesa,
         productos: carrito.map(item => ({
           id_producto: item.producto.id_producto,
           cantidad: item.cantidad,
           precio_unitario: item.producto.precio,
         })),
+        notas: notas
       })
-      toast({ title: 'Pedido creado' })
+      toast({ title: `Pedido #${result.numero_pedido ?? result.id_pedido} creado` })
       cargarDatos()
       setCarrito([])
       setSelectedMesa('')
+      setNotas('')
       setIsCreateDialogOpen(false)
     } catch (error) {
       toast({ title: 'Error', description: 'No se pudo registrar el pedido', variant: 'destructive' })
@@ -135,7 +125,11 @@ export function PedidosView() {
   const formatCurrency = (amount: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount)
 
   const categorias = [...new Set(productos.map(p => p.categoria))]
-  const filteredPedidos = pedidos.filter(p => activeTab === 'todos' ? true : p.estado === activeTab)
+
+  const filteredPedidos = pedidos.filter(p => {
+    if (activeTab === 'todos') return true
+    return p.estado === activeTab
+  })
 
   if (loading) return <div className="text-center py-12">Cargando pedidos...</div>
 
@@ -198,6 +192,10 @@ export function PedidosView() {
                 </div>
               </div>
             </div>
+            <div className="space-y-2 mt-2">
+              <Label className="text-[#4C3D19]">Notas / Modificaciones</Label>
+              <Textarea placeholder="Ej: Leche deslactosada, sin azúcar..." value={notas} onChange={(e) => setNotas(e.target.value)} />
+            </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancelar</Button>
               <Button className="bg-[#4C3D19]" onClick={crearPedido} disabled={carrito.length === 0 || !selectedMesa}>Crear Pedido</Button>
@@ -220,7 +218,9 @@ export function PedidosView() {
               <Card key={pedido.id_pedido} className="border-[#CFBB99]">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">{getStatusIcon(pedido.estado)} #{pedido.id_pedido}</CardTitle>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      {getStatusIcon(pedido.estado)} Pedido #{pedido.numero_pedido ?? pedido.id_pedido}
+                    </CardTitle>
                     {getStatusBadge(pedido.estado)}
                   </div>
                   <CardDescription>{pedido.mesa} • {formatTime(pedido.hora_registro)}</CardDescription>
@@ -228,9 +228,13 @@ export function PedidosView() {
                 <CardContent>
                   <div className="space-y-2">
                     {pedido.detalles?.map(d => (
-                      <div key={d.id_detalle} className="flex justify-between text-sm"><span>{d.cantidad}x {d.nombre_producto}</span><span>{formatCurrency(d.subtotal)}</span></div>
+                      <div key={d.id_detalle} className="flex justify-between text-sm">
+                        <span>{d.cantidad}x {d.nombre_producto}</span>
+                        <span>{formatCurrency(d.subtotal)}</span>
+                      </div>
                     ))}
                   </div>
+                  {pedido.notas && <div className="mt-2 p-2 bg-[#E5D7C4]/50 rounded text-sm text-[#4C3D19]">📝 {pedido.notas}</div>}
                   <div className="border-t pt-3 flex justify-between font-semibold"><span>Total</span><span>{formatCurrency(pedido.monto_total)}</span></div>
                   {pedido.estado === 'listo' && (user?.rol === 'cajero' || user?.rol === 'mesero' || user?.rol === 'administrador') && (
                     <Button className="w-full mt-2 bg-[#4C3D19]" onClick={() => cambiarEstadoPedido(pedido.id_pedido, 'entregado')}>Entregar</Button>

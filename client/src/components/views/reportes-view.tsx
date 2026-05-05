@@ -13,6 +13,7 @@ export function ReportesView() {
   const { toast } = useToast()
   const [datos, setDatos] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [cierres, setCierres] = useState<any[]>([])
   const [periodo, setPeriodo] = useState('7d')
   const [desde, setDesde] = useState('')
   const [hasta, setHasta] = useState('')
@@ -22,8 +23,9 @@ export function ReportesView() {
     try {
       let inicio = '', fin = ''
       const hoy = new Date().toISOString().split('T')[0]
-      if (periodo === 'today') { inicio = hoy; fin = hoy }
-      else if (periodo === '7d') {
+      if (periodo === 'today') {
+        inicio = hoy; fin = hoy
+      } else if (periodo === '7d') {
         const h = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
         inicio = h.toISOString().split('T')[0]; fin = hoy
       } else if (periodo === '30d') {
@@ -37,12 +39,25 @@ export function ReportesView() {
       }
 
       const token = localStorage.getItem('token')
-      const response = await fetch(`/api/reportes/resumen?inicio=${inicio}&fin=${fin}`, {
+
+      // Resumen de ventas
+      const respResumen = await fetch(`/api/reportes/resumen?inicio=${inicio}&fin=${fin}`, {
         headers: { Authorization: `Bearer ${token}` }
       })
-      if (!response.ok) throw new Error('Error al cargar reporte')
-      const data = await response.json()
-      setDatos(data)
+      if (!respResumen.ok) throw new Error('Error al cargar reporte de ventas')
+      const dataVentas = await respResumen.json()
+      setDatos(dataVentas)
+
+      // Cierres de caja del período
+      const respCierres = await fetch(`/api/caja/historial?inicio=${inicio}&fin=${fin}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      if (respCierres.ok) {
+        const dataCierres = await respCierres.json()
+        setCierres(dataCierres)
+      } else {
+        setCierres([])
+      }
     } catch (error) {
       toast({ title: 'Error', description: 'No se pudieron cargar los reportes', variant: 'destructive' })
     } finally {
@@ -52,20 +67,92 @@ export function ReportesView() {
 
   useEffect(() => { cargarReportes() }, [periodo, desde, hasta])
 
-  const formatCurrency = (amount: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount)
-  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount)
 
-  // PDF: ventana emergente con estilo profesional
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })
+
+  // ─── EXPORTACIÓN A XML ─────────────────────────────────────────
+  const exportarXML = () => {
+    if (!datos) return
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<reporte>\n';
+    xml += `  <periodo inicio="${datos.periodo.inicio}" fin="${datos.periodo.fin}"/>\n`;
+    xml += `  <totales>\n    <ingresos>${datos.totalIngresos}</ingresos>\n    <egresos>${datos.totalEgresos}</egresos>\n    <saldo_neto>${datos.saldoNeto}</saldo_neto>\n    <ticket_promedio>${datos.ticketPromedio}</ticket_promedio>\n  </totales>\n`;
+    xml += '  <ventas_diarias>\n'; datos.ventasDiarias.forEach((v:any) => xml += `    <dia fecha="${v.fecha}" total="${v.total}"/>\n`); xml += '  </ventas_diarias>\n';
+    xml += '  <productos>\n'; datos.productosVendidos.forEach((p:any) => xml += `    <producto nombre="${p.nombre_producto}" categoria="${p.categoria}" cantidad="${p.cantidad_vendida}" total="${p.total_vendido}"/>\n`); xml += '  </productos>\n';
+    xml += '  <metodos_pago>\n'; datos.metodosPago.forEach((m:any) => xml += `    <metodo nombre="${m.metodo_pago}" total="${m.total}"/>\n`); xml += '  </metodos_pago>\n';
+    xml += '  <egresos>\n'; datos.egresosDetalle.forEach((e:any) => xml += `    <egreso concepto="${e.concepto}" total="${e.total}"/>\n`); xml += '  </egresos>\n';
+
+    // Cierres de turno
+    xml += '  <cierres_turno>\n';
+    if (Array.isArray(cierres)) {
+      cierres.forEach((c: any) => {
+        const responsable = c?.nombre_usuario || '';
+        const fechaApertura = c?.fecha_apertura || '';
+        const fechaCierre = c?.fecha_cierre || '';
+        const fondoInicial = c?.monto_inicial ?? 0;
+        const ingresos = c?.total_ingresos ?? 0;
+        const egresos = c?.total_egresos ?? 0;
+        const saldo = c?.saldo ?? 0;
+        const ganancia = ingresos - egresos;
+        const contado = c?.efectivo_contado;
+        const diferencia = c?.diferencia;
+
+        xml += '    <turno>\n';
+        xml += `      <fecha_apertura>${fechaApertura}</fecha_apertura>\n`;
+        xml += `      <fecha_cierre>${fechaCierre}</fecha_cierre>\n`;
+        xml += `      <responsable>${responsable}</responsable>\n`;
+        xml += `      <fondo_inicial>${fondoInicial}</fondo_inicial>\n`;
+        xml += `      <totales>\n        <ingresos>${ingresos}</ingresos>\n        <egresos>${egresos}</egresos>\n        <saldo>${saldo}</saldo>\n        <ganancia>${ganancia}</ganancia>\n      </totales>\n`;
+        if (contado != null) {
+          xml += `      <arqueo>\n        <efectivo_contado>${contado}</efectivo_contado>\n        <diferencia>${diferencia}</diferencia>\n      </arqueo>\n`;
+        }
+        xml += '    </turno>\n';
+      });
+    }
+    xml += '  </cierres_turno>\n';
+    xml += '</reporte>';
+
+    const blob = new Blob([xml], { type: 'application/xml' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `reporte_${datos.periodo.inicio}_${datos.periodo.fin}.xml`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  };
+
+  // ─── EXPORTACIÓN A PDF (IMPRESIÓN) ─────────────────────────────
   const exportarPDF = () => {
     if (!datos) return
     const ventana = window.open('', '_blank')
     if (!ventana) return
 
+    const fDate = (f: string) =>
+      new Date(f).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric' })
+
+    let filasCierres = ''
+    cierres.forEach((c: any) => {
+      const ganancia = c.total_ingresos - c.total_egresos
+      filasCierres += `<tr>
+        <td>${fDate(c.fecha_apertura)}<br><small>${new Date(c.fecha_apertura).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })} - ${new Date(c.fecha_cierre).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })}</small></td>
+        <td>${c.nombre_usuario}</td>
+        <td>${formatCurrency(c.monto_inicial)}</td>
+        <td>${formatCurrency(c.total_ingresos)}</td>
+        <td>${formatCurrency(c.total_egresos)}</td>
+        <td>${formatCurrency(c.saldo)}</td>
+        <td>${formatCurrency(ganancia)}</td>
+        <td>${c.efectivo_contado != null ? formatCurrency(c.efectivo_contado) : '-'}</td>
+        <td>${c.diferencia != null ? formatCurrency(c.diferencia) : '-'}</td>
+      </tr>`
+    })
+
     const html = `<!DOCTYPE html><html><head><title>Reporte Aroma Café</title>
       <style>
         body { font-family: Arial, sans-serif; margin: 40px; }
         h1 { color: #4C3D19; border-bottom: 2px solid #CFBB99; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        h2 { color: #4C3D19; margin-top: 30px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
         th, td { border: 1px solid #CFBB99; padding: 8px; text-align: left; }
         th { background: #4C3D19; color: white; }
         .totales { display: flex; gap: 20px; margin: 20px 0; }
@@ -81,7 +168,7 @@ export function ReportesView() {
       </div>
       <h2>Ventas por día</h2>
       <table><tr><th>Día</th><th>Total</th></tr>
-        ${datos.ventasDiarias.map((v:any) => `<tr><td>${v.fecha}</td><td>${formatCurrency(v.total)}</td></tr>`).join('')}
+        ${datos.ventasDiarias.map((v:any) => `<tr><td>${fDate(v.fecha)}</td><td>${formatCurrency(v.total)}</td></tr>`).join('')}
       </table>
       <h2>Productos vendidos</h2>
       <table><tr><th>Producto</th><th>Cantidad</th><th>Total</th></tr>
@@ -95,36 +182,26 @@ export function ReportesView() {
       <table><tr><th>Método</th><th>Total</th></tr>
         ${datos.metodosPago.map((m:any) => `<tr><td>${m.metodo_pago}</td><td>${formatCurrency(m.total)}</td></tr>`).join('')}
       </table>
-    </body></html>`;
-    
-    ventana.document.write(html);
-    ventana.document.close();
-    ventana.onload = () => ventana.print();
-  };
+      <h2>Cierres de turno</h2>
+      <table>
+        <tr><th>Fecha</th><th>Responsable</th><th>Fondo inicial</th><th>Ingresos</th><th>Egresos</th><th>Saldo</th><th>Ganancia</th><th>Efectivo contado</th><th>Diferencia</th></tr>
+        ${filasCierres}
+      </table>
+    </body></html>`
 
-  // XML enriquecido
-  const exportarXML = () => {
-    if (!datos) return
-    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<reporte>\n';
-    xml += `  <periodo inicio="${datos.periodo.inicio}" fin="${datos.periodo.fin}"/>\n`;
-    xml += `  <totales>\n    <ingresos>${datos.totalIngresos}</ingresos>\n    <egresos>${datos.totalEgresos}</egresos>\n    <saldo_neto>${datos.saldoNeto}</saldo_neto>\n    <ticket_promedio>${datos.ticketPromedio}</ticket_promedio>\n  </totales>\n`;
-    xml += '  <ventas_diarias>\n'; datos.ventasDiarias.forEach((v:any) => xml += `    <dia fecha="${v.fecha}" total="${v.total}"/>\n`); xml += '  </ventas_diarias>\n';
-    xml += '  <productos>\n'; datos.productosVendidos.forEach((p:any) => xml += `    <producto nombre="${p.nombre_producto}" categoria="${p.categoria}" cantidad="${p.cantidad_vendida}" total="${p.total_vendido}"/>\n`); xml += '  </productos>\n';
-    xml += '  <metodos_pago>\n'; datos.metodosPago.forEach((m:any) => xml += `    <metodo nombre="${m.metodo_pago}" total="${m.total}"/>\n`); xml += '  </metodos_pago>\n';
-    xml += '  <egresos>\n'; datos.egresosDetalle.forEach((e:any) => xml += `    <egreso concepto="${e.concepto}" total="${e.total}"/>\n`); xml += '  </egresos>\n';
-    xml += '</reporte>';
-    
-    const blob = new Blob([xml], { type: 'application/xml' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `reporte_${datos.periodo.inicio}_${datos.periodo.fin}.xml`;
-    a.click();
-  };
+    ventana.document.write(html)
+    ventana.document.close()
+    ventana.onload = () => ventana.print()
+  }
 
+  // ─── RENDER ─────────────────────────────────────────────────────
   if (loading) return <div className="text-center py-12 text-[#889063]">Cargando reportes...</div>
   if (!datos) return <div className="text-center py-12">No hay datos disponibles</div>
 
-  const ventasData = datos.ventasDiarias.map((v: any) => ({ fecha: formatDate(v.fecha), total: parseFloat(v.total) }))
+  const ventasData = datos.ventasDiarias.map((v: any) => ({
+    fecha: formatDate(v.fecha),
+    total: parseFloat(v.total)
+  }))
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
@@ -154,7 +231,7 @@ export function ReportesView() {
         </div>
       )}
 
-      {/* Tarjetas */}
+      {/* Tarjetas de totales */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border-l-4 border-green-500 bg-white"><CardHeader className="pb-2"><CardTitle className="text-sm text-green-700">Ingresos</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-green-800">{formatCurrency(datos.totalIngresos)}</div></CardContent></Card>
         <Card className="border-l-4 border-red-500 bg-white"><CardHeader className="pb-2"><CardTitle className="text-sm text-red-700">Egresos</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-red-800">{formatCurrency(datos.totalEgresos)}</div></CardContent></Card>
@@ -168,8 +245,16 @@ export function ReportesView() {
           <CardHeader><CardTitle className="text-lg text-[#4C3D19] flex items-center gap-2"><BarChart3 className="w-5 h-5" /> Ventas por día</CardTitle></CardHeader>
           <CardContent>
             <ScrollArea className="h-72">
-              <Table><TableHeader><TableRow><TableHead>Día</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
-                <TableBody>{ventasData.map((v:any) => <TableRow key={v.fecha}><TableCell>{v.fecha}</TableCell><TableCell className="text-right font-medium">{formatCurrency(v.total)}</TableCell></TableRow>)}</TableBody>
+              <Table>
+                <TableHeader><TableRow><TableHead>Día</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {ventasData.map((v:any) => (
+                    <TableRow key={v.fecha}>
+                      <TableCell>{v.fecha}</TableCell>
+                      <TableCell className="text-right font-medium">{formatCurrency(v.total)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
               </Table>
             </ScrollArea>
           </CardContent>
@@ -194,13 +279,22 @@ export function ReportesView() {
 
       {/* Productos vendidos */}
       <Card className="border-[#CFBB99] bg-white">
-        <CardHeader><CardTitle className="text-lg text-[#4C3D19] flex items-center gap-2"><Coffee className="w-5 h-5" /> Productos vendidos</CardTitle><CardDescription className="text-[#889063]">{datos.productosVendidos.length} productos</CardDescription></CardHeader>
+        <CardHeader>
+          <CardTitle className="text-lg text-[#4C3D19] flex items-center gap-2"><Coffee className="w-5 h-5" /> Productos vendidos</CardTitle>
+          <CardDescription className="text-[#889063]">{datos.productosVendidos.length} productos</CardDescription>
+        </CardHeader>
         <CardContent>
           <ScrollArea className="h-80">
-            <Table><TableHeader><TableRow><TableHead>Producto</TableHead><TableHead>Categoría</TableHead><TableHead className="text-center">Cantidad</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
+            <Table>
+              <TableHeader><TableRow><TableHead>Producto</TableHead><TableHead>Categoría</TableHead><TableHead className="text-center">Cantidad</TableHead><TableHead className="text-right">Total</TableHead></TableRow></TableHeader>
               <TableBody>
                 {datos.productosVendidos.map((p:any) => (
-                  <TableRow key={p.nombre_producto}><TableCell className="font-medium">{p.nombre_producto}</TableCell><TableCell className="text-[#889063]">{p.categoria}</TableCell><TableCell className="text-center">{p.cantidad_vendida}</TableCell><TableCell className="text-right">{formatCurrency(Number(p.total_vendido))}</TableCell></TableRow>
+                  <TableRow key={p.nombre_producto}>
+                    <TableCell className="font-medium">{p.nombre_producto}</TableCell>
+                    <TableCell className="text-[#889063]">{p.categoria}</TableCell>
+                    <TableCell className="text-center">{p.cantidad_vendida}</TableCell>
+                    <TableCell className="text-right">{formatCurrency(Number(p.total_vendido))}</TableCell>
+                  </TableRow>
                 ))}
               </TableBody>
             </Table>
@@ -208,68 +302,116 @@ export function ReportesView() {
         </CardContent>
       </Card>
 
-	{/* Mermas */}
-	<Card className="border-[#CFBB99] bg-white">
-	  <CardHeader>
-	    <CardTitle className="text-lg text-[#4C3D19]">Mermas del período</CardTitle>
-	  </CardHeader>
-	  <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-	    {/* Mermas productos */}
-	    <div>
-	      <h3 className="text-md font-semibold text-[#4C3D19] mb-2">Productos</h3>
-	      <ScrollArea className="h-64">
-	        <Table>
-	          <TableHeader>
-	            <TableRow>
-	              <TableHead>Fecha</TableHead>
-	              <TableHead>Producto</TableHead>
-	              <TableHead className="text-center">Cant.</TableHead>
-	              <TableHead>Motivo</TableHead>
-	              <TableHead className="text-right">Valor</TableHead>
-	            </TableRow>
-	          </TableHeader>
-	          <TableBody>
-	            {datos.mermasProductos?.map((m: any) => (
-	              <TableRow key={m.id_merma_prod}>
-	                <TableCell className="text-sm">{formatDate(m.fecha_hora)}</TableCell>
-	                <TableCell>{m.nombre_producto}</TableCell>
-	                <TableCell className="text-center">{m.cantidad}</TableCell>
-	                <TableCell>{m.motivo}</TableCell>
-	                <TableCell className="text-right text-red-600">{formatCurrency(parseFloat(m.valor_perdida))}</TableCell>
-	              </TableRow>
-	            ))}
-	          </TableBody>
-	        </Table>
-	      </ScrollArea>
-	    </div>
-	    {/* Mermas insumos */}
-	    <div>
-	      <h3 className="text-md font-semibold text-[#4C3D19] mb-2">Insumos</h3>
-	      <ScrollArea className="h-64">
-	        <Table>
-	          <TableHeader>
-	            <TableRow>
-	              <TableHead>Fecha</TableHead>
-	              <TableHead>Insumo</TableHead>
-	              <TableHead className="text-center">Cant.</TableHead>
-	              <TableHead>Motivo</TableHead>
-	            </TableRow>
-	          </TableHeader>
-	          <TableBody>
-	            {datos.mermasInsumos?.map((m: any) => (
-	              <TableRow key={m.id_movimiento}>
-	                <TableCell className="text-sm">{formatDate(m.fecha_movimiento)}</TableCell>
-	                <TableCell>{m.nombre_insumo}</TableCell>
-	                <TableCell className="text-center">{m.cantidad} {m.unidad_medida}</TableCell>
-	                <TableCell>{m.tipo_movimiento === 'merma_caducidad' ? 'Caducidad' : 'Daño'}</TableCell>
-	              </TableRow>
-	            ))}
-	          </TableBody>
-	        </Table>
-	      </ScrollArea>
-	    </div>
-	  </CardContent>
-	</Card>
+      {/* Mermas */}
+      <Card className="border-[#CFBB99] bg-white">
+        <CardHeader>
+          <CardTitle className="text-lg text-[#4C3D19]">Mermas del período</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <h3 className="text-md font-semibold text-[#4C3D19] mb-2">Productos</h3>
+            <ScrollArea className="h-64">
+              <Table>
+                <TableHeader><TableRow><TableHead>Fecha</TableHead><TableHead>Producto</TableHead><TableHead className="text-center">Cant.</TableHead><TableHead>Motivo</TableHead><TableHead className="text-right">Valor</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {datos.mermasProductos?.map((m: any) => (
+                    <TableRow key={m.id_merma_prod}>
+                      <TableCell className="text-sm">{formatDate(m.fecha_hora)}</TableCell>
+                      <TableCell>{m.nombre_producto}</TableCell>
+                      <TableCell className="text-center">{m.cantidad}</TableCell>
+                      <TableCell>{m.motivo}</TableCell>
+                      <TableCell className="text-right text-red-600">{formatCurrency(parseFloat(m.valor_perdida))}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </div>
+          <div>
+            <h3 className="text-md font-semibold text-[#4C3D19] mb-2">Insumos</h3>
+            <ScrollArea className="h-64">
+              <Table>
+                <TableHeader><TableRow><TableHead>Fecha</TableHead><TableHead>Insumo</TableHead><TableHead className="text-center">Cant.</TableHead><TableHead>Motivo</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {datos.mermasInsumos?.map((m: any) => (
+                    <TableRow key={m.id_movimiento}>
+                      <TableCell className="text-sm">{formatDate(m.fecha_movimiento)}</TableCell>
+                      <TableCell>{m.nombre_insumo}</TableCell>
+                      <TableCell className="text-center">{m.cantidad} {m.unidad_medida}</TableCell>
+                      <TableCell>{m.tipo_movimiento === 'merma_caducidad' ? 'Caducidad' : 'Daño'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Historial de cierres de turno */}
+      <Card className="border-[#CFBB99] bg-white">
+        <CardHeader>
+          <CardTitle className="text-lg text-[#4C3D19]">Cierres de turno</CardTitle>
+          <CardDescription className="text-[#889063]">
+            {cierres.length} cierre(s) en el período seleccionado
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-80">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Responsable</TableHead>
+                  <TableHead className="text-right">Fondo inicial</TableHead>
+                  <TableHead className="text-right">Ingresos</TableHead>
+                  <TableHead className="text-right">Egresos</TableHead>
+                  <TableHead className="text-right">Saldo</TableHead>
+                  <TableHead className="text-right">Ganancia</TableHead>
+                  <TableHead className="text-right">Efectivo contado</TableHead>
+                  <TableHead className="text-right">Diferencia</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {cierres.map((c: any) => {
+                  const ganancia = c.total_ingresos - c.total_egresos;
+                  return (
+                    <TableRow key={c.id_cierre}>
+                      <TableCell className="text-sm">
+                        <div>{new Date(c.fecha_apertura).toLocaleDateString('es-MX', { day:'2-digit', month:'short' })}</div>
+                        <div className="text-xs text-[#889063]">
+                          {new Date(c.fecha_apertura).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })} - {new Date(c.fecha_cierre).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })}
+                        </div>
+                      </TableCell>
+                      <TableCell>{c.nombre_usuario}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(c.monto_inicial)}</TableCell>
+                      <TableCell className="text-right text-green-600">{formatCurrency(c.total_ingresos)}</TableCell>
+                      <TableCell className="text-right text-red-600">{formatCurrency(c.total_egresos)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(c.saldo)}</TableCell>
+                      <TableCell className="text-right font-bold text-green-700">{formatCurrency(ganancia)}</TableCell>
+                      <TableCell className="text-right">{c.efectivo_contado != null ? formatCurrency(c.efectivo_contado) : '-'}</TableCell>
+                      <TableCell className={`text-right font-medium ${
+                        c.diferencia != null
+                          ? c.diferencia < 0 ? 'text-red-600' : c.diferencia > 0 ? 'text-blue-600' : 'text-green-600'
+                          : ''
+                      }`}>
+                        {c.diferencia != null ? formatCurrency(c.diferencia) : '-'}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+                {cierres.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={9} className="text-center text-[#889063] py-6">
+                      No hay cierres registrados en este período
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </CardContent>
+      </Card>
 
       {/* Egresos y métodos de pago */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

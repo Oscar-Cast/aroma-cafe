@@ -230,9 +230,7 @@ export function CobrosView() {
               </div>
               <div className="bg-[#4C3D19] rounded-lg p-4">
                 <div className="flex justify-between items-center text-[#E5D7C4]">
-                <p className="text-xs text-red-500">Propina actual: {propina}</p>
                   <span className="text-lg">Total a Cobrar</span>
-                  <p className="text-xs text-red-500">Depuración: subtotal={selectedCuenta.subtotal_acumulado} propina={propina} suma={selectedCuenta.subtotal_acumulado + propina}</p>
                   <span className="text-3xl font-bold">{formatCurrency(selectedCuenta.subtotal_acumulado + propina)}</span>
                 </div>
               </div>

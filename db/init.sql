@@ -53,6 +53,8 @@ CREATE TABLE IF NOT EXISTS pedidos (
     hora_registro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     hora_entrega TIMESTAMP,
     monto_total NUMERIC(10,2) NOT NULL DEFAULT 0,
+    notas TEXT,                                       
+    numero_pedido INTEGER,
     id_usuario INTEGER NOT NULL REFERENCES usuarios(id_usuario)
 );
 
@@ -110,6 +112,8 @@ CREATE TABLE IF NOT EXISTS cierre_caja (
     propinas_efectivo NUMERIC(10,2),
     propinas_tarjeta NUMERIC(10,2),
     propinas_transferencia NUMERIC(10,2),
+    efectivo_contado NUMERIC(10,2),
+    diferencia NUMERIC(10,2),
     id_usuario INTEGER NOT NULL REFERENCES usuarios(id_usuario)
 );
 

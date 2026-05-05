@@ -1,5 +1,7 @@
 'use client'
 
+//FALTA ARREGLAR EL MODULO DE EXPORTAR A XML, LO ROMPI SIN QUERER JEJE
+
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'

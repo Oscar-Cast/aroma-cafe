@@ -1,0 +1,172 @@
+.mesas-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mesas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mesas-header h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--chocolate);
+}
+
+.mesas-header p {
+  color: var(--caramel);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.mesas-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.mesas-stat-card {
+  background: white;
+  border: 1px solid var(--caramel);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mesas-stat-card .label {
+  font-size: 0.8rem;
+  color: var(--caramel);
+}
+
+.mesas-stat-card .value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--chocolate);
+}
+
+.mesas-table-card {
+  background: white;
+  border: 1px solid var(--caramel);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.mesas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.mesas-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: var(--chocolate);
+  color: white;
+  font-weight: 600;
+}
+
+.mesas-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--caramel);
+  color: var(--chocolate);
+}
+
+.mesas-table tr:last-child td {
+  border-bottom: none;
+}
+
+.mesas-table .text-right {
+  text-align: right;
+}
+
+.mesas-table .text-center {
+  text-align: center;
+}
+
+.mesas-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.mesas-badge.disponible {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.mesas-badge.ocupada {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.mesas-badge.reservada {
+  background: #fef3c7;
+  color: #92400e;
+  border-color: #fcd34d;
+}
+
+.mesas-dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mesas-dialog-form label {
+  font-weight: 500;
+  color: var(--chocolate);
+}
+
+.mesas-dialog-form input,
+.mesas-dialog-form select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--caramel);
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+}
+
+.btn-primary {
+  background: var(--chocolate);
+  color: white;
+  padding: 0.5rem 1.25rem;
+  border: none;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--caramel);
+  color: var(--chocolate);
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.btn-danger {
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .mesas-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

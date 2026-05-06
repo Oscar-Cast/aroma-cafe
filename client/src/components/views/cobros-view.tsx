@@ -45,8 +45,12 @@ export function CobrosView() {
   const cargarDatos = async () => {
     try {
       const abiertas = await api.getCuentasAbiertas()
-      setCuentasAbiertas(abiertas)
-      setCuentasCerradas([])
+      // Convertir subtotal_acumulado a número
+      setCuentasAbiertas(abiertas.map((c: any) => ({ ...c, subtotal_acumulado: Number(c.subtotal_acumulado) })))
+      const todas = await api.getCuentas()
+      const cerradas = todas.filter((c: any) => c.estado === 'cerrada')
+      cerradas.sort((a: any, b: any) => new Date(b.fecha_cierre).getTime() - new Date(a.fecha_cierre).getTime())
+      setCuentasCerradas(cerradas)
     } catch (error) {
       toast({ title: 'Error', description: 'No se pudieron cargar las cuentas', variant: 'destructive' })
     } finally {
@@ -58,10 +62,11 @@ export function CobrosView() {
 
   const formatCurrency = (amount: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount)
   const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
 
   const openCobrarDialog = (cuenta: CuentaAbierta) => {
     setSelectedCuenta(cuenta)
-    setPropina(0)
+    setPropina(0)          // reiniciar propina
     setMetodoPago('efectivo')
     setIsCobrarDialogOpen(true)
   }
@@ -81,17 +86,12 @@ export function CobrosView() {
     }
   }
 
-  const getMetodoPagoIcon = (metodo: string) => {
-    const icons: any = { efectivo: <Banknote size={14} />, tarjeta: <CreditCard size={14} />, transferencia: <Smartphone size={14} /> }
-    return icons[metodo] || null
-  }
-
+  const hoy = new Date().toISOString().split('T')[0]
   const totalCobradoHoy = cuentasCerradas
-    .filter(c => c.fecha_cierre?.startsWith(new Date().toISOString().split('T')[0]))
+    .filter(c => c.fecha_cierre?.startsWith(hoy))
     .reduce((sum, c) => sum + c.total, 0)
-
   const propinasTotales = cuentasCerradas
-    .filter(c => c.fecha_cierre?.startsWith(new Date().toISOString().split('T')[0]))
+    .filter(c => c.fecha_cierre?.startsWith(hoy))
     .reduce((sum, c) => sum + (c.propina || 0), 0)
 
   if (loading) return <div className="text-center py-12" style={{ color: 'var(--caramel)' }}>Cargando cobros...</div>
@@ -117,7 +117,7 @@ export function CobrosView() {
         </div>
         <div className="cobros-stat-card blue">
           <div className="cobros-stat-label">Cuentas Cerradas Hoy</div>
-          <div className="cobros-stat-value">{cuentasCerradas.filter(c => c.fecha_cierre?.startsWith(new Date().toISOString().split('T')[0])).length}</div>
+          <div className="cobros-stat-value">{cuentasCerradas.filter(c => c.fecha_cierre?.startsWith(hoy)).length}</div>
         </div>
         <div className="cobros-stat-card purple">
           <div className="cobros-stat-label">Propinas Hoy</div>
@@ -172,25 +172,42 @@ export function CobrosView() {
             </div>
             <Table>
               <TableHeader>
-                <TableRow><TableHead>Cuenta</TableHead><TableHead>Mesa</TableHead><TableHead>Subtotal</TableHead><TableHead>Propina</TableHead><TableHead>Total</TableHead><TableHead>Método</TableHead></TableRow>
+                <TableRow>
+                  <TableHead>Cuenta</TableHead>
+                  <TableHead>Mesa</TableHead>
+                  <TableHead>Subtotal</TableHead>
+                  <TableHead>Propina</TableHead>
+                  <TableHead>Total</TableHead>
+                  <TableHead>Método</TableHead>
+                  <TableHead>Fecha</TableHead>
+                </TableRow>
               </TableHeader>
               <TableBody>
                 {cuentasCerradas.map(c => (
                   <TableRow key={c.id_cuenta}>
                     <TableCell>#{c.id_cuenta}</TableCell>
-                    <TableCell>{c.mesa}</TableCell>
-                    <TableCell>{formatCurrency(c.subtotal)}</TableCell>
+                    <TableCell>{c.numero_mesa}</TableCell>
+                    <TableCell>{formatCurrency(c.subtotal_acumulado)}</TableCell>
                     <TableCell>{c.propina ? formatCurrency(c.propina) : '-'}</TableCell>
                     <TableCell style={{ fontWeight: 600 }}>{formatCurrency(c.total)}</TableCell>
-                    <TableCell><span className="cobros-badge-pago efectivo">{c.metodo_pago}</span></TableCell>
+                    <TableCell><span className={`cobros-badge-pago ${c.metodo_pago}`}>{c.metodo_pago}</span></TableCell>
+                    <TableCell style={{ fontSize: '0.85rem', color: 'var(--caramel)' }}>{formatDate(c.fecha_cierre)}</TableCell>
                   </TableRow>
                 ))}
+                {cuentasCerradas.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center" style={{ padding: '2rem', color: 'var(--caramel)' }}>
+                      No hay cuentas cerradas aún
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </Card>
         </TabsContent>
       </Tabs>
 
+      {/* Diálogo para cobrar */}
       <Dialog open={isCobrarDialogOpen} onOpenChange={setIsCobrarDialogOpen}>
         <DialogContent style={{ maxWidth: '28rem' }}>
           <DialogHeader>
@@ -199,14 +216,14 @@ export function CobrosView() {
           {selectedCuenta && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div className="cobros-dialog-detail">
-                <ScrollArea style={{ maxHeight: '8rem' }}>
+                <div style={{ maxHeight: '12rem', overflowY: 'auto', paddingRight: '0.25rem' }}>
                   {selectedCuenta.detalles.map((item, idx) => (
                     <div className="cobros-dialog-item" key={idx}>
                       <span>{item.cantidad}x {item.nombre_producto}</span>
                       <span>{formatCurrency(item.subtotal)}</span>
                     </div>
                   ))}
-                </ScrollArea>
+                </div>
                 <div className="cobros-dialog-total-row">
                   <span>Subtotal</span>
                   <span>{formatCurrency(selectedCuenta.subtotal_acumulado)}</span>
@@ -216,49 +233,30 @@ export function CobrosView() {
               <div>
                 <Label>Propina (opcional)</Label>
                 <div className="cobros-propina-row" style={{ marginTop: '0.25rem' }}>
-                  <Input type="number" min={0} step={1} value={propina} onChange={e => setPropina(parseFloat(e.target.value) || 0)} className="cobros-propina-input" placeholder="0.00" />
-                  <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(selectedCuenta.subtotal_acumulado * 0.10))}>10%</Button>
-                  <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(selectedCuenta.subtotal_acumulado * 0.15))}>15%</Button>
-                  <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(selectedCuenta.subtotal_acumulado * 0.20))}>20%</Button>
+                  <Input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={propina}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setPropina(isNaN(val) ? 0 : val);
+                    }}
+                    className="cobros-propina-input"
+                    placeholder="0.00"
+                  />
+                  <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(Number(selectedCuenta.subtotal_acumulado) * 0.10))}>10%</Button>
+                  <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(Number(selectedCuenta.subtotal_acumulado) * 0.15))}>15%</Button>
+                  <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(Number(selectedCuenta.subtotal_acumulado) * 0.20))}>20%</Button>
                 </div>
               </div>
 
               <div>
                 <Label>Método de Pago</Label>
                 <div className="cobros-payment-grid" style={{ marginTop: '0.25rem' }}>
-                  <button
-                    className="cobros-payment-btn"
-                    style={{
-                      background: metodoPago === 'efectivo' ? '#16a34a' : 'transparent',
-                      color: metodoPago === 'efectivo' ? 'white' : 'var(--chocolate)',
-                      borderColor: metodoPago === 'efectivo' ? '#16a34a' : 'var(--caramel)',
-                    }}
-                    onClick={() => setMetodoPago('efectivo')}
-                  >
-                    <Banknote size={14} className="inline" /> Efectivo
-                  </button>
-                  <button
-                    className="cobros-payment-btn"
-                    style={{
-                      background: metodoPago === 'tarjeta' ? '#2563eb' : 'transparent',
-                      color: metodoPago === 'tarjeta' ? 'white' : 'var(--chocolate)',
-                      borderColor: metodoPago === 'tarjeta' ? '#2563eb' : 'var(--caramel)',
-                    }}
-                    onClick={() => setMetodoPago('tarjeta')}
-                  >
-                    <CreditCard size={14} className="inline" /> Tarjeta
-                  </button>
-                  <button
-                    className="cobros-payment-btn"
-                    style={{
-                      background: metodoPago === 'transferencia' ? '#7c3aed' : 'transparent',
-                      color: metodoPago === 'transferencia' ? 'white' : 'var(--chocolate)',
-                      borderColor: metodoPago === 'transferencia' ? '#7c3aed' : 'var(--caramel)',
-                    }}
-                    onClick={() => setMetodoPago('transferencia')}
-                  >
-                    <Smartphone size={14} className="inline" /> Transf.
-                  </button>
+                  <button className="cobros-payment-btn" style={{ background: metodoPago === 'efectivo' ? '#16a34a' : 'transparent', color: metodoPago === 'efectivo' ? 'white' : 'var(--chocolate)', borderColor: metodoPago === 'efectivo' ? '#16a34a' : 'var(--caramel)' }} onClick={() => setMetodoPago('efectivo')}><Banknote size={14} className="inline" /> Efectivo</button>
+                  <button className="cobros-payment-btn" style={{ background: metodoPago === 'tarjeta' ? '#2563eb' : 'transparent', color: metodoPago === 'tarjeta' ? 'white' : 'var(--chocolate)', borderColor: metodoPago === 'tarjeta' ? '#2563eb' : 'var(--caramel)' }} onClick={() => setMetodoPago('tarjeta')}><CreditCard size={14} className="inline" /> Tarjeta</button>
+                  <button className="cobros-payment-btn" style={{ background: metodoPago === 'transferencia' ? '#7c3aed' : 'transparent', color: metodoPago === 'transferencia' ? 'white' : 'var(--chocolate)', borderColor: metodoPago === 'transferencia' ? '#7c3aed' : 'var(--caramel)' }} onClick={() => setMetodoPago('transferencia')}><Smartphone size={14} className="inline" /> Transf.</button>
                 </div>
               </div>
 
@@ -270,9 +268,7 @@ export function CobrosView() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCobrarDialogOpen(false)}>Cancelar</Button>
-            <Button style={{ background: '#16a34a', color: 'white' }} onClick={handleCobrar}>
-              <CheckCircle size={14} style={{ marginRight: '0.5rem' }} /> Confirmar Cobro
-            </Button>
+            <Button style={{ background: '#16a34a', color: 'white' }} onClick={handleCobrar}><CheckCircle size={14} style={{ marginRight: '0.5rem' }} /> Confirmar Cobro</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

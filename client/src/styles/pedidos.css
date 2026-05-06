@@ -197,3 +197,68 @@
     height: auto;
   }
 }
+
+/* ═══ POP‑UP DE EXTRAS ═══ */
+.extras-popup-container {
+  max-height: 55vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.extras-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  border: 1px solid var(--caramel);
+  border-radius: 0.5rem;
+  background: white;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--chocolate);
+  transition: all 0.2s;
+}
+
+.extras-btn:hover {
+  background: var(--lemon);
+}
+
+.extras-btn.selected {
+  border: 2px solid var(--chocolate);
+  background: var(--lemon);
+}
+
+.extras-btn .extra-nombre {
+  flex: 1;
+}
+
+.extras-btn .extra-precio {
+  color: var(--caramel);
+  font-size: 0.9rem;
+}
+
+/* Badges de estado */
+.pedidos-status-badge.pendiente { 
+	background: #fef3c7; 
+	color: #92400e; 
+	border-color: #fcd34d; 
+	}
+.pedidos-status-badge.en-preparacion { 
+	background: #dbeafe; 
+	color: #1e40af; 
+	border-color: #93c5fd; 
+	}
+.pedidos-status-badge.listo { 
+	background: #dcfce7; 
+	color: #166534; 
+	border-color: #86efac; 
+	}
+.pedidos-status-badge.entregado { 
+	background: #f3f4f6; 
+	color: #374151; 
+	border-color: #d1d5db; 
+	}

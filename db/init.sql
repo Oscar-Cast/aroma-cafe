@@ -75,7 +75,8 @@ CREATE TABLE IF NOT EXISTS detalle_pedidos (
     id_producto INTEGER NOT NULL REFERENCES productos(id_producto),
     cantidad INTEGER NOT NULL CHECK (cantidad > 0),
     precio_unitario NUMERIC(10,2) NOT NULL,
-    subtotal NUMERIC(10,2) NOT NULL
+    subtotal NUMERIC(10,2) NOT NULL,
+    extras_ids JSONB DEFAULT '[]' --nueva columna para poder agregar los extras de manera denamica a cada producto den los detalles
 );
 
 -- Tabla: insumos

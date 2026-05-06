@@ -21,25 +21,32 @@ export function DashboardView() {
 
   const cargarDatos = async () => {
     try {
-      const [pedidos, insumos] = await Promise.all([api.getPedidos(), api.getInsumos()])
-      const today = new Date().toISOString().split('T')[0]
-      const pedidosHoy = pedidos.filter((p: any) => p.hora_registro.startsWith(today))
-      const ventasHoy = pedidosHoy.reduce((sum: number, p: any) => sum + p.monto_total, 0)
-      const pendientes = pedidos.filter((p: any) => p.estado === 'pendiente').length
-      const enPreparacion = pedidos.filter((p: any) => p.estado === 'en preparación').length
-      const bajos = insumos.filter((i: any) => i.existencia_actual <= i.nivel_minimo)
+      // Obtener TODOS los pedidos del día (sin filtrar por turno) para las ventas
+      const todosPedidos = await api.getPedidos({ todas: true });
+      const todayStr = new Date().toISOString().split('T')[0];
+      const pedidosHoy = todosPedidos.filter((p: any) => p.hora_registro.startsWith(todayStr));
+      const ventasHoy = pedidosHoy.reduce((sum: number, p: any) => sum + parseFloat(p.monto_total), 0);
+
+      // Insumos (no dependen del turno)
+      const insumos = await api.getInsumos();
+      const bajos = insumos.filter((i: any) => i.existencia_actual <= i.nivel_minimo);
+
+      // Para los contadores de pendientes y en preparación usamos TODOS los pedidos activos (no solo del turno) para que el admin vea la realidad completa
+      const pendientes = todosPedidos.filter((p: any) => p.estado === 'pendiente').length;
+      const enPreparacion = todosPedidos.filter((p: any) => p.estado === 'en preparación').length;
+
       setStats({
         ventasHoy,
         pedidosPendientes: pendientes,
         pedidosEnPreparacion: enPreparacion,
         insumosEnAlerta: bajos.length,
-        pedidosRecientes: pedidos.slice(0, 5),
-      })
-      setInsumosBajos(bajos)
+        pedidosRecientes: todosPedidos.slice(0, 5),
+      });
+      setInsumosBajos(bajos);
     } catch (error) {
-      console.error('Error cargando dashboard', error)
+      console.error('Error cargando dashboard', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -54,10 +61,10 @@ export function DashboardView() {
 
   const getStatusBadge = (estado: string) => {
     const styles: Record<string, string> = {
-      'pendiente': 'bg-amber-100 text-amber-700',
-      'en preparación': 'bg-blue-100 text-blue-700',
-      'listo': 'bg-green-100 text-green-700',
-      'entregado': 'bg-gray-100 text-gray-700'
+      'pendiente': 'badge-warning',
+      'en preparación': 'badge-info',
+      'listo': 'badge-success',
+      'entregado': 'badge-gray'
     }
     return <Badge className={styles[estado] || ''} variant="outline">{estado}</Badge>
   }
@@ -70,7 +77,7 @@ export function DashboardView() {
   return (
     <div className="dashboard-page">
       <div className="dashboard-welcome">
-        <h1>{getGreeting()}, {user?.nombre_usuario}</h1>
+        <h1>{getGreeting()}, {user?.nombre}</h1>
         <p>Aquí tienes un resumen del día</p>
       </div>
 
@@ -102,7 +109,7 @@ export function DashboardView() {
         {stats.pedidosRecientes.map((pedido: any) => (
           <div className="item" key={pedido.id_pedido}>
             <div className="info">
-              <div className="circle">#{pedido.id_pedido}</div>
+              <div className="circle">#{pedido.numero_pedido ?? pedido.id_pedido}</div>
               <div className="text">
                 <div className="mesa">{pedido.mesa}</div>
                 <div className="meta">{pedido.detalles?.length || 0} productos • {formatTime(pedido.hora_registro)}</div>

@@ -3,6 +3,10 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/api/client'
 import { Pedido, OrderStatus } from '@/lib/types'
+import { extrasDisponibles } from '@/lib/extras'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { GlassWater, Clock, ChefHat, CheckCircle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import '@/styles/produccion.css'
@@ -44,18 +48,11 @@ export function BarraView() {
   }
 
   const getStatusBadge = (estado: string) => {
-    const clases: Record<string, string> = {
-      'pendiente': 'badge badge-pendiente',
-      'en preparación': 'badge badge-preparacion',
-      'listo': 'badge badge-listo',
-      'entregado': 'badge badge-entregado'
-    }
-    return <span className={clases[estado] || ''}>{estado}</span>
+    const claseEstado = estado === 'en preparación' ? 'en-preparacion' : estado;
+    return <Badge className={`produccion-status-badge ${claseEstado}`} variant="outline">{estado}</Badge>;
   }
 
-  const formatTime = (dateString: string) =>
-    new Date(dateString).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
-
+  const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
   const getElapsedTime = (dateString: string) => {
     const elapsed = Math.floor((Date.now() - new Date(dateString).getTime()) / 60000)
     if (elapsed < 1) return 'Ahora'
@@ -67,143 +64,200 @@ export function BarraView() {
   const enPreparacion = pedidos.filter(p => p.estado === 'en preparación')
   const listos = pedidos.filter(p => p.estado === 'listo')
 
-  if (loading) return <div style={{textAlign:'center', padding:'2rem', color:'var(--caramel)'}}>Cargando pedidos de barra...</div>
+  if (loading) return <div className="text-center py-12" style={{ color: 'var(--caramel)' }}>Cargando...</div>
 
   return (
-    <div className="barra-page">
-      {/* Encabezado */}
-      <div className="barra-header">
-        <div className="barra-icon">
+    <div className="produccion-page">
+      <div className="produccion-header">
+        <div className="produccion-icon produccion-icon-barra">
           <GlassWater size={24} />
         </div>
         <div>
-          <h1 className="barra-title">Barra</h1>
-          <p className="barra-subtitle">Bebidas Calientes, Frías y Postres</p>
+          <h1 className="produccion-title">Barra</h1>
+          <p className="produccion-subtitle">Bebidas Calientes, Frías y Postres</p>
         </div>
       </div>
 
-      {/* Estadísticas */}
-      <div className="barra-stats">
-        <div className="barra-stat-card" style={{backgroundColor: '#FFFBEB', border: '1px solid #FCD34D'}}>
-          <div>
-            <p className="barra-stat-label" style={{color: '#92400E'}}>Pendientes</p>
-            <p className="barra-stat-number" style={{color: '#92400E'}}>{pendientes.length}</p>
-          </div>
-          <Clock size={32} style={{color:'#F59E0B'}} />
-        </div>
-        <div className="barra-stat-card" style={{backgroundColor: '#EFF6FF', border: '1px solid #93C5FD'}}>
-          <div>
-            <p className="barra-stat-label" style={{color: '#1E40AF'}}>En Preparación</p>
-            <p className="barra-stat-number" style={{color: '#1E40AF'}}>{enPreparacion.length}</p>
-          </div>
-          <ChefHat size={32} style={{color:'#3B82F6'}} />
-        </div>
-        <div className="barra-stat-card" style={{backgroundColor: '#ECFDF5', border: '1px solid #6EE7B7'}}>
-          <div>
-            <p className="barra-stat-label" style={{color: '#065F46'}}>Listos</p>
-            <p className="barra-stat-number" style={{color: '#065F46'}}>{listos.length}</p>
-          </div>
-          <CheckCircle size={32} style={{color:'#10B981'}} />
-        </div>
+      <div className="produccion-stats-grid">
+        <Card className="produccion-stat-card pendiente">
+          <CardContent className="produccion-stat-card">
+            <div>
+              <div className="produccion-stat-label" style={{ color: '#92400e' }}>Pendientes</div>
+              <div className="produccion-stat-number" style={{ color: '#92400e' }}>{pendientes.length}</div>
+            </div>
+            <Clock size={40} style={{ color: '#f59e0b' }} />
+          </CardContent>
+        </Card>
+        <Card className="produccion-stat-card en-preparacion">
+          <CardContent className="produccion-stat-card">
+            <div>
+              <div className="produccion-stat-label" style={{ color: '#1e40af' }}>En Preparación</div>
+              <div className="produccion-stat-number" style={{ color: '#1e40af' }}>{enPreparacion.length}</div>
+            </div>
+            <ChefHat size={40} style={{ color: '#3b82f6' }} />
+          </CardContent>
+        </Card>
+        <Card className="produccion-stat-card listo">
+          <CardContent className="produccion-stat-card">
+            <div>
+              <div className="produccion-stat-label" style={{ color: '#166534' }}>Listos</div>
+              <div className="produccion-stat-number" style={{ color: '#166534' }}>{listos.length}</div>
+            </div>
+            <CheckCircle size={40} style={{ color: '#22c55e' }} />
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Columnas */}
-      <div className="barra-columnas">
+      <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
         {/* Pendientes */}
-        <div className="barra-columna">
-          <h2 className="barra-columna-titulo" style={{color: '#92400E'}}>
+        <div className="produccion-column">
+          <h2 className="produccion-column-title" style={{ color: '#92400e' }}>
             <Clock size={20} /> Pendientes ({pendientes.length})
           </h2>
-          {pendientes.length === 0 ? (
-            <div className="barra-vacio barra-vacio-pendientes">
-              <p>No hay pedidos pendientes</p>
-            </div>
-          ) : (
-            pendientes.map(pedido => (
-              <div key={pedido.id_pedido} className="barra-pedido">
-                <div className="barra-pedido-header">
-                  <h3 className="barra-pedido-titulo">Pedido #{pedido.numero_pedido ?? pedido.id_pedido}</h3>
-                  <span className="badge badge-pendiente">{getElapsedTime(pedido.hora_registro)}</span>
+          {pendientes.map(pedido => (
+            <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#fcd34d' }}>
+              <CardHeader className="produccion-order-card-header">
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <CardTitle className="produccion-order-card-title">
+                    Pedido #{pedido.numero_pedido ?? pedido.id_pedido}
+                  </CardTitle>
+                  <Badge className="badge-warning">{getElapsedTime(pedido.hora_registro)}</Badge>
                 </div>
-                <div className="barra-pedido-mesa">{pedido.mesa} • {formatTime(pedido.hora_registro)}</div>
-                <div className="barra-pedido-productos">
-                  {pedido.detalles?.map(detalle => (
-                    <div key={detalle.id_detalle} className="barra-pedido-producto">
-                      <span>{detalle.cantidad}x {detalle.nombre_producto}</span>
+                <CardDescription className="produccion-order-card-desc">
+                  {pedido.mesa} • {formatTime(pedido.hora_registro)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  {pedido.detalles?.map(d => (
+                    <div key={d.id_detalle}>
+                      <div className="produccion-order-card-detail">
+                        <span>{d.cantidad}x {d.nombre_producto}</span>
+                        <span>{d.subtotal}</span>
+                      </div>
+                      {d.extras_ids && d.extras_ids.length > 0 && (
+                        <div style={{ paddingLeft: '1.25rem', fontSize: '0.8rem', color: 'var(--caramel)' }}>
+                          {d.extras_ids.map((id: string) => {
+                            const extra = extrasDisponibles.find(e => e.id === id);
+                            return extra ? (
+                              <div key={id} style={{ display: 'flex', gap: '0.5rem' }}>
+                                <span>+ {extra.nombre}</span>
+                                {extra.precio > 0 && <span>({new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(extra.precio)})</span>}
+                              </div>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
-                {pedido.notas && <div className="barra-pedido-notas">📝 {pedido.notas}</div>}
-                <button className="barra-btn barra-btn-preparar" onClick={() => cambiarEstado(pedido.id_pedido, 'en preparación')}>
-                  <ChefHat size={16} /> Comenzar Preparación
-                </button>
-              </div>
-            ))
-          )}
+                {pedido.notas && <div className="produccion-order-card-notas">📝 {pedido.notas}</div>}
+                <Button className="produccion-btn-start" onClick={() => cambiarEstado(pedido.id_pedido, 'en preparación')}>
+                  <ChefHat size={16} style={{ marginRight: '0.5rem' }} /> Comenzar Preparación
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* En Preparación */}
-        <div className="barra-columna">
-          <h2 className="barra-columna-titulo" style={{color: '#1E40AF'}}>
+        <div className="produccion-column">
+          <h2 className="produccion-column-title" style={{ color: '#1e40af' }}>
             <ChefHat size={20} /> En Preparación ({enPreparacion.length})
           </h2>
-          {enPreparacion.length === 0 ? (
-            <div className="barra-vacio barra-vacio-preparacion">
-              <p>Nada en preparación</p>
-            </div>
-          ) : (
-            enPreparacion.map(pedido => (
-              <div key={pedido.id_pedido} className="barra-pedido">
-                <div className="barra-pedido-header">
-                  <h3 className="barra-pedido-titulo">Pedido #{pedido.numero_pedido ?? pedido.id_pedido}</h3>
-                  <span className="badge badge-preparacion">{getElapsedTime(pedido.hora_registro)}</span>
+          {enPreparacion.map(pedido => (
+            <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#93c5fd' }}>
+              <CardHeader className="produccion-order-card-header">
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <CardTitle className="produccion-order-card-title">
+                    Pedido #{pedido.numero_pedido ?? pedido.id_pedido}
+                  </CardTitle>
+                  <Badge className="badge-info">{getElapsedTime(pedido.hora_registro)}</Badge>
                 </div>
-                <div className="barra-pedido-mesa">{pedido.mesa} • {formatTime(pedido.hora_registro)}</div>
-                <div className="barra-pedido-productos">
-                  {pedido.detalles?.map(detalle => (
-                    <div key={detalle.id_detalle} className="barra-pedido-producto">
-                      <span>{detalle.cantidad}x {detalle.nombre_producto}</span>
+                <CardDescription className="produccion-order-card-desc">
+                  {pedido.mesa} • {formatTime(pedido.hora_registro)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  {pedido.detalles?.map(d => (
+                    <div key={d.id_detalle}>
+                      <div className="produccion-order-card-detail">
+                        <span>{d.cantidad}x {d.nombre_producto}</span>
+                        <span>{d.subtotal}</span>
+                      </div>
+                      {d.extras_ids && d.extras_ids.length > 0 && (
+                        <div style={{ paddingLeft: '1.25rem', fontSize: '0.8rem', color: 'var(--caramel)' }}>
+                          {d.extras_ids.map((id: string) => {
+                            const extra = extrasDisponibles.find(e => e.id === id);
+                            return extra ? (
+                              <div key={id} style={{ display: 'flex', gap: '0.5rem' }}>
+                                <span>+ {extra.nombre}</span>
+                                {extra.precio > 0 && <span>({new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(extra.precio)})</span>}
+                              </div>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
-                <button className="barra-btn barra-btn-listo" onClick={() => cambiarEstado(pedido.id_pedido, 'listo')}>
-                  <CheckCircle size={16} /> Marcar como Listo
-                </button>
-              </div>
-            ))
-          )}
+                <Button className="produccion-btn-ready" onClick={() => cambiarEstado(pedido.id_pedido, 'listo')}>
+                  <CheckCircle size={16} style={{ marginRight: '0.5rem' }} /> Marcar como Listo
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
         {/* Listos */}
-        <div className="barra-columna">
-          <h2 className="barra-columna-titulo" style={{color: '#065F46'}}>
+        <div className="produccion-column">
+          <h2 className="produccion-column-title" style={{ color: '#166534' }}>
             <CheckCircle size={20} /> Listos para Entregar ({listos.length})
           </h2>
-          {listos.length === 0 ? (
-            <div className="barra-vacio barra-vacio-listo">
-              <p>No hay pedidos listos</p>
-            </div>
-          ) : (
-            listos.map(pedido => (
-              <div key={pedido.id_pedido} className="barra-pedido">
-                <div className="barra-pedido-header">
-                  <h3 className="barra-pedido-titulo">Pedido #{pedido.numero_pedido ?? pedido.id_pedido}</h3>
+          {listos.map(pedido => (
+            <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#86efac' }}>
+              <CardHeader className="produccion-order-card-header">
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <CardTitle className="produccion-order-card-title">
+                    Pedido #{pedido.numero_pedido ?? pedido.id_pedido}
+                  </CardTitle>
                   {getStatusBadge(pedido.estado)}
                 </div>
-                <div className="barra-pedido-mesa">{pedido.mesa} • {formatTime(pedido.hora_registro)}</div>
-                <div className="barra-pedido-productos">
-                  {pedido.detalles?.map(detalle => (
-                    <div key={detalle.id_detalle} className="barra-pedido-producto">
-                      <span>{detalle.cantidad}x {detalle.nombre_producto}</span>
+                <CardDescription className="produccion-order-card-desc">
+                  {pedido.mesa} • {formatTime(pedido.hora_registro)}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  {pedido.detalles?.map(d => (
+                    <div key={d.id_detalle}>
+                      <div className="produccion-order-card-detail">
+                        <span>{d.cantidad}x {d.nombre_producto}</span>
+                        <span>{d.subtotal}</span>
+                      </div>
+                      {d.extras_ids && d.extras_ids.length > 0 && (
+                        <div style={{ paddingLeft: '1.25rem', fontSize: '0.8rem', color: 'var(--caramel)' }}>
+                          {d.extras_ids.map((id: string) => {
+                            const extra = extrasDisponibles.find(e => e.id === id);
+                            return extra ? (
+                              <div key={id} style={{ display: 'flex', gap: '0.5rem' }}>
+                                <span>+ {extra.nombre}</span>
+                                {extra.precio > 0 && <span>({new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(extra.precio)})</span>}
+                              </div>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
-                <div style={{fontSize:'0.75rem', color:'#065F46', textAlign:'center', marginTop:'0.75rem'}}>
+                <p style={{ fontSize: '0.75rem', color: '#16a34a', textAlign: 'center', marginTop: '0.5rem' }}>
                   Esperando que el mesero lo entregue
-                </div>
-              </div>
-            ))
-          )}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </div>

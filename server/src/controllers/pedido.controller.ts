@@ -43,24 +43,27 @@ async function obtenerOCrearCuenta(mesa: string, id_usuario: number): Promise<nu
 // ── OBTENER PEDIDOS (con numero_pedido virtual por día) ─────────────
 export const getPedidos = async (req: Request, res: Response) => {
     try {
-        // Buscar turno activo
-        const turnoActivo = await pool.query(
-            `SELECT fecha_apertura FROM turnos_caja WHERE estado = 'abierto' LIMIT 1`
-        );
+        // Parámetro opcional: si se envía ?todas=1, no se filtra por turno activo
+        const incluirTodas = req.query.todas === '1';
 
         let filtroExtra = '';
         const params: any[] = [];
 
-        if (turnoActivo.rowCount! > 0) {
-            // Ocultar únicamente los pedidos ENTREGADOS anteriores al inicio del turno
-            filtroExtra = `AND (p.estado != 'entregado' OR p.hora_registro >= $1)`;
-            params.push(turnoActivo.rows[0].fecha_apertura);
+        if (!incluirTodas) {
+            // Comportamiento normal: ocultar entregados anteriores al turno activo
+            const turnoActivo = await pool.query(
+                `SELECT fecha_apertura FROM turnos_caja WHERE estado = 'abierto' LIMIT 1`
+            );
+            if (turnoActivo.rowCount! > 0) {
+                filtroExtra = `AND (p.estado != 'entregado' OR p.hora_registro >= $1)`;
+                params.push(turnoActivo.rows[0].fecha_apertura);
+            }
         }
 
         const result = await pool.query(`
             SELECT
                 p.id_pedido,
-                p.numero_pedido,              -- número diario (mismo para subpedidos)
+                p.numero_pedido,
                 m.numero_mesa AS mesa,
                 p.estado,
                 p.hora_registro,
@@ -77,7 +80,8 @@ export const getPedidos = async (req: Request, res: Response) => {
                             'categoria',       pr.categoria,
                             'cantidad',        dp.cantidad,
                             'precio_unitario', dp.precio_unitario,
-                            'subtotal',        dp.subtotal
+                            'subtotal',        dp.subtotal,
+                            'extras_ids',      dp.extras_ids
                         )
                     ) FILTER (WHERE dp.id_detalle IS NOT NULL),
                     '[]'
@@ -112,7 +116,7 @@ export const crearPedido = async (req: Request, res: Response) => {
         return res.status(400).json({ message: 'Debe especificar una mesa' });
     }
 
-    // Obtener categorías reales de los productos desde la BD
+    // Obtener categorías reales desde la BD
     const ids = productos.map((p: any) => p.id_producto);
     const prodsInfo = await pool.query(
         `SELECT id_producto, categoria FROM productos WHERE id_producto = ANY($1)`,
@@ -120,7 +124,6 @@ export const crearPedido = async (req: Request, res: Response) => {
     );
     const mapaCat = new Map(prodsInfo.rows.map((p: any) => [p.id_producto, p.categoria]));
 
-    // Separar productos para barra y cocina
     const barraProds = productos.filter((p: any) => {
         const cat = mapaCat.get(p.id_producto);
         return cat && ['Bebidas Calientes', 'Bebidas Frías', 'Postres', 'Cafetería'].includes(cat);
@@ -143,7 +146,7 @@ export const crearPedido = async (req: Request, res: Response) => {
     try {
         await client.query('BEGIN');
 
-        // Obtener el próximo número diario (una sola vez para todos los subpedidos)
+        // Obtener número de ticket diario (común para todos los subpedidos)
         const conteoHoy = await client.query(
             `SELECT COUNT(*)::int + 1 AS siguiente
              FROM pedidos
@@ -170,36 +173,32 @@ export const crearPedido = async (req: Request, res: Response) => {
             totalGeneral += monto;
 
             const pedidoQuery = `
-                INSERT INTO pedidos (id_cuenta, estado, monto_total, id_usuario, notas)
-                VALUES ($1, 'pendiente', $2, $3, $4)
+                INSERT INTO pedidos (id_cuenta, estado, monto_total, id_usuario, notas, numero_pedido)
+                VALUES ($1, 'pendiente', $2, $3, $4, $5)
                 RETURNING id_pedido`;
             const nuevo = await client.query(pedidoQuery,
-                [id_cuenta, monto, id_usuario, notas || null]
+                [id_cuenta, monto, id_usuario, notas || null, numeroPedido]
             );
             const id_pedido = nuevo.rows[0].id_pedido;
 
-            // Insertar detalles
+            // Insertar detalles con extras
             for (const prod of grupo.productos) {
                 const subtotal = prod.cantidad * prod.precio_unitario;
                 await client.query(
                     `INSERT INTO detalle_pedidos
-                        (id_pedido, id_producto, cantidad, precio_unitario, subtotal)
-                     VALUES ($1, $2, $3, $4, $5)`,
-                    [id_pedido, prod.id_producto, prod.cantidad, prod.precio_unitario, subtotal]
+                        (id_pedido, id_producto, cantidad, precio_unitario, subtotal, extras_ids)
+                     VALUES ($1, $2, $3, $4, $5, $6)`,
+                    [id_pedido, prod.id_producto, prod.cantidad, prod.precio_unitario, subtotal,
+                     JSON.stringify(prod.extras || [])]
                 );
             }
 
-            pedidosCreados.push({
-                id_pedido,
-                numero_pedido: numeroPedido,   // mismo número para todos los subpedidos
-                area: grupo.area,
-            });
+            pedidosCreados.push({ id_pedido, numero_pedido: numeroPedido, area: grupo.area });
         }
 
         await client.query('COMMIT');
-
         res.status(201).json({
-            message: 'Pedido(s) registrado(s) con éxito',
+            message: 'Pedidos registrados con éxito',
             pedidos: pedidosCreados,
             numero_pedido: numeroPedido,
             monto_total: totalGeneral

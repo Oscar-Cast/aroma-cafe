@@ -58,7 +58,10 @@ export const api = {
     request(`/productos/${id}`, { method: 'DELETE' }),
 
   // Pedidos
-  getPedidos: () => request<any[]>('/pedidos'),
+ getPedidos: (params?: { todas?: boolean }) => {
+    const query = params?.todas ? '?todas=1' : '';
+    return request<any[]>(`/pedidos${query}`);
+  },
   createPedido: (data: any) =>
     request('/pedidos', { method: 'POST', body: JSON.stringify(data) }),
   updatePedidoEstado: (id: number, estado: string) =>
@@ -119,6 +122,7 @@ export const api = {
     
     // Cuentas
     getCuentasAbiertas: () => request<any[]>('/cuentas/abiertas'),
+    getCuentas: () => request<any[]>('/cuentas'),
     cerrarCuenta: (id: number, data: { metodo_pago: string; propina?: number }) =>
       request(`/cuentas/${id}/cerrar`, { method: 'PATCH', body: JSON.stringify(data) }),
 

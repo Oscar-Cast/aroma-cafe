@@ -1,231 +1,71 @@
-/* CSS de produccion Barra y cocina 
-
-/* Contenedor principal */
-.barra-page {
-  padding: 1.5rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
+/* Layout general */
+.produccion-page { display: flex; flex-direction: column; gap: 1.5rem; }
 
 /* Encabezado */
-.barra-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.barra-icon {
-  width: 3rem;
-  height: 3rem;
-  background-color: var(--chocolate);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--vanilla);
-}
-
-.barra-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: var(--chocolate);
-  margin: 0;
-}
-
-.barra-subtitle {
-  color: var(--caramel);
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-}
+.produccion-header { display: flex; align-items: center; gap: 0.75rem; }
+.produccion-icon { width: 3rem; height: 3rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+.produccion-icon-barra { background: var(--chocolate); color: white; }
+.produccion-icon-cocina { background: var(--chocolate); color: white; }  /* mismo fondo que barra, puedes cambiarlo si quieres */
+.produccion-title { font-size: 1.875rem; font-weight: 700; color: var(--chocolate); }
+.produccion-subtitle { color: var(--caramel); font-size: 0.875rem; }
 
 /* Tarjetas de estadísticas */
-.barra-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-}
+.produccion-stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.produccion-stat-card { border-radius: 0.75rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.produccion-stat-card.pendiente { border: 1px solid #fcd34d; background: #fef3c7; }
+.produccion-stat-card.en-preparacion { border: 1px solid #93c5fd; background: #dbeafe; }
+.produccion-stat-card.listo { border: 1px solid #86efac; background: #dcfce7; }
+.produccion-stat-label { font-size: 0.8rem; font-weight: 500; }
+.produccion-stat-card.pendiente .produccion-stat-label { color: #92400e; }
+.produccion-stat-card.en-preparacion .produccion-stat-label { color: #1e40af; }
+.produccion-stat-card.listo .produccion-stat-label { color: #166534; }
+.produccion-stat-number { font-size: 1.75rem; font-weight: 700; }
+.produccion-stat-card.pendiente .produccion-stat-number { color: #92400e; }
+.produccion-stat-card.en-preparacion .produccion-stat-number { color: #1e40af; }
+.produccion-stat-card.listo .produccion-stat-number { color: #166534; }
 
-.barra-stat-card {
-  border-radius: 0.5rem;
-  padding: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
+/* Contenido de las tarjetas de estadísticas (icono y texto) */
+.produccion-stat-content { display: flex; justify-content: space-between; align-items: center; }
 
-.barra-stat-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.barra-stat-number {
-  font-size: 2rem;
-  font-weight: 800;
-}
-
-/* Columnas */
-.barra-columnas {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-@media (min-width: 1024px) {
-  .barra-columnas {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.barra-columna {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.barra-columna-titulo {
-  font-size: 1.25rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0;
-}
+/* Columnas de pedidos */
+.produccion-columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+.produccion-column { display: flex; flex-direction: column; gap: 1rem; }
+.produccion-column-title { font-size: 1.125rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; }
+.produccion-column-title.pendiente { color: #92400e; }
+.produccion-column-title.en-preparacion { color: #1e40af; }
+.produccion-column-title.listo { color: #166534; }
 
 /* Tarjeta de pedido */
-.barra-pedido {
-  background: white;
-  border: 1px solid var(--caramel);
-  border-radius: 0.5rem;
-  padding: 1rem;
-}
+.produccion-order-card { background: white; border: 1px solid var(--caramel); border-radius: 0.75rem; }
+.produccion-order-card-header { padding-bottom: 0.5rem; }
+.produccion-order-card-top { display: flex; justify-content: space-between; align-items: center; }
+.produccion-order-card-title { font-size: 1rem; font-weight: 600; color: var(--chocolate); }
+.produccion-order-card-desc { font-size: 0.8rem; color: var(--caramel); }
 
-.barra-pedido-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.5rem;
-}
+/* Detalles del pedido */
+.produccion-order-details { display: flex; flex-direction: column; gap: 0.4rem; margin-bottom: 0.75rem; }
+.produccion-order-detail-row { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--chocolate); }
+.produccion-extras { padding-left: 1.25rem; font-size: 0.8rem; color: var(--caramel); }
+.produccion-extra-item { display: flex; gap: 0.5rem; }
 
-.barra-pedido-titulo {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--chocolate);
-  margin: 0;
-}
+/* Notas */
+.produccion-order-notas { background: var(--lemon); border-radius: 0.375rem; padding: 0.5rem; margin: 0.5rem 0; font-size: 0.85rem; }
 
-.barra-pedido-mesa {
-  color: var(--caramel);
-  font-size: 0.875rem;
-}
-
-.barra-pedido-productos {
-  margin: 0.75rem 0;
-}
-
-.barra-pedido-producto {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.875rem;
-}
-
-.barra-pedido-notas {
-  background-color: var(--lemon);
-  padding: 0.5rem;
-  border-radius: 0.375rem;
-  margin: 0.75rem 0;
-  font-size: 0.875rem;
-}
+/* Botones de acción */
+.produccion-btn-start { width: 100%; background: #3b82f6; color: white; border: none; border-radius: 0.375rem; padding: 0.5rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 0.5rem; }
+.produccion-btn-ready { width: 100%; background: #22c55e; color: white; border: none; border-radius: 0.375rem; padding: 0.5rem; font-weight: 500; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 0.5rem; }
 
 /* Badges de estado */
-.badge {
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
+.produccion-status-badge { font-size: 0.75rem; font-weight: 500; padding: 0.15rem 0.5rem; border-radius: 0.25rem; border: 1px solid; }
+.produccion-status-badge.pendiente { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+.produccion-status-badge.en-preparacion { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+.produccion-status-badge.listo { background: #dcfce7; color: #166534; border-color: #86efac; }
 
-.badge-pendiente {
-  background-color: #FEF3C7;
-  color: #92400E;
-}
+/* Texto de espera */
+.produccion-espera { font-size: 0.75rem; color: #16a34a; text-align: center; margin-top: 0.5rem; }
 
-.badge-preparacion {
-  background-color: #DBEAFE;
-  color: #1E40AF;
-}
-
-.badge-listo {
-  background-color: #D1FAE5;
-  color: #065F46;
-}
-
-.badge-entregado {
-  background-color: #F3F4F6;
-  color: #374151;
-}
-
-/* Botones */
-.barra-btn {
-  width: 100%;
-  padding: 0.5rem 1rem;
-  border-radius: 0.375rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  border: none;
-  transition: background-color 0.2s;
-}
-
-.barra-btn-preparar {
-  background-color: #3B82F6;
-  color: white;
-}
-
-.barra-btn-preparar:hover {
-  background-color: #2563EB;
-}
-
-.barra-btn-listo {
-  background-color: #10B981;
-  color: white;
-}
-
-.barra-btn-listo:hover {
-  background-color: #059669;
-}
-
-/* Estados de columna */
-.columna-pendientes { }
-.columna-preparacion { }
-.columna-listo { }
-
-/* Estados vacíos */
-.barra-vacio {
-  text-align: center;
-  padding: 2rem;
-  border-radius: 0.5rem;
-  border: 1px solid;
-}
-
-.barra-vacio-pendientes {
-  background-color: #FFFBEB;
-  color: #92400E;
-  border-color: #FCD34D;
-}
-
-.barra-vacio-preparacion {
-  background-color: #EFF6FF;
-  color: #1E40AF;
-  border-color: #93C5FD;
-}
-
-.barra-vacio-listo {
-  background-color: #ECFDF5;
-  color: #065F46;
-  border-color: #6EE7B7;
+/* Responsividad */
+@media (max-width: 900px) {
+  .produccion-stats-grid,
+  .produccion-columns { grid-template-columns: 1fr; }
 }

@@ -1,60 +1,106 @@
-/* ─── Layout de la página de Caja ─── */
-.caja-page { @apply space-y-6; }
+.caja-page { display: flex; flex-direction: column; gap: 1.5rem; }
+.caja-header { display: flex; justify-content: space-between; align-items: center; }
+.caja-title { font-size: 1.875rem; font-weight: 700; color: var(--chocolate); }
+.caja-subtitle { color: var(--caramel); font-size: 0.875rem; }
 
-/* Encabezado */
-.caja-header { @apply flex items-center justify-between; }
-.caja-title { @apply text-3xl font-bold text-[var(--chocolate)]; }
-.caja-subtitle { @apply text-[var(--caramel)]; }
+/* sin turno */
+.caja-no-turno-card { composes: card-warning; }
+.caja-no-turno-text { text-align: center; font-size: 1.125rem; color: var(--chocolate); padding-top: 1.5rem; }
 
-/* Aviso de no hay turno */
-.caja-no-turno-card { @apply card-warning; }
-.caja-no-turno-text { @apply text-center text-lg text-[var(--chocolate)] pt-6; }
+/* tarjetas resumen */
+.caja-summary-grid { composes: grid-cards; }
+.caja-summary-card { composes: card-cafe; }
+.caja-summary-card-success { composes: card-success; }
+.caja-summary-card-danger { composes: card-danger; }
+.caja-summary-card-title { composes: heading-card; }
+.caja-summary-card-amount { 
+	font-size: 1.5rem; 
+	font-weight: 700;
+	}
 
-/* Tarjetas de resumen */
-.caja-summary-grid { @apply grid-cards; }
-.caja-summary-card { @apply card-cafe; }
-.caja-summary-card-success { @apply card-success; }
-.caja-summary-card-danger { @apply card-danger; }
-.caja-summary-card-title { @apply heading-card; }
-.caja-summary-card-amount { @apply text-2xl font-bold; }
+/* métodos de pago en vivo */
+.caja-metodos-grid { composes: grid-cards; }
+.caja-metodo-card { composes: card-cafe; }
+.caja-metodo-card-warning { composes: card-warning; }
+.caja-metodo-amount { 
+	font-size: 1.125rem; 
+	font-weight: 700; 
+	}
 
-/* Métodos de pago */
-.caja-metodos-grid { @apply grid-cards; }
-.caja-metodo-card { @apply card-cafe; }
-.caja-metodo-card-warning { @apply card-warning; }
-.caja-metodo-amount { @apply text-lg font-bold; }
+/* movimientos del turno */
+.caja-movimientos-card { composes: card-cafe; }
 
-/* Movimientos del turno */
-.caja-movimientos-card { @apply card-cafe; }
+/* botones específicos */
+.caja-btn-abrir { composes: btn-secondary; }
+.caja-btn-cerrar { composes: btn-danger; }
 
-/* Botones específicos */
-.caja-btn-abrir { @apply btn-secondary; }
-.caja-btn-cerrar { @apply btn-danger; }
+/* diálogo abrir turno */
+.caja-abrir-input { composes: input-cafe; }
+.caja-abrir-btn { composes: btn-secondary; }
 
-/* Diálogo de apertura */
-.caja-abrir-input { @apply input-cafe; }
-.caja-abrir-btn { @apply btn-secondary; }
+/* diálogo cierre */
+.caja-cierre-scroll { 
+	max-height: 65vh; 
+	padding-right: 1rem; 
+	}
+.caja-cierre-totales { 
+	display: grid; 
+	grid-template-columns: 1fr 1fr; 
+	gap: 1rem; 
+	}
+.caja-cierre-total-box { 
+	padding: 0.75rem; 
+	border-radius: 0.5rem; 
+	}
+.caja-cierre-total-box-success { background: #f0fdf4; }
+.caja-cierre-total-box-danger { background: #fef2f2; }
+.caja-cierre-total-label { 
+	color: var(--chocolate); 
+	font-size: 0.875rem; 
+	}
+.caja-cierre-total-amount { 
+	font-size: 1.25rem; 
+	font-weight: 700; 
+	}
 
-/* Diálogo de cierre */
-.caja-cierre-scroll { @apply max-h-[65vh] pr-4; }
-.caja-cierre-totales { @apply grid grid-cols-2 gap-4; }
-.caja-cierre-total-box { @apply p-3 rounded; }
-.caja-cierre-total-box-success { @apply bg-green-50; }
-.caja-cierre-total-box-danger { @apply bg-red-50; }
-.caja-cierre-total-label { @apply text-sm text-[var(--chocolate)]; }
-.caja-cierre-total-amount { @apply text-xl font-bold; }
+/* arqueo y totales */
+.caja-arqueo-bloque { 
+	background: white; 
+	border: 1px solid var(--caramel); 
+	border-radius: 0.5rem; 
+	padding: 0.75rem; 
+	}
+.caja-arqueo-label { 
+	font-weight: 500; 
+	color: var(--chocolate); 
+	margin-bottom: 0.5rem; 
+	}
+.caja-arqueo-fila { 
+	display: flex; 
+	justify-content: space-between; 
+	font-size: 0.875rem; 
+	color: var(--chocolate); 
+	}
+.caja-arqueo-total { 
+	border-top: 1px solid var(--caramel); 
+	padding-top: 0.5rem; 
+	display: flex; 
+	justify-content: space-between; 
+	font-weight: 600; 
+	}
+.caja-arqueo-input { 
+	width: 9rem; 
+	composes: input-cafe; 
+	}
 
-/* Arqueo y totales */
-.caja-arqueo-bloque { @apply bg-white p-3 rounded border border-[var(--caramel)]; }
-.caja-arqueo-label { @apply font-medium text-[var(--chocolate)] mb-2; }
-.caja-arqueo-fila { @apply flex justify-between text-sm text-[var(--chocolate)]; }
-.caja-arqueo-total { @apply border-t border-[var(--caramel)] pt-2 flex justify-between font-semibold; }
-.caja-arqueo-input { @apply w-36 input-cafe; }
+/* diferencias */
+.caja-diferencia-perfecta { color: #16a34a; }
+.caja-diferencia-positiva { color: #2563eb; }
+.caja-diferencia-negativa { color: #dc2626; }
 
-/* Diferencias */
-.caja-diferencia-perfecta { @apply text-green-700; }
-.caja-diferencia-positiva { @apply text-blue-700; }
-.caja-diferencia-negativa { @apply text-red-700; }
-
-/* Notas al pie */
-.caja-arqueo-nota { @apply text-xs text-[var(--caramel)] mt-2; }
+/* nota */
+.caja-arqueo-nota { 
+	font-size: 0.75rem; 
+	color: var(--caramel); 
+	margin-top: 0.5rem; 
+	}

@@ -3,17 +3,18 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import { api } from '@/api/client'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Receipt, CreditCard, Banknote, Smartphone, CheckCircle, Clock, Coffee } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import '@/styles/cobros.css'
 
 interface DetalleProducto {
   cantidad: number
@@ -43,11 +44,8 @@ export function CobrosView() {
 
   const cargarDatos = async () => {
     try {
-      const abiertas = await api.getCuentasAbiertas();
-      setCuentasAbiertas(abiertas.map((c: any) => ({
-        ...c,
-        subtotal_acumulado: parseFloat(c.subtotal_acumulado)
-      })));
+      const abiertas = await api.getCuentasAbiertas()
+      setCuentasAbiertas(abiertas)
       setCuentasCerradas([])
     } catch (error) {
       toast({ title: 'Error', description: 'No se pudieron cargar las cuentas', variant: 'destructive' })
@@ -69,7 +67,7 @@ export function CobrosView() {
   }
 
   const handleCobrar = async () => {
-    if (!selectedCuenta) return
+    if (!selectedCuenta || !user) return
     try {
       await api.cerrarCuenta(selectedCuenta.id_cuenta, {
         metodo_pago: metodoPago,
@@ -84,161 +82,197 @@ export function CobrosView() {
   }
 
   const getMetodoPagoIcon = (metodo: string) => {
-    const icons: any = { efectivo: <Banknote className="w-4 h-4" />, tarjeta: <CreditCard className="w-4 h-4" />, transferencia: <Smartphone className="w-4 h-4" /> }
+    const icons: any = { efectivo: <Banknote size={14} />, tarjeta: <CreditCard size={14} />, transferencia: <Smartphone size={14} /> }
     return icons[metodo] || null
   }
 
-  if (loading) return <div className="text-center py-12 text-[#889063]">Cargando cuentas...</div>
+  const totalCobradoHoy = cuentasCerradas
+    .filter(c => c.fecha_cierre?.startsWith(new Date().toISOString().split('T')[0]))
+    .reduce((sum, c) => sum + c.total, 0)
+
+  const propinasTotales = cuentasCerradas
+    .filter(c => c.fecha_cierre?.startsWith(new Date().toISOString().split('T')[0]))
+    .reduce((sum, c) => sum + (c.propina || 0), 0)
+
+  if (loading) return <div className="text-center py-12" style={{ color: 'var(--caramel)' }}>Cargando cobros...</div>
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-[#4C3D19] rounded-full flex items-center justify-center">
-          <Receipt className="w-6 h-6 text-[#E5D7C4]" />
-        </div>
+    <div className="cobros-page">
+      <div className="cobros-header">
+        <div className="cobros-icon"><Receipt /></div>
         <div>
-          <h1 className="text-3xl font-bold text-[#4C3D19]">Cobros</h1>
-          <p className="text-[#889063]">Cuentas activas y cierre de mesas</p>
+          <h1>Cobros</h1>
+          <p>Cierre de cuentas y registro de pagos</p>
+        </div>
+      </div>
+
+      <div className="cobros-stats-grid">
+        <div className="cobros-stat-card amber">
+          <div className="cobros-stat-label">Por Cobrar</div>
+          <div className="cobros-stat-value">{cuentasAbiertas.length}</div>
+        </div>
+        <div className="cobros-stat-card green">
+          <div className="cobros-stat-label">Cobrado Hoy</div>
+          <div className="cobros-stat-value">{formatCurrency(totalCobradoHoy)}</div>
+        </div>
+        <div className="cobros-stat-card blue">
+          <div className="cobros-stat-label">Cuentas Cerradas Hoy</div>
+          <div className="cobros-stat-value">{cuentasCerradas.filter(c => c.fecha_cierre?.startsWith(new Date().toISOString().split('T')[0])).length}</div>
+        </div>
+        <div className="cobros-stat-card purple">
+          <div className="cobros-stat-label">Propinas Hoy</div>
+          <div className="cobros-stat-value">{formatCurrency(propinasTotales)}</div>
         </div>
       </div>
 
       <Tabs defaultValue="abiertas">
-        <TabsList className="bg-[#CFBB99]/30">
-          <TabsTrigger value="abiertas" className="data-[state=active]:bg-[#4C3D19] data-[state=active]:text-[#E5D7C4]">
-            Cuentas Abiertas ({cuentasAbiertas.length})
-          </TabsTrigger>
-          <TabsTrigger value="historial" className="data-[state=active]:bg-[#4C3D19] data-[state=active]:text-[#E5D7C4]">
-            Historial
-          </TabsTrigger>
+        <TabsList className="cobros-tabs-list">
+          <TabsTrigger value="abiertas">Cuentas Abiertas ({cuentasAbiertas.length})</TabsTrigger>
+          <TabsTrigger value="historial">Historial</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="abiertas" className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <TabsContent value="abiertas" style={{ marginTop: '1rem' }}>
+          <div className="cobros-grid">
             {cuentasAbiertas.map(cuenta => (
-              <Card key={cuenta.id_cuenta} className="border-[#CFBB99]">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg text-[#4C3D19]">{cuenta.numero_mesa}</CardTitle>
-                    <Badge className="bg-amber-100 text-amber-700 border-amber-200" variant="outline">
-                      <Clock className="w-3 h-3 mr-1" />{formatTime(cuenta.fecha_apertura)}
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-[#889063]">
-                    Cuenta #{cuenta.id_cuenta}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Detalle de productos consumidos */}
-                  <ScrollArea className="h-32">
-                    <div className="space-y-1">
-                      {cuenta.detalles.map((item, index) => (
-                        <div key={index} className="flex justify-between text-sm">
-                          <span className="text-[#4C3D19]">{item.cantidad}x {item.nombre_producto}</span>
-                          <span className="text-[#889063]">{formatCurrency(item.subtotal)}</span>
-                        </div>
-                      ))}
+              <Card key={cuenta.id_cuenta} className="cobros-account-card">
+                <div>
+                  <div className="cobros-account-title">{cuenta.numero_mesa}</div>
+                  <div className="cobros-account-time"><Clock size={12} className="inline" /> {formatTime(cuenta.fecha_apertura)} — Cuenta #{cuenta.id_cuenta}</div>
+                </div>
+                <div className="cobros-account-detail">
+                  {cuenta.detalles.map((item, idx) => (
+                    <div className="cobros-account-item" key={idx}>
+                      <span>{item.cantidad}x {item.nombre_producto}</span>
+                      <span>{formatCurrency(item.subtotal)}</span>
                     </div>
-                  </ScrollArea>
-
-                  <div className="flex justify-between items-center pt-2 border-t border-[#CFBB99]">
-                    <span className="text-[#889063]">Total acumulado:</span>
-                    <span className="text-xl font-bold text-[#4C3D19]">{formatCurrency(cuenta.subtotal_acumulado)}</span>
-                  </div>
-                  <Button 
-                    className="w-full bg-[#4C3D19] hover:bg-[#354024] text-[#E5D7C4]"
-                    onClick={() => openCobrarDialog(cuenta)}
-                  >
-                    <Receipt className="w-4 h-4 mr-2" /> Cobrar Cuenta
-                  </Button>
-                </CardContent>
+                  ))}
+                </div>
+                <div className="cobros-account-total">
+                  <span>Total</span>
+                  <span>{formatCurrency(cuenta.subtotal_acumulado)}</span>
+                </div>
+                <button className="cobros-btn-cobrar" onClick={() => openCobrarDialog(cuenta)}>
+                  <Receipt size={14} style={{ marginRight: '0.5rem' }} /> Cobrar Cuenta
+                </button>
               </Card>
             ))}
             {cuentasAbiertas.length === 0 && (
-              <div className="col-span-full text-center py-12 text-[#889063]">
-                <Coffee className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">No hay cuentas abiertas</p>
-                <p className="text-sm">Crea pedidos para abrir cuentas</p>
+              <div className="cobros-empty" style={{ gridColumn: '1 / -1' }}>
+                <Coffee size={48} style={{ margin: '0 auto 0.5rem', opacity: 0.5 }} />
+                <p>No hay cuentas abiertas</p>
               </div>
             )}
           </div>
         </TabsContent>
 
-        <TabsContent value="historial" className="mt-4">
-          <div className="text-center py-8 text-[#889063]">
-            Historial no implementado aún (se puede añadir después consultando cuentas cerradas).
-          </div>
+        <TabsContent value="historial" style={{ marginTop: '1rem' }}>
+          <Card className="cobros-historial-card">
+            <div style={{ padding: '1rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--chocolate)' }}>Historial de Cobros</h2>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow><TableHead>Cuenta</TableHead><TableHead>Mesa</TableHead><TableHead>Subtotal</TableHead><TableHead>Propina</TableHead><TableHead>Total</TableHead><TableHead>Método</TableHead></TableRow>
+              </TableHeader>
+              <TableBody>
+                {cuentasCerradas.map(c => (
+                  <TableRow key={c.id_cuenta}>
+                    <TableCell>#{c.id_cuenta}</TableCell>
+                    <TableCell>{c.mesa}</TableCell>
+                    <TableCell>{formatCurrency(c.subtotal)}</TableCell>
+                    <TableCell>{c.propina ? formatCurrency(c.propina) : '-'}</TableCell>
+                    <TableCell style={{ fontWeight: 600 }}>{formatCurrency(c.total)}</TableCell>
+                    <TableCell><span className="cobros-badge-pago efectivo">{c.metodo_pago}</span></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Diálogo de cobro */}
       <Dialog open={isCobrarDialogOpen} onOpenChange={setIsCobrarDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent style={{ maxWidth: '28rem' }}>
           <DialogHeader>
-            <DialogTitle className="text-[#4C3D19]">Cobrar Cuenta</DialogTitle>
-            <DialogDescription className="text-[#889063]">
-              {selectedCuenta?.numero_mesa} - Cuenta #{selectedCuenta?.id_cuenta}
-            </DialogDescription>
+            <DialogTitle style={{ color: 'var(--chocolate)' }}>Cobrar Cuenta</DialogTitle>
           </DialogHeader>
           {selectedCuenta && (
-            <div className="space-y-4">
-              {/* Detalle completo en el diálogo */}
-              <div className="bg-[#E5D7C4]/50 rounded-lg p-3">
-                <ScrollArea className="h-28">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div className="cobros-dialog-detail">
+                <ScrollArea style={{ maxHeight: '8rem' }}>
                   {selectedCuenta.detalles.map((item, idx) => (
-                    <div key={idx} className="flex justify-between text-sm mb-1">
+                    <div className="cobros-dialog-item" key={idx}>
                       <span>{item.cantidad}x {item.nombre_producto}</span>
                       <span>{formatCurrency(item.subtotal)}</span>
                     </div>
                   ))}
                 </ScrollArea>
-                <div className="border-t border-[#CFBB99] mt-2 pt-2 flex justify-between">
+                <div className="cobros-dialog-total-row">
                   <span>Subtotal</span>
-                  <span className="font-medium">{formatCurrency(selectedCuenta.subtotal_acumulado)}</span>
+                  <span>{formatCurrency(selectedCuenta.subtotal_acumulado)}</span>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-[#4C3D19]">Propina (opcional)</Label>
-                <div className="flex gap-2">
-				<Input
-				  type="number"
-				  min={0}
-				  step={1}
-				  value={propina}
-				  onChange={(e) => {
-				    const val = parseFloat(e.target.value);
-				    setPropina(isNaN(val) ? 0 : val);
-				  }}
-				  onBlur={() => setPropina(Number(propina))}
-				  className="border-[#CFBB99]"
-				  placeholder="0"
-				/>
-                  <div className="flex gap-1">
-                    <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(selectedCuenta.subtotal_acumulado * 0.10))} className="border-[#CFBB99] text-[#4C3D19]">10%</Button>
-                    <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(selectedCuenta.subtotal_acumulado * 0.15))} className="border-[#CFBB99] text-[#4C3D19]">15%</Button>
-                    <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(selectedCuenta.subtotal_acumulado * 0.20))} className="border-[#CFBB99] text-[#4C3D19]">20%</Button>
-                  </div>
+              <div>
+                <Label>Propina (opcional)</Label>
+                <div className="cobros-propina-row" style={{ marginTop: '0.25rem' }}>
+                  <Input type="number" min={0} step={1} value={propina} onChange={e => setPropina(parseFloat(e.target.value) || 0)} className="cobros-propina-input" placeholder="0.00" />
+                  <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(selectedCuenta.subtotal_acumulado * 0.10))}>10%</Button>
+                  <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(selectedCuenta.subtotal_acumulado * 0.15))}>15%</Button>
+                  <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(selectedCuenta.subtotal_acumulado * 0.20))}>20%</Button>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label className="text-[#4C3D19]">Método de Pago</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  <Button variant={metodoPago === 'efectivo' ? 'default' : 'outline'} className={metodoPago === 'efectivo' ? 'bg-green-600 hover:bg-green-700 text-white' : 'border-[#CFBB99] text-[#4C3D19]'} onClick={() => setMetodoPago('efectivo')}><Banknote className="w-4 h-4 mr-2" />Efectivo</Button>
-                  <Button variant={metodoPago === 'tarjeta' ? 'default' : 'outline'} className={metodoPago === 'tarjeta' ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'border-[#CFBB99] text-[#4C3D19]'} onClick={() => setMetodoPago('tarjeta')}><CreditCard className="w-4 h-4 mr-2" />Tarjeta</Button>
-                  <Button variant={metodoPago === 'transferencia' ? 'default' : 'outline'} className={metodoPago === 'transferencia' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'border-[#CFBB99] text-[#4C3D19]'} onClick={() => setMetodoPago('transferencia')}><Smartphone className="w-4 h-4 mr-2" />Transf.</Button>
+
+              <div>
+                <Label>Método de Pago</Label>
+                <div className="cobros-payment-grid" style={{ marginTop: '0.25rem' }}>
+                  <button
+                    className="cobros-payment-btn"
+                    style={{
+                      background: metodoPago === 'efectivo' ? '#16a34a' : 'transparent',
+                      color: metodoPago === 'efectivo' ? 'white' : 'var(--chocolate)',
+                      borderColor: metodoPago === 'efectivo' ? '#16a34a' : 'var(--caramel)',
+                    }}
+                    onClick={() => setMetodoPago('efectivo')}
+                  >
+                    <Banknote size={14} className="inline" /> Efectivo
+                  </button>
+                  <button
+                    className="cobros-payment-btn"
+                    style={{
+                      background: metodoPago === 'tarjeta' ? '#2563eb' : 'transparent',
+                      color: metodoPago === 'tarjeta' ? 'white' : 'var(--chocolate)',
+                      borderColor: metodoPago === 'tarjeta' ? '#2563eb' : 'var(--caramel)',
+                    }}
+                    onClick={() => setMetodoPago('tarjeta')}
+                  >
+                    <CreditCard size={14} className="inline" /> Tarjeta
+                  </button>
+                  <button
+                    className="cobros-payment-btn"
+                    style={{
+                      background: metodoPago === 'transferencia' ? '#7c3aed' : 'transparent',
+                      color: metodoPago === 'transferencia' ? 'white' : 'var(--chocolate)',
+                      borderColor: metodoPago === 'transferencia' ? '#7c3aed' : 'var(--caramel)',
+                    }}
+                    onClick={() => setMetodoPago('transferencia')}
+                  >
+                    <Smartphone size={14} className="inline" /> Transf.
+                  </button>
                 </div>
               </div>
-              <div className="bg-[#4C3D19] rounded-lg p-4">
-                <div className="flex justify-between items-center text-[#E5D7C4]">
-                  <span className="text-lg">Total a Cobrar</span>
-                  <span className="text-3xl font-bold">{formatCurrency(selectedCuenta.subtotal_acumulado + propina)}</span>
-                </div>
+
+              <div className="cobros-final-total">
+                <span className="label">Total a Cobrar</span>
+                <span className="value">{formatCurrency(selectedCuenta.subtotal_acumulado + propina)}</span>
               </div>
             </div>
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCobrarDialogOpen(false)}>Cancelar</Button>
-            <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleCobrar}><CheckCircle className="w-4 h-4 mr-2" />Confirmar Cobro</Button>
+            <Button style={{ background: '#16a34a', color: 'white' }} onClick={handleCobrar}>
+              <CheckCircle size={14} style={{ marginRight: '0.5rem' }} /> Confirmar Cobro
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

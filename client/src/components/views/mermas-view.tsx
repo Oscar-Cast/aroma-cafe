@@ -4,280 +4,182 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/providers/AuthProvider'
 import { api } from '@/api/client'
 import { MermaProducto, Producto, Insumo } from '@/lib/types'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Textarea } from '@/components/ui/textarea'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { AlertTriangle, Plus } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import '@/styles/mermas.css'
 
-const motivosMerma = [
-  'Caducidad', 'Daño en transporte', 'Daño en almacén', 'Producto defectuoso',
-  'Error de preparación', 'Devolución de cliente', 'Otro'
-]
+const motivosMerma = ['Caducidad', 'Daño en transporte', 'Daño en almacén', 'Producto defectuoso', 'Error de preparación', 'Devolución de cliente', 'Otro']
 
 export function MermasView() {
   const { user } = useAuth()
   const { toast } = useToast()
   const [tab, setTab] = useState('productos')
-  // Productos
   const [mermasProd, setMermasProd] = useState<MermaProducto[]>([])
-  const [productos, setProductos] = useState<Producto[]>([])
-  const [showDialogProd, setShowDialogProd] = useState(false)
-  // Insumos
   const [movimientos, setMovimientos] = useState<any[]>([])
+  const [productos, setProductos] = useState<Producto[]>([])
   const [insumos, setInsumos] = useState<Insumo[]>([])
+  const [showDialogProd, setShowDialogProd] = useState(false)
   const [showDialogInsumo, setShowDialogInsumo] = useState(false)
-  // Formularios
   const [formProd, setFormProd] = useState({ id_producto: '', cantidad: '', motivo: '', motivoOtro: '' })
-  const [formInsumo, setFormInsumo] = useState({ id_insumo: '', cantidad: '', motivo: '', motivoOtro: '' })
+  const [formInsumo, setFormInsumo] = useState({ id_insumo: '', cantidad: '', motivo: '' })
 
   const cargarDatos = async () => {
     try {
-      const [mermasData, productosData, movsData, insumosData] = await Promise.all([
-        api.getMermas(),
-        api.getProductos(),
-        api.getMovimientosInventario(),
-        api.getInsumos()
+      const [mermas, prods, movs, ins] = await Promise.all([
+        api.getMermas(), api.getProductos(), api.getMovimientosInventario(), api.getInsumos()
       ])
-      setMermasProd(mermasData)
-      setProductos(productosData)
-      setMovimientos(movsData.filter((m: any) => m.tipo_movimiento.startsWith('merma')))
-      setInsumos(insumosData)
-    } catch (err) {
+      setMermasProd(mermas)
+      setProductos(prods)
+      setMovimientos(movs.filter((m: any) => m.tipo_movimiento.startsWith('merma')))
+      setInsumos(ins)
+    } catch {
       toast({ title: 'Error', description: 'No se pudieron cargar los datos', variant: 'destructive' })
     }
   }
 
   useEffect(() => { cargarDatos() }, [])
 
-  // Registro merma producto
   const handleProdSubmit = async () => {
     if (!formProd.id_producto || !formProd.cantidad || !formProd.motivo) {
-      toast({ title: 'Error', description: 'Completa todos los campos', variant: 'destructive' })
-      return
+      toast({ title: 'Error', description: 'Completa todos los campos', variant: 'destructive' }); return
     }
-    const motivoFinal = formProd.motivo === 'Otro' ? formProd.motivoOtro : formProd.motivo
+    const motivo = formProd.motivo === 'Otro' ? formProd.motivoOtro : formProd.motivo
     try {
-      await api.createMerma({
-        id_producto: parseInt(formProd.id_producto),
-        cantidad: parseInt(formProd.cantidad),
-        motivo: motivoFinal
-      })
+      await api.createMerma({ id_producto: parseInt(formProd.id_producto), cantidad: parseInt(formProd.cantidad), motivo })
       toast({ title: 'Merma de producto registrada' })
-      cargarDatos()
-      setShowDialogProd(false)
-      setFormProd({ id_producto: '', cantidad: '', motivo: '', motivoOtro: '' })
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' })
-    }
+      cargarDatos(); setShowDialogProd(false); setFormProd({ id_producto: '', cantidad: '', motivo: '', motivoOtro: '' })
+    } catch (err: any) { toast({ title: 'Error', description: err.message, variant: 'destructive' }) }
   }
 
-  // Registro merma insumo
   const handleInsumoSubmit = async () => {
     if (!formInsumo.id_insumo || !formInsumo.cantidad || !formInsumo.motivo) {
-      toast({ title: 'Error', description: 'Completa todos los campos', variant: 'destructive' })
-      return
+      toast({ title: 'Error', description: 'Completa todos los campos', variant: 'destructive' }); return
     }
-    const motivoFinal = formInsumo.motivo === 'Otro' ? formInsumo.motivoOtro : formInsumo.motivo
     try {
-      // Usamos el endpoint de registro de movimiento de inventario, con tipo merma_caducidad o merma_dano
       await api.createMovimientoInventario({
         id_insumo: parseInt(formInsumo.id_insumo),
-        tipo_movimiento: motivoFinal === 'Caducidad' ? 'merma_caducidad' : 'merma_dano',
+        tipo_movimiento: 'merma_caducidad',
         cantidad: parseFloat(formInsumo.cantidad)
       })
       toast({ title: 'Merma de insumo registrada' })
-      cargarDatos()
-      setShowDialogInsumo(false)
-      setFormInsumo({ id_insumo: '', cantidad: '', motivo: '', motivoOtro: '' })
-    } catch (err: any) {
-      toast({ title: 'Error', description: err.message, variant: 'destructive' })
-    }
+      cargarDatos(); setShowDialogInsumo(false); setFormInsumo({ id_insumo: '', cantidad: '', motivo: '' })
+    } catch (err: any) { toast({ title: 'Error', description: err.message, variant: 'destructive' }) }
   }
 
-  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
-  const formatCurrency = (amount: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount)
+  const formatDate = (s: string) => new Date(s).toLocaleDateString('es-MX', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' })
+  const formatCurrency = (v: number) => new Intl.NumberFormat('es-MX', { style:'currency', currency:'MXN' }).format(v)
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-[#4C3D19]">Mermas</h1>
-        <p className="text-[#889063] mt-1">Registro de pérdidas de productos e insumos</p>
+    <div className="mermas-page">
+      <div className="mermas-header">
+        <div>
+          <h1>Mermas</h1>
+          <p>Registro de pérdidas de productos e insumos</p>
+        </div>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="bg-[#CFBB99]/30">
+        <TabsList className="bg-[var(--vanilla)]/30">
           <TabsTrigger value="productos">Productos</TabsTrigger>
           <TabsTrigger value="insumos">Insumos</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="productos" className="space-y-6 mt-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-[#4C3D19]">Mermas de productos</h2>
-            <Button className="bg-[#4C3D19]" onClick={() => setShowDialogProd(true)}>
-              <Plus className="w-4 h-4 mr-2" /> Registrar merma
+        <TabsContent value="productos" style={{ marginTop: '1rem' }}>
+          <div className="mermas-section-header">
+            <h2>Mermas de productos</h2>
+            <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={() => setShowDialogProd(true)}>
+              <Plus size={16} style={{ marginRight: '0.5rem' }} /> Registrar merma
             </Button>
           </div>
-
-          <Card className="border-[#CFBB99]">
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Producto</TableHead>
-                    <TableHead className="text-center">Cantidad</TableHead>
-                    <TableHead>Motivo</TableHead>
-                    <TableHead>Registrado por</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mermasProd.map(m => {
-                    const prod = productos.find(p => p.id_producto === m.id_producto)
-                    const valor = m.cantidad * (prod?.precio || 0)
-                    return (
-                      <TableRow key={m.id_merma_prod}>
-                        <TableCell className="text-sm">{formatDate(m.fecha_hora)}</TableCell>
-                        <TableCell className="font-medium">{m.nombre_producto || prod?.nombre_producto}</TableCell>
-                        <TableCell className="text-center">{m.cantidad}</TableCell>
-                        <TableCell>{m.motivo}</TableCell>
-                        <TableCell>{m.nombre_usuario}</TableCell>
-                        <TableCell className="text-right text-red-600">{formatCurrency(valor)}</TableCell>
-                      </TableRow>
-                    )
-                  })}
-                  {mermasProd.length === 0 && (
-                    <TableRow><TableCell colSpan={6} className="text-center py-6 text-[#889063]">No hay mermas de productos</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <div className="mermas-table-container">
+            <table className="mermas-table">
+              <thead><tr><th>Fecha</th><th>Producto</th><th className="text-center">Cantidad</th><th>Motivo</th><th>Registrado por</th><th className="text-right">Valor</th></tr></thead>
+              <tbody>
+                {mermasProd.map(m => {
+                  const prod = productos.find(p => p.id_producto === m.id_producto)
+                  const valor = m.cantidad * (prod?.precio || 0)
+                  return (
+                    <tr key={m.id_merma_prod}>
+                      <td style={{ fontSize: '0.85rem' }}>{formatDate(m.fecha_hora)}</td>
+                      <td style={{ fontWeight: 500 }}>{m.nombre_producto || prod?.nombre_producto}</td>
+                      <td className="text-center">{m.cantidad}</td>
+                      <td>{m.motivo}</td>
+                      <td>{m.nombre_usuario}</td>
+                      <td className="text-right text-red">{formatCurrency(valor)}</td>
+                    </tr>
+                  )
+                })}
+                {mermasProd.length === 0 && (
+                  <tr><td colSpan={6} className="mermas-empty">No hay mermas de productos registradas</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </TabsContent>
 
-        <TabsContent value="insumos" className="space-y-6 mt-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-[#4C3D19]">Mermas de insumos</h2>
-            <Button className="bg-[#4C3D19]" onClick={() => setShowDialogInsumo(true)}>
-              <Plus className="w-4 h-4 mr-2" /> Registrar merma
+        <TabsContent value="insumos" style={{ marginTop: '1rem' }}>
+          <div className="mermas-section-header">
+            <h2>Mermas de insumos</h2>
+            <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={() => setShowDialogInsumo(true)}>
+              <Plus size={16} style={{ marginRight: '0.5rem' }} /> Registrar merma
             </Button>
           </div>
-
-          <Card className="border-[#CFBB99]">
-            <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Insumo</TableHead>
-                    <TableHead className="text-center">Cantidad</TableHead>
-                    <TableHead>Unidad</TableHead>
-                    <TableHead>Motivo</TableHead>
-                    <TableHead>Registrado por</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {movimientos.map((mov: any) => {
-                    const ins = insumos.find(i => i.id_insumo === mov.id_insumo)
-                    return (
-                      <TableRow key={mov.id_movimiento}>
-                        <TableCell className="text-sm">{formatDate(mov.fecha_movimiento)}</TableCell>
-                        <TableCell className="font-medium">{ins?.nombre_insumo || 'N/A'}</TableCell>
-                        <TableCell className="text-center">{mov.cantidad}</TableCell>
-                        <TableCell>{ins?.unidad_medida || ''}</TableCell>
-                        <TableCell>{mov.tipo_movimiento === 'merma_caducidad' ? 'Caducidad' : 'Daño'}</TableCell>
-                        <TableCell>{mov.nombre_usuario}</TableCell>
-                      </TableRow>
-                    )
-                  })}
-                  {movimientos.length === 0 && (
-                    <TableRow><TableCell colSpan={6} className="text-center py-6 text-[#889063]">No hay mermas de insumos</TableCell></TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+          <div className="mermas-table-container">
+            <table className="mermas-table">
+              <thead><tr><th>Fecha</th><th>Insumo</th><th className="text-center">Cantidad</th><th>Unidad</th><th>Motivo</th><th>Registrado por</th></tr></thead>
+              <tbody>
+                {movimientos.map((mov: any) => {
+                  const ins = insumos.find(i => i.id_insumo === mov.id_insumo)
+                  return (
+                    <tr key={mov.id_movimiento}>
+                      <td style={{ fontSize: '0.85rem' }}>{formatDate(mov.fecha_movimiento)}</td>
+                      <td style={{ fontWeight: 500 }}>{ins?.nombre_insumo || 'N/A'}</td>
+                      <td className="text-center">{mov.cantidad}</td>
+                      <td>{ins?.unidad_medida || ''}</td>
+                      <td>{mov.tipo_movimiento === 'merma_caducidad' ? 'Caducidad' : 'Daño'}</td>
+                      <td>{mov.nombre_usuario}</td>
+                    </tr>
+                  )
+                })}
+                {movimientos.length === 0 && (
+                  <tr><td colSpan={6} className="mermas-empty">No hay mermas de insumos registradas</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </TabsContent>
       </Tabs>
 
-      {/* Diálogo merma producto */}
       <Dialog open={showDialogProd} onOpenChange={setShowDialogProd}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-[#4C3D19]">Registrar merma de producto</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Producto</Label>
-              <Select value={formProd.id_producto} onValueChange={(v) => setFormProd({ ...formProd, id_producto: v })}>
-                <SelectTrigger className="border-[#CFBB99]"><SelectValue placeholder="Selecciona" /></SelectTrigger>
-                <SelectContent>
-                  {productos.map(p => <SelectItem key={p.id_producto} value={p.id_producto.toString()}>{p.nombre_producto} - {formatCurrency(p.precio)}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Cantidad</Label>
-              <Input type="number" min="1" value={formProd.cantidad} onChange={e => setFormProd({ ...formProd, cantidad: e.target.value })} />
-            </div>
-            <div className="space-y-2">
-              <Label>Motivo</Label>
-              <Select value={formProd.motivo} onValueChange={(v) => setFormProd({ ...formProd, motivo: v })}>
-                <SelectTrigger className="border-[#CFBB99]"><SelectValue placeholder="Selecciona" /></SelectTrigger>
-                <SelectContent>
-                  {motivosMerma.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            {formProd.motivo === 'Otro' && <div className="space-y-2"><Label>Especifica</Label><Textarea value={formProd.motivoOtro} onChange={e => setFormProd({ ...formProd, motivoOtro: e.target.value })} /></div>}
+          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)' }}>Registrar merma de producto</DialogTitle></DialogHeader>
+          <div className="mermas-dialog-form">
+            <div><label>Producto</label><select value={formProd.id_producto} onChange={e => setFormProd({ ...formProd, id_producto: e.target.value })}><option value="">Selecciona</option>{productos.map(p => <option key={p.id_producto} value={p.id_producto}>{p.nombre_producto} — {formatCurrency(p.precio)}</option>)}</select></div>
+            <div><label>Cantidad</label><input type="number" min="1" value={formProd.cantidad} onChange={e => setFormProd({ ...formProd, cantidad: e.target.value })} /></div>
+            <div><label>Motivo</label><select value={formProd.motivo} onChange={e => setFormProd({ ...formProd, motivo: e.target.value })}><option value="">Selecciona</option>{motivosMerma.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
+            {formProd.motivo === 'Otro' && <div><label>Especifica</label><textarea value={formProd.motivoOtro} onChange={e => setFormProd({ ...formProd, motivoOtro: e.target.value })} /></div>}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDialogProd(false)}>Cancelar</Button>
-            <Button className="bg-[#4C3D19]" onClick={handleProdSubmit}>Registrar</Button>
+            <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={handleProdSubmit}>Registrar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Diálogo merma insumo */}
       <Dialog open={showDialogInsumo} onOpenChange={setShowDialogInsumo}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-[#4C3D19]">Registrar merma de insumo</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Insumo</Label>
-              <Select value={formInsumo.id_insumo} onValueChange={(v) => setFormInsumo({ ...formInsumo, id_insumo: v })}>
-                <SelectTrigger className="border-[#CFBB99]"><SelectValue placeholder="Selecciona" /></SelectTrigger>
-                <SelectContent>
-                  {insumos.map(i => <SelectItem key={i.id_insumo} value={i.id_insumo.toString()}>{i.nombre_insumo} ({i.unidad_medida})</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Cantidad</Label>
-              <Input type="number" step="0.01" value={formInsumo.cantidad} onChange={e => setFormInsumo({ ...formInsumo, cantidad: e.target.value })} />
-            </div>
-            <div className="space-y-2">
-              <Label>Motivo</Label>
-              <Select value={formInsumo.motivo} onValueChange={(v) => setFormInsumo({ ...formInsumo, motivo: v })}>
-                <SelectTrigger className="border-[#CFBB99]"><SelectValue placeholder="Selecciona" /></SelectTrigger>
-                <SelectContent>
-                  {motivosMerma.filter(m => m !== 'Otro').map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)' }}>Registrar merma de insumo</DialogTitle></DialogHeader>
+          <div className="mermas-dialog-form">
+            <div><label>Insumo</label><select value={formInsumo.id_insumo} onChange={e => setFormInsumo({ ...formInsumo, id_insumo: e.target.value })}><option value="">Selecciona</option>{insumos.map(i => <option key={i.id_insumo} value={i.id_insumo}>{i.nombre_insumo} ({i.unidad_medida})</option>)}</select></div>
+            <div><label>Cantidad</label><input type="number" step="0.01" value={formInsumo.cantidad} onChange={e => setFormInsumo({ ...formInsumo, cantidad: e.target.value })} /></div>
+            <div><label>Motivo</label><select value={formInsumo.motivo} onChange={e => setFormInsumo({ ...formInsumo, motivo: e.target.value })}><option value="">Selecciona</option>{motivosMerma.filter(m => m !== 'Otro').map(m => <option key={m} value={m}>{m}</option>)}</select></div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDialogInsumo(false)}>Cancelar</Button>
-            <Button className="bg-[#4C3D19]" onClick={handleInsumoSubmit}>Registrar</Button>
+            <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={handleInsumoSubmit}>Registrar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1,0 +1,289 @@
+.cobros-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.cobros-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cobros-icon {
+  width: 3rem;
+  height: 3rem;
+  background: var(--chocolate);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cobros-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  color: white;
+}
+
+.cobros-header h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--chocolate);
+}
+
+.cobros-header p {
+  color: var(--caramel);
+  font-size: 0.875rem;
+}
+
+.cobros-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.cobros-stat-card {
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+}
+
+.cobros-stat-card.amber {
+  border: 1px solid #fcd34d;
+  background: #fef3c7;
+}
+
+.cobros-stat-card.green {
+  border: 1px solid #86efac;
+  background: #dcfce7;
+}
+
+.cobros-stat-card.blue {
+  border: 1px solid #93c5fd;
+  background: #dbeafe;
+}
+
+.cobros-stat-card.purple {
+  border: 1px solid #c4b5fd;
+  background: #ede9fe;
+}
+
+.cobros-stat-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.cobros-stat-card.amber .cobros-stat-label { color: #92400e; }
+.cobros-stat-card.green .cobros-stat-label { color: #166534; }
+.cobros-stat-card.blue .cobros-stat-label { color: #1e40af; }
+.cobros-stat-card.purple .cobros-stat-label { color: #6b21a8; }
+
+.cobros-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.cobros-stat-card.amber .cobros-stat-value { color: #92400e; }
+.cobros-stat-card.green .cobros-stat-value { color: #166534; }
+.cobros-stat-card.blue .cobros-stat-value { color: #1e40af; }
+.cobros-stat-card.purple .cobros-stat-value { color: #6b21a8; }
+
+.cobros-tabs-list {
+  background: color-mix(in srgb, var(--vanilla) 30%, transparent);
+}
+
+.cobros-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+.cobros-account-card {
+  background: white;
+  border: 1px solid var(--caramel);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.cobros-account-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--chocolate);
+}
+
+.cobros-account-time {
+  font-size: 0.75rem;
+  color: var(--caramel);
+}
+
+.cobros-account-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 8rem;
+  overflow-y: auto;
+}
+
+.cobros-account-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--chocolate);
+}
+
+.cobros-account-total {
+  border-top: 1px solid var(--caramel);
+  padding-top: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  color: var(--chocolate);
+}
+
+.cobros-btn-cobrar {
+  width: 100%;
+  background: var(--chocolate);
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.cobros-dialog-detail {
+  background: color-mix(in srgb, var(--vanilla) 50%, transparent);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.cobros-dialog-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+.cobros-dialog-total-row {
+  border-top: 1px solid var(--caramel);
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.cobros-propina-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.cobros-propina-input {
+  width: 6rem;
+  padding: 0.5rem;
+  border: 1px solid var(--caramel);
+  border-radius: 0.375rem;
+}
+
+.cobros-payment-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.cobros-payment-btn {
+  padding: 0.5rem;
+  border: 1px solid var(--caramel);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  background: transparent;
+  color: var(--chocolate);
+}
+
+.cobros-final-total {
+  background: var(--chocolate);
+  color: white;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cobros-final-total .label {
+  font-size: 1rem;
+}
+
+.cobros-final-total .value {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.cobros-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--caramel);
+}
+
+.cobros-historial-card {
+  background: white;
+  border: 1px solid var(--caramel);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.cobros-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.cobros-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: var(--chocolate);
+  color: white;
+  font-weight: 600;
+}
+
+.cobros-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--caramel);
+  color: var(--chocolate);
+}
+
+.cobros-table tr:last-child td {
+  border-bottom: none;
+}
+
+.cobros-table .text-right {
+  text-align: right;
+}
+
+.cobros-badge-pago {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.6rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.cobros-badge-pago.efectivo { background: #dcfce7; color: #166534; border-color: #86efac; }
+.cobros-badge-pago.tarjeta { background: #dbeafe; color: #1e40af; border-color: #93c5fd; }
+.cobros-badge-pago.transferencia { background: #ede9fe; color: #6b21a8; border-color: #c4b5fd; }
+
+@media (max-width: 768px) {
+  .cobros-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cobros-grid {
+    grid-template-columns: 1fr;
+  }
+}

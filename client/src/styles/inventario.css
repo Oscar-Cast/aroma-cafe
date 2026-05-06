@@ -1,0 +1,100 @@
+.inventario-page { 
+	display: flex; 
+	flex-direction: column; 
+	gap: 1.5rem; 
+	}
+.inventario-header { 
+	display: flex; 
+	justify-content: space-between; 
+	align-items: center;
+	}
+.inventario-header h1 { 
+	font-size: 1.875rem; 
+	font-weight: 700; 
+	color: var(--chocolate); 
+	}
+.inventario-header p { 
+	color: var(--caramel); 
+	font-size: 0.875rem; 
+	margin-top: 0.25rem; 
+	}
+
+.inventario-alert { 
+	background: #fff5f5; 
+	border: 1px solid #fecaca; 
+	border-radius: 0.75rem; 
+	padding: 1rem; 
+	display: flex; 
+	align-items: center; 
+	gap: 1rem; 
+	}
+.inventario-alert .icon { 
+	width: 3rem; 
+	height: 3rem; 
+	background: #fee2e2; 
+	border-radius: 50%; 
+	display: flex; 
+	align-items: center; 
+	justify-content: center; 
+	}
+.inventario-alert .text .title { 
+	font-weight: 600; 
+	color: #991b1b; 
+	}
+.inventario-alert .text .sub { 
+	font-size: 0.8rem; 
+	color: #b91c1c; 
+	margin-top: 0.25rem;
+	}
+
+.inventario-card { 
+	background: white; 
+	border: 1px solid var(--caramel); 
+	border-radius: 0.75rem; 
+	padding: 1rem; 
+	}
+
+.inventario-progress { 
+	height: 0.5rem; 
+	border-radius: 0.25rem; 
+	background: #e5e7eb; 
+	overflow: hidden; 
+	}
+.inventario-progress .fill { 
+	height: 100%; 
+	border-radius: 0.25rem; 
+	}
+.inventario-progress .fill.red { 
+	background: #ef4444; 
+	}
+.inventario-progress .fill.amber { 
+	background: #f59e0b; 
+	}
+.inventario-progress .fill.green { 
+	background: #22c55e; 
+	}
+
+.inventario-badge { 
+	display: inline-flex; 
+	align-items: center; 
+	padding: 0.15rem 0.6rem; 
+	border-radius: 0.25rem; 
+	font-size: 0.75rem; 
+	font-weight: 500; 
+	border: 1px solid; 
+	}
+.inventario-badge.red { 
+	background: #fee2e2; 
+	color: #991b1b; 
+	border-color: #fecaca; 
+	}
+.inventario-badge.amber { 
+	background: #fef3c7; 
+	color: #92400e; 
+	border-color: #fcd34d; 
+	}
+.inventario-badge.green { 
+	background: #dcfce7; 
+	color: #166534; 
+	border-color: #86efac; 
+	}

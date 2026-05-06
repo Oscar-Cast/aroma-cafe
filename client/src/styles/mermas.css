@@ -1,0 +1,123 @@
+.mermas-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mermas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mermas-header h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--chocolate);
+}
+
+.mermas-header p {
+  color: var(--caramel);
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.mermas-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.mermas-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.mermas-section-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--chocolate);
+}
+
+.mermas-table-container {
+  background: white;
+  border: 1px solid var(--caramel);
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.mermas-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.mermas-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  background: var(--chocolate);
+  color: white;
+  font-weight: 600;
+}
+
+.mermas-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--caramel);
+  color: var(--chocolate);
+}
+
+.mermas-table tr:last-child td {
+  border-bottom: none;
+}
+
+.mermas-table .text-right {
+  text-align: right;
+}
+
+.mermas-table .text-center {
+  text-align: center;
+}
+
+.mermas-table .text-red {
+  color: #dc2626;
+}
+
+.mermas-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--caramel);
+}
+
+.mermas-empty svg {
+  margin: 0 auto 1rem;
+  opacity: 0.5;
+}
+
+.mermas-dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mermas-dialog-form label {
+  font-weight: 500;
+  color: var(--chocolate);
+}
+
+.mermas-dialog-form input,
+.mermas-dialog-form select,
+.mermas-dialog-form textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--caramel);
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+}
+
+.mermas-dialog-form textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+

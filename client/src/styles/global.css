@@ -1,0 +1,42 @@
+@layer components {
+  /* Tipografía */
+  .heading-1    { @apply text-3xl font-bold text-[var(--chocolate)]; }
+  .heading-2    { @apply text-2xl font-bold text-[var(--chocolate)]; }
+  .heading-3    { @apply text-lg font-bold text-[var(--chocolate)]; }
+  .heading-card { @apply text-sm font-medium text-[var(--chocolate)]; }
+
+  .text-cafe   { @apply text-[var(--chocolate)]; }
+  .text-muted  { @apply text-[var(--caramel)]; }
+  .text-success { @apply text-green-700; }
+  .text-danger  { @apply text-red-700; }
+
+  /* Botones */
+  .btn-primary   { @apply bg-[var(--strawberry)] hover:bg-[var(--caramel)] text-[var(--chocolate)] font-medium; }
+  .btn-secondary { @apply bg-[var(--caramel)] hover:bg-[var(--chocolate)] text-white; }
+  .btn-danger    { @apply bg-red-400 hover:bg-red-500 text-white; }
+  
+  /* Corrección: eliminamos la opacidad y usamos un color sólido para el hover */
+  .btn-outline   { @apply border border-[var(--caramel)] text-[var(--chocolate)] bg-transparent hover:bg-[var(--lemon)]; }
+
+  /* Tarjetas */
+  .card-cafe     { @apply border-[var(--caramel)] bg-white; }
+  .card-success  { @apply border-green-300 bg-green-50; }
+  .card-danger   { @apply border-red-300 bg-red-50; }
+  .card-warning  { @apply border-amber-300 bg-amber-50; }
+
+  /* Badges */
+  .badge-success { @apply bg-green-100 text-green-700 border-green-200; }
+  .badge-danger  { @apply bg-red-100 text-red-700 border-red-200; }
+  .badge-warning { @apply bg-amber-100 text-amber-700 border-amber-200; }
+  .badge-info    { @apply bg-blue-100 text-blue-700 border-blue-200; }
+  .badge-gray    { @apply bg-gray-100 text-gray-700 border-gray-200; }
+
+  /* Inputs */
+  .input-cafe { @apply border-[var(--caramel)] rounded-md shadow-sm; }
+
+  /* Grid de tarjetas */
+  .grid-cards { @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4; }
+
+  /* Layout de página */
+  .page-container { @apply space-y-6 max-w-7xl mx-auto; }
+}

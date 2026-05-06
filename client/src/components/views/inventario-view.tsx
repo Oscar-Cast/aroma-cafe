@@ -3,217 +3,162 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/api/client'
 import { Insumo } from '@/lib/types'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Progress } from '@/components/ui/progress'
 import { Package, Plus, Edit2, AlertTriangle, TrendingDown, TrendingUp } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import '@/styles/inventario.css'
 
 export function InventarioView() {
   const { toast } = useToast()
   const [insumos, setInsumos] = useState<Insumo[]>([])
   const [loading, setLoading] = useState(true)
-  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [dialogOpen, setDialogOpen] = useState(false)
   const [editingInsumo, setEditingInsumo] = useState<Insumo | null>(null)
-  const [isAjusteDialogOpen, setIsAjusteDialogOpen] = useState(false)
+  const [ajusteOpen, setAjusteOpen] = useState(false)
   const [ajusteInsumo, setAjusteInsumo] = useState<Insumo | null>(null)
   const [ajusteCantidad, setAjusteCantidad] = useState('')
-  const [formData, setFormData] = useState({
-    nombre_insumo: '', unidad_medida: '', existencia_actual: '', nivel_minimo: ''
-  })
+  const [form, setForm] = useState({ nombre_insumo: '', unidad_medida: '', existencia_actual: '', nivel_minimo: '' })
 
-  const cargarInsumos = async () => {
+  const cargar = async () => {
     try {
       const data = await api.getInsumos()
       setInsumos(data)
-    } catch (error) {
+    } catch {
       toast({ title: 'Error', description: 'No se pudieron cargar los insumos', variant: 'destructive' })
     } finally {
       setLoading(false)
     }
   }
 
-  useEffect(() => { cargarInsumos() }, [])
+  useEffect(() => { cargar() }, [])
 
-  const resetForm = () => {
-    setFormData({ nombre_insumo: '', unidad_medida: '', existencia_actual: '', nivel_minimo: '' })
-    setEditingInsumo(null)
+  const resetForm = () => { setForm({ nombre_insumo: '', unidad_medida: '', existencia_actual: '', nivel_minimo: '' }); setEditingInsumo(null) }
+
+  const openEdit = (i: Insumo) => {
+    setEditingInsumo(i)
+    setForm({ nombre_insumo: i.nombre_insumo, unidad_medida: i.unidad_medida, existencia_actual: i.existencia_actual.toString(), nivel_minimo: i.nivel_minimo.toString() })
+    setDialogOpen(true)
   }
 
-  const openEditDialog = (insumo: Insumo) => {
-    setEditingInsumo(insumo)
-    setFormData({
-      nombre_insumo: insumo.nombre_insumo,
-      unidad_medida: insumo.unidad_medida,
-      existencia_actual: insumo.existencia_actual.toString(),
-      nivel_minimo: insumo.nivel_minimo.toString()
-    })
-    setIsDialogOpen(true)
-  }
-
-  const openAjusteDialog = (insumo: Insumo) => {
-    setAjusteInsumo(insumo)
-    setAjusteCantidad('')
-    setIsAjusteDialogOpen(true)
-  }
+  const openAjuste = (i: Insumo) => { setAjusteInsumo(i); setAjusteCantidad(''); setAjusteOpen(true) }
 
   const handleSubmit = async () => {
-    if (!formData.nombre_insumo || !formData.unidad_medida || !formData.existencia_actual || !formData.nivel_minimo) {
+    if (!form.nombre_insumo || !form.unidad_medida || !form.existencia_actual || !form.nivel_minimo) {
       toast({ title: 'Error', description: 'Todos los campos son requeridos', variant: 'destructive' })
       return
     }
-    const insumoData = {
-      nombre_insumo: formData.nombre_insumo,
-      unidad_medida: formData.unidad_medida,
-      existencia_actual: parseFloat(formData.existencia_actual),
-      nivel_minimo: parseFloat(formData.nivel_minimo)
-    }
+    const data = { nombre_insumo: form.nombre_insumo, unidad_medida: form.unidad_medida, existencia_actual: parseFloat(form.existencia_actual), nivel_minimo: parseFloat(form.nivel_minimo) }
     try {
-      if (editingInsumo) {
-        await api.updateInsumo(editingInsumo.id_insumo, insumoData)
-        toast({ title: 'Insumo actualizado' })
-      } else {
-        await api.createInsumo(insumoData)
-        toast({ title: 'Insumo creado' })
-      }
-      cargarInsumos()
-      setIsDialogOpen(false)
-      resetForm()
-    } catch (error) {
-      toast({ title: 'Error', description: 'No se pudo guardar', variant: 'destructive' })
-    }
+      if (editingInsumo) { await api.updateInsumo(editingInsumo.id_insumo, data); toast({ title: 'Insumo actualizado' }) }
+      else { await api.createInsumo(data); toast({ title: 'Insumo creado' }) }
+      cargar(); setDialogOpen(false); resetForm()
+    } catch (err: any) { toast({ title: 'Error', description: err.message, variant: 'destructive' }) }
   }
 
   const handleAjuste = async (tipo: 'entrada' | 'salida') => {
     if (!ajusteInsumo || !ajusteCantidad) return
     const cantidad = parseFloat(ajusteCantidad)
-    const nuevaExistencia = tipo === 'entrada'
-      ? ajusteInsumo.existencia_actual + cantidad
-      : Math.max(0, ajusteInsumo.existencia_actual - cantidad)
+    const nueva = tipo === 'entrada' ? ajusteInsumo.existencia_actual + cantidad : Math.max(0, ajusteInsumo.existencia_actual - cantidad)
     try {
-      await api.updateInsumo(ajusteInsumo.id_insumo, { existencia_actual: nuevaExistencia })
+      await api.updateInsumo(ajusteInsumo.id_insumo, { existencia_actual: nueva })
       toast({ title: tipo === 'entrada' ? 'Entrada registrada' : 'Salida registrada' })
-      cargarInsumos()
-      setIsAjusteDialogOpen(false)
-      setAjusteInsumo(null)
-      setAjusteCantidad('')
-    } catch (error) {
-      toast({ title: 'Error', description: 'No se pudo ajustar', variant: 'destructive' })
-    }
+      cargar(); setAjusteOpen(false); setAjusteInsumo(null); setAjusteCantidad('')
+    } catch (err: any) { toast({ title: 'Error', description: err.message, variant: 'destructive' }) }
   }
 
-  const getStockStatus = (insumo: Insumo) => {
-    const percentage = (insumo.existencia_actual / (insumo.nivel_minimo * 3)) * 100
-    if (insumo.existencia_actual <= insumo.nivel_minimo) return { color: 'red', label: 'Crítico', percentage: Math.min(percentage, 100) }
-    if (insumo.existencia_actual <= insumo.nivel_minimo * 1.5) return { color: 'amber', label: 'Bajo', percentage }
-    return { color: 'green', label: 'Normal', percentage: Math.min(percentage, 100) }
+  const formatCurrency = (v: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v)
+
+  const getStockStatus = (i: Insumo) => {
+    const pct = (i.existencia_actual / (i.nivel_minimo * 3)) * 100
+    if (i.existencia_actual <= i.nivel_minimo) return { color: 'red', label: 'Crítico', pct: Math.min(pct, 100) }
+    if (i.existencia_actual <= i.nivel_minimo * 1.5) return { color: 'amber', label: 'Bajo', pct }
+    return { color: 'green', label: 'Normal', pct: Math.min(pct, 100) }
   }
 
-  const lowStockCount = insumos.filter(i => i.existencia_actual <= i.nivel_minimo).length
+  const lowStock = insumos.filter(i => i.existencia_actual <= i.nivel_minimo)
 
-  if (loading) return <div className="text-center py-12 text-[#889063]">Cargando inventario...</div>
+  if (loading) return <div className="text-center py-12" style={{ color: 'var(--caramel)' }}>Cargando inventario...</div>
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="inventario-page">
+      <div className="inventario-header">
         <div>
-          <h1 className="text-3xl font-bold text-[#4C3D19]">Inventario</h1>
-          <p className="text-[#889063] mt-1">Control de insumos y existencias</p>
+          <h1>Inventario</h1>
+          <p>Control de insumos y existencias</p>
         </div>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm() }}>
-          <DialogTrigger asChild>
-            <Button className="bg-[#4C3D19] hover:bg-[#354024] text-[#E5D7C4]"><Plus className="w-4 h-4 mr-2" />Nuevo Insumo</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle className="text-[#4C3D19]">{editingInsumo ? 'Editar Insumo' : 'Nuevo Insumo'}</DialogTitle>
-              <DialogDescription className="text-[#889063]">{editingInsumo ? 'Modifica los datos del insumo' : 'Agrega un nuevo insumo al inventario'}</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2"><Label className="text-[#4C3D19]">Nombre</Label><Input value={formData.nombre_insumo} onChange={(e) => setFormData({...formData, nombre_insumo: e.target.value})} className="border-[#CFBB99]" /></div>
-              <div className="space-y-2"><Label className="text-[#4C3D19]">Unidad de Medida</Label><Input value={formData.unidad_medida} onChange={(e) => setFormData({...formData, unidad_medida: e.target.value})} className="border-[#CFBB99]" /></div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2"><Label className="text-[#4C3D19]">Existencia Actual</Label><Input type="number" step="0.01" value={formData.existencia_actual} onChange={(e) => setFormData({...formData, existencia_actual: e.target.value})} className="border-[#CFBB99]" /></div>
-                <div className="space-y-2"><Label className="text-[#4C3D19]">Nivel Mínimo</Label><Input type="number" step="0.01" value={formData.nivel_minimo} onChange={(e) => setFormData({...formData, nivel_minimo: e.target.value})} className="border-[#CFBB99]" /></div>
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-              <Button className="bg-[#4C3D19] hover:bg-[#354024] text-[#E5D7C4]" onClick={handleSubmit}>{editingInsumo ? 'Guardar Cambios' : 'Crear Insumo'}</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={() => { resetForm(); setDialogOpen(true); }}>
+          <Plus size={16} style={{ marginRight: '0.5rem' }} /> Nuevo Insumo
+        </Button>
       </div>
 
-      {lowStockCount > 0 && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center"><AlertTriangle className="w-6 h-6 text-red-600" /></div>
-              <div><p className="font-semibold text-red-800">{lowStockCount} insumo(s) en nivel crítico</p><p className="text-sm text-red-600">Revisa los niveles de inventario.</p></div>
-            </div>
-          </CardContent>
-        </Card>
+      {lowStock.length > 0 && (
+        <div className="inventario-alert">
+          <div className="icon"><AlertTriangle size={24} color="#dc2626" /></div>
+          <div className="text">
+            <div className="title">{lowStock.length} insumo(s) en nivel crítico</div>
+            <div className="sub">Revisa los niveles y reabastece lo necesario.</div>
+          </div>
+        </div>
       )}
 
-      <Card className="border-[#CFBB99]">
-        <CardHeader>
-          <CardTitle className="text-[#4C3D19]">Control de Insumos</CardTitle>
-          <CardDescription className="text-[#889063]">{insumos.length} insumos en inventario</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow className="border-[#CFBB99]">
-                <TableHead className="text-[#4C3D19]">Insumo</TableHead>
-                <TableHead className="text-[#4C3D19]">Existencia</TableHead>
-                <TableHead className="text-[#4C3D19]">Nivel</TableHead>
-                <TableHead className="text-[#4C3D19] text-center">Estado</TableHead>
-                <TableHead className="text-[#4C3D19] text-right">Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {insumos.map(insumo => {
-                const status = getStockStatus(insumo)
-                return (
-                  <TableRow key={insumo.id_insumo} className="border-[#CFBB99]">
-                    <TableCell><p className="font-medium text-[#4C3D19]">{insumo.nombre_insumo}</p><p className="text-sm text-[#889063]">{insumo.unidad_medida}</p></TableCell>
-                    <TableCell><p className="font-semibold text-[#4C3D19]">{insumo.existencia_actual} {insumo.unidad_medida}</p><p className="text-sm text-[#889063]">Mín: {insumo.nivel_minimo}</p></TableCell>
-                    <TableCell className="w-[200px]"><Progress value={status.percentage} className={`h-2 ${status.color === 'red' ? '[&>div]:bg-red-500' : status.color === 'amber' ? '[&>div]:bg-amber-500' : '[&>div]:bg-green-500'}`} /></TableCell>
-                    <TableCell className="text-center"><Badge variant="outline" className={status.color === 'red' ? 'bg-red-100 text-red-700 border-red-200' : status.color === 'amber' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-green-100 text-green-700 border-green-200'}>{status.label}</Badge></TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button size="icon" variant="outline" className="border-green-300 text-green-600" onClick={() => openAjusteDialog(insumo)}><TrendingUp className="w-4 h-4" /></Button>
-                        <Button size="icon" variant="ghost" className="text-[#889063] hover:text-[#4C3D19]" onClick={() => openEditDialog(insumo)}><Edit2 className="w-4 h-4" /></Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      <div className="inventario-card">
+        <Table>
+          <TableHeader>
+            <TableRow><TableHead>Insumo</TableHead><TableHead>Existencia</TableHead><TableHead>Nivel</TableHead><TableHead className="text-center">Estado</TableHead><TableHead className="text-right">Acciones</TableHead></TableRow>
+          </TableHeader>
+          <TableBody>
+            {insumos.map(i => {
+              const s = getStockStatus(i)
+              return (
+                <TableRow key={i.id_insumo}>
+                  <TableCell><div style={{ fontWeight: 500 }}>{i.nombre_insumo}</div><div style={{ fontSize: '0.8rem', color: 'var(--caramel)' }}>{i.unidad_medida}</div></TableCell>
+                  <TableCell><div style={{ fontWeight: 600 }}>{i.existencia_actual} {i.unidad_medida}</div><div style={{ fontSize: '0.8rem', color: 'var(--caramel)' }}>Mín: {i.nivel_minimo}</div></TableCell>
+                  <TableCell style={{ width: '12rem' }}>
+                    <div className="inventario-progress"><div className={`fill ${s.color}`} style={{ width: `${s.pct}%` }} /></div>
+                  </TableCell>
+                  <TableCell className="text-center"><span className={`inventario-badge ${s.color}`}>{s.label}</span></TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="outline" size="sm" style={{ borderColor: '#86efac', color: '#16a34a', marginRight: '0.25rem' }} onClick={() => openAjuste(i)}><TrendingUp size={14} /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => openEdit(i)}><Edit2 size={14} /></Button>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
 
-      {/* Ajuste Dialog */}
-      <Dialog open={isAjusteDialogOpen} onOpenChange={setIsAjusteDialogOpen}>
+      <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-[#4C3D19]">Ajuste de Inventario</DialogTitle>
-            <DialogDescription className="text-[#889063]">{ajusteInsumo?.nombre_insumo} - Existencia actual: {ajusteInsumo?.existencia_actual} {ajusteInsumo?.unidad_medida}</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2"><Label className="text-[#4C3D19]">Cantidad</Label><Input type="number" step="0.01" value={ajusteCantidad} onChange={(e) => setAjusteCantidad(e.target.value)} className="border-[#CFBB99]" /></div>
+          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)' }}>{editingInsumo ? 'Editar Insumo' : 'Nuevo Insumo'}</DialogTitle></DialogHeader>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div><Label>Nombre</Label><Input value={form.nombre_insumo} onChange={e => setForm({ ...form, nombre_insumo: e.target.value })} /></div>
+            <div><Label>Unidad de Medida</Label><Input value={form.unidad_medida} onChange={e => setForm({ ...form, unidad_medida: e.target.value })} /></div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div><Label>Existencia Actual</Label><Input type="number" step="0.01" value={form.existencia_actual} onChange={e => setForm({ ...form, existencia_actual: e.target.value })} /></div>
+              <div><Label>Nivel Mínimo</Label><Input type="number" step="0.01" value={form.nivel_minimo} onChange={e => setForm({ ...form, nivel_minimo: e.target.value })} /></div>
+            </div>
           </div>
-          <DialogFooter className="flex gap-2">
-            <Button variant="outline" className="flex-1 border-red-300 text-red-600" onClick={() => handleAjuste('salida')} disabled={!ajusteCantidad}><TrendingDown className="w-4 h-4 mr-2" />Salida</Button>
-            <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleAjuste('entrada')} disabled={!ajusteCantidad}><TrendingUp className="w-4 h-4 mr-2" />Entrada</Button>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+            <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={handleSubmit}>{editingInsumo ? 'Guardar' : 'Crear'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={ajusteOpen} onOpenChange={setAjusteOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)' }}>Ajuste de Inventario</DialogTitle></DialogHeader>
+          <p style={{ color: 'var(--caramel)', fontSize: '0.9rem' }}>{ajusteInsumo?.nombre_insumo} — Existencia actual: {ajusteInsumo?.existencia_actual} {ajusteInsumo?.unidad_medida}</p>
+          <div><Label>Cantidad</Label><Input type="number" step="0.01" value={ajusteCantidad} onChange={e => setAjusteCantidad(e.target.value)} /></div>
+          <DialogFooter style={{ display: 'flex', gap: '0.5rem' }}>
+            <Button variant="outline" style={{ borderColor: '#fca5a5', color: '#dc2626', flex: 1 }} onClick={() => handleAjuste('salida')} disabled={!ajusteCantidad}><TrendingDown size={14} style={{ marginRight: '0.25rem' }} /> Salida</Button>
+            <Button style={{ background: '#16a34a', color: 'white', flex: 1 }} onClick={() => handleAjuste('entrada')} disabled={!ajusteCantidad}><TrendingUp size={14} style={{ marginRight: '0.25rem' }} /> Entrada</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

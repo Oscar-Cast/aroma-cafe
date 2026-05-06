@@ -1,0 +1,199 @@
+.pedidos-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pedidos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pedidos-header h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--chocolate);
+}
+
+/* -- diálogo nuevo pedido -- */
+.pedidos-dialog-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.pedidos-dialog-label {
+  font-weight: 500;
+  color: var(--chocolate);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.pedidos-dialog-select {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--caramel);
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+}
+
+.pedidos-dialog-productos {
+  height: 400px;
+  border: 1px solid var(--caramel);
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  overflow-y: auto;
+}
+
+.pedidos-dialog-carrito {
+  border: 1px solid var(--caramel);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  height: 450px;
+  display: flex;
+  flex-direction: column;
+}
+
+.pedidos-dialog-carrito-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--caramel);
+}
+
+.pedidos-dialog-carrito-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  background: var(--lemon);
+}
+
+.pedidos-dialog-total {
+  border-top: 1px solid var(--caramel);
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+/* -- pestañas -- */
+.pedidos-tabs {
+  margin-top: 1rem;
+}
+
+.pedidos-tabs-list {
+  background: color-mix(in srgb, var(--vanilla) 30%, transparent);
+}
+
+/* -- tarjetas de pedido -- */
+.pedidos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 1rem;
+}
+
+.pedidos-card {
+  background: white;
+  border: 1px solid var(--caramel);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.pedidos-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.pedidos-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--chocolate);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pedidos-card-desc {
+  font-size: 0.8rem;
+  color: var(--caramel);
+}
+
+.pedidos-card-detalle {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-height: 8rem;
+  overflow-y: auto;
+  margin-bottom: 0.75rem;
+}
+
+.pedidos-card-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--chocolate);
+}
+
+.pedidos-card-total {
+  border-top: 1px solid var(--caramel);
+  padding-top: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+}
+
+.pedidos-card-notas {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background: var(--lemon);
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+  color: var(--chocolate);
+}
+
+.pedidos-entregar-btn {
+  width: 100%;
+  margin-top: 0.5rem;
+  background: var(--chocolate);
+  color: white;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.pedidos-producto-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: var(--lemon);
+  margin-bottom: 0.25rem;
+}
+
+.pedidos-notas-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--caramel);
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .pedidos-dialog-grid {
+    grid-template-columns: 1fr;
+  }
+  .pedidos-dialog-carrito {
+    height: auto;
+  }
+}

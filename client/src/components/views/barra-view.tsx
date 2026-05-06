@@ -3,11 +3,9 @@
 import { useEffect, useState } from 'react'
 import { api } from '@/api/client'
 import { Pedido, OrderStatus } from '@/lib/types'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { GlassWater, Clock, ChefHat, CheckCircle } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import '@/styles/produccion.css'
 
 export function BarraView() {
   const { toast } = useToast()
@@ -17,7 +15,6 @@ export function BarraView() {
   const cargarPedidos = async () => {
     try {
       const data = await api.getPedidos()
-      // Solo filtrar por categoría de barra, sin ocultar por estado
       const filtrados = data
         .map((p: Pedido) => ({
           ...p,
@@ -39,7 +36,7 @@ export function BarraView() {
   const cambiarEstado = async (pedidoId: number, nuevoEstado: OrderStatus) => {
     try {
       await api.updatePedidoEstado(pedidoId, nuevoEstado)
-      toast({ title: 'Estado actualizado', description: `Pedido marcado como "${nuevoEstado}"` })
+      toast({ title: 'Estado actualizado' })
       cargarPedidos()
     } catch (error) {
       toast({ title: 'Error', description: 'No se pudo actualizar el estado', variant: 'destructive' })
@@ -47,16 +44,18 @@ export function BarraView() {
   }
 
   const getStatusBadge = (estado: string) => {
-    const styles: Record<string, string> = {
-      'pendiente': 'bg-amber-100 text-amber-700 border-amber-200',
-      'en preparación': 'bg-blue-100 text-blue-700 border-blue-200',
-      'listo': 'bg-green-100 text-green-700 border-green-200',
-      'entregado': 'bg-gray-100 text-gray-700 border-gray-200',
+    const clases: Record<string, string> = {
+      'pendiente': 'badge badge-pendiente',
+      'en preparación': 'badge badge-preparacion',
+      'listo': 'badge badge-listo',
+      'entregado': 'badge badge-entregado'
     }
-    return <Badge className={styles[estado] || ''} variant="outline">{estado}</Badge>
+    return <span className={clases[estado] || ''}>{estado}</span>
   }
 
-  const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+  const formatTime = (dateString: string) =>
+    new Date(dateString).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+
   const getElapsedTime = (dateString: string) => {
     const elapsed = Math.floor((Date.now() - new Date(dateString).getTime()) / 60000)
     if (elapsed < 1) return 'Ahora'
@@ -68,108 +67,143 @@ export function BarraView() {
   const enPreparacion = pedidos.filter(p => p.estado === 'en preparación')
   const listos = pedidos.filter(p => p.estado === 'listo')
 
-  if (loading) return <div className="text-center py-12 text-[#889063]">Cargando pedidos de barra...</div>
+  if (loading) return <div style={{textAlign:'center', padding:'2rem', color:'var(--caramel)'}}>Cargando pedidos de barra...</div>
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 bg-[#4C3D19] rounded-full flex items-center justify-center">
-          <GlassWater className="w-6 h-6 text-[#E5D7C4]" />
+    <div className="barra-page">
+      {/* Encabezado */}
+      <div className="barra-header">
+        <div className="barra-icon">
+          <GlassWater size={24} />
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-[#4C3D19]">Barra</h1>
-          <p className="text-[#889063]">Bebidas Calientes, Frías y Postres</p>
+          <h1 className="barra-title">Barra</h1>
+          <p className="barra-subtitle">Bebidas Calientes, Frías y Postres</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="border-amber-200 bg-amber-50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-amber-700">Pendientes</p><p className="text-3xl font-bold text-amber-800">{pendientes.length}</p></div><Clock className="w-10 h-10 text-amber-500" /></div></CardContent></Card>
-        <Card className="border-blue-200 bg-blue-50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-blue-700">En Preparación</p><p className="text-3xl font-bold text-blue-800">{enPreparacion.length}</p></div><ChefHat className="w-10 h-10 text-blue-500" /></div></CardContent></Card>
-        <Card className="border-green-200 bg-green-50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-green-700">Listos</p><p className="text-3xl font-bold text-green-800">{listos.length}</p></div><CheckCircle className="w-10 h-10 text-green-500" /></div></CardContent></Card>
+      {/* Estadísticas */}
+      <div className="barra-stats">
+        <div className="barra-stat-card" style={{backgroundColor: '#FFFBEB', border: '1px solid #FCD34D'}}>
+          <div>
+            <p className="barra-stat-label" style={{color: '#92400E'}}>Pendientes</p>
+            <p className="barra-stat-number" style={{color: '#92400E'}}>{pendientes.length}</p>
+          </div>
+          <Clock size={32} style={{color:'#F59E0B'}} />
+        </div>
+        <div className="barra-stat-card" style={{backgroundColor: '#EFF6FF', border: '1px solid #93C5FD'}}>
+          <div>
+            <p className="barra-stat-label" style={{color: '#1E40AF'}}>En Preparación</p>
+            <p className="barra-stat-number" style={{color: '#1E40AF'}}>{enPreparacion.length}</p>
+          </div>
+          <ChefHat size={32} style={{color:'#3B82F6'}} />
+        </div>
+        <div className="barra-stat-card" style={{backgroundColor: '#ECFDF5', border: '1px solid #6EE7B7'}}>
+          <div>
+            <p className="barra-stat-label" style={{color: '#065F46'}}>Listos</p>
+            <p className="barra-stat-number" style={{color: '#065F46'}}>{listos.length}</p>
+          </div>
+          <CheckCircle size={32} style={{color:'#10B981'}} />
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Columnas */}
+      <div className="barra-columnas">
         {/* Pendientes */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-amber-700 flex items-center gap-2"><Clock className="w-5 h-5" /> Pendientes ({pendientes.length})</h2>
-          {pendientes.map(pedido => (
-            <Card key={pedido.id_pedido} className="border-amber-200 bg-amber-50/50">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base text-[#4C3D19]">Pedido #{pedido.numero_pedido ?? pedido.id_pedido}</CardTitle>
-                  <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200">{getElapsedTime(pedido.hora_registro)}</Badge>
+        <div className="barra-columna">
+          <h2 className="barra-columna-titulo" style={{color: '#92400E'}}>
+            <Clock size={20} /> Pendientes ({pendientes.length})
+          </h2>
+          {pendientes.length === 0 ? (
+            <div className="barra-vacio barra-vacio-pendientes">
+              <p>No hay pedidos pendientes</p>
+            </div>
+          ) : (
+            pendientes.map(pedido => (
+              <div key={pedido.id_pedido} className="barra-pedido">
+                <div className="barra-pedido-header">
+                  <h3 className="barra-pedido-titulo">Pedido #{pedido.numero_pedido ?? pedido.id_pedido}</h3>
+                  <span className="badge badge-pendiente">{getElapsedTime(pedido.hora_registro)}</span>
                 </div>
-                <CardDescription className="text-amber-700">{pedido.mesa} • {formatTime(pedido.hora_registro)}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-1">
+                <div className="barra-pedido-mesa">{pedido.mesa} • {formatTime(pedido.hora_registro)}</div>
+                <div className="barra-pedido-productos">
                   {pedido.detalles?.map(detalle => (
-                    <div key={detalle.id_detalle} className="flex justify-between text-sm">
-                      <span className="font-medium text-[#4C3D19]">{detalle.cantidad}x {detalle.nombre_producto}</span>
+                    <div key={detalle.id_detalle} className="barra-pedido-producto">
+                      <span>{detalle.cantidad}x {detalle.nombre_producto}</span>
                     </div>
                   ))}
                 </div>
-                {pedido.notas && <div className="text-sm text-amber-700 bg-amber-50 p-2 rounded">📝 {pedido.notas}</div>}
-                <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white" onClick={() => cambiarEstado(pedido.id_pedido, 'en preparación')}>
-                  <ChefHat className="w-4 h-4 mr-2" /> Comenzar Preparación
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                {pedido.notas && <div className="barra-pedido-notas">📝 {pedido.notas}</div>}
+                <button className="barra-btn barra-btn-preparar" onClick={() => cambiarEstado(pedido.id_pedido, 'en preparación')}>
+                  <ChefHat size={16} /> Comenzar Preparación
+                </button>
+              </div>
+            ))
+          )}
         </div>
 
         {/* En Preparación */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-blue-700 flex items-center gap-2"><ChefHat className="w-5 h-5" /> En Preparación ({enPreparacion.length})</h2>
-          {enPreparacion.map(pedido => (
-            <Card key={pedido.id_pedido} className="border-blue-200 bg-blue-50/50">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base text-[#4C3D19]">Pedido #{pedido.numero_pedido ?? pedido.id_pedido}</CardTitle>
-                  <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-200">{getElapsedTime(pedido.hora_registro)}</Badge>
+        <div className="barra-columna">
+          <h2 className="barra-columna-titulo" style={{color: '#1E40AF'}}>
+            <ChefHat size={20} /> En Preparación ({enPreparacion.length})
+          </h2>
+          {enPreparacion.length === 0 ? (
+            <div className="barra-vacio barra-vacio-preparacion">
+              <p>Nada en preparación</p>
+            </div>
+          ) : (
+            enPreparacion.map(pedido => (
+              <div key={pedido.id_pedido} className="barra-pedido">
+                <div className="barra-pedido-header">
+                  <h3 className="barra-pedido-titulo">Pedido #{pedido.numero_pedido ?? pedido.id_pedido}</h3>
+                  <span className="badge badge-preparacion">{getElapsedTime(pedido.hora_registro)}</span>
                 </div>
-                <CardDescription className="text-blue-700">{pedido.mesa} • {formatTime(pedido.hora_registro)}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-1">
+                <div className="barra-pedido-mesa">{pedido.mesa} • {formatTime(pedido.hora_registro)}</div>
+                <div className="barra-pedido-productos">
                   {pedido.detalles?.map(detalle => (
-                    <div key={detalle.id_detalle} className="flex justify-between text-sm">
-                      <span className="font-medium text-[#4C3D19]">{detalle.cantidad}x {detalle.nombre_producto}</span>
+                    <div key={detalle.id_detalle} className="barra-pedido-producto">
+                      <span>{detalle.cantidad}x {detalle.nombre_producto}</span>
                     </div>
                   ))}
                 </div>
-                <Button className="w-full bg-green-500 hover:bg-green-600 text-white" onClick={() => cambiarEstado(pedido.id_pedido, 'listo')}>
-                  <CheckCircle className="w-4 h-4 mr-2" /> Marcar como Listo
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
+                <button className="barra-btn barra-btn-listo" onClick={() => cambiarEstado(pedido.id_pedido, 'listo')}>
+                  <CheckCircle size={16} /> Marcar como Listo
+                </button>
+              </div>
+            ))
+          )}
         </div>
 
         {/* Listos */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-green-700 flex items-center gap-2"><CheckCircle className="w-5 h-5" /> Listos para Entregar ({listos.length})</h2>
-          {listos.map(pedido => (
-            <Card key={pedido.id_pedido} className="border-green-200 bg-green-50/50">
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base text-[#4C3D19]">Pedido #{pedido.numero_pedido ?? pedido.id_pedido}</CardTitle>
+        <div className="barra-columna">
+          <h2 className="barra-columna-titulo" style={{color: '#065F46'}}>
+            <CheckCircle size={20} /> Listos para Entregar ({listos.length})
+          </h2>
+          {listos.length === 0 ? (
+            <div className="barra-vacio barra-vacio-listo">
+              <p>No hay pedidos listos</p>
+            </div>
+          ) : (
+            listos.map(pedido => (
+              <div key={pedido.id_pedido} className="barra-pedido">
+                <div className="barra-pedido-header">
+                  <h3 className="barra-pedido-titulo">Pedido #{pedido.numero_pedido ?? pedido.id_pedido}</h3>
                   {getStatusBadge(pedido.estado)}
                 </div>
-                <CardDescription className="text-green-700">{pedido.mesa} • {formatTime(pedido.hora_registro)}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-1">
+                <div className="barra-pedido-mesa">{pedido.mesa} • {formatTime(pedido.hora_registro)}</div>
+                <div className="barra-pedido-productos">
                   {pedido.detalles?.map(detalle => (
-                    <div key={detalle.id_detalle} className="flex justify-between text-sm">
-                      <span className="font-medium text-[#4C3D19]">{detalle.cantidad}x {detalle.nombre_producto}</span>
+                    <div key={detalle.id_detalle} className="barra-pedido-producto">
+                      <span>{detalle.cantidad}x {detalle.nombre_producto}</span>
                     </div>
                   ))}
                 </div>
-                <p className="text-xs text-green-600 mt-3 text-center">Esperando que el mesero lo entregue</p>
-              </CardContent>
-            </Card>
-          ))}
+                <div style={{fontSize:'0.75rem', color:'#065F46', textAlign:'center', marginTop:'0.75rem'}}>
+                  Esperando que el mesero lo entregue
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

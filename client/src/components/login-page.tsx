@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '@/providers/AuthProvider';
-import '@/components/styles/login.css';
+import '@/styles/login.css';
 
 export function LoginPage() {
   const { login } = useAuth();
@@ -12,10 +12,8 @@ export function LoginPage() {
 
   const iniciarSesion = async (e: React.FormEvent) => {
     e.preventDefault();
-
     setError('');
     setCargando(true);
-
     try {
       await login(usuario, password);
     } catch (err: any) {
@@ -26,43 +24,45 @@ export function LoginPage() {
   };
 
   return (
-    <div className="container">
-      <div className="header">
-        <div className="logo">
-          <img src="/logo_sin_fondo.png" alt="Logo" />
+    <div className="login-page-wrapper">
+      <div className="container">
+        <div className="header">
+          <div className="logo">
+            <img src="/logo_sin_fondo.png" alt="Logo" />
+          </div>
+          <div className="title">Aroma Café</div>
         </div>
-        <div className="title">Aroma Café</div>
+
+        <form className="login-box" onSubmit={iniciarSesion}>
+          {error && <div className="error">{error}</div>}
+
+          <div className="input-group">
+            <label>Usuario</label>
+            <input
+              type="text"
+              value={usuario}
+              onChange={(e) => setUsuario(e.target.value)}
+              className="login-input"
+              required
+            />
+          </div>
+
+          <div className="input-group">
+            <label>Contraseña</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="login-input"
+              required
+            />
+          </div>
+
+          <button type="submit" disabled={cargando} className="login-button">
+            {cargando ? 'Ingresando...' : 'Iniciar Sesión'}
+          </button>
+        </form>
       </div>
-
-      <form className="login-box" onSubmit={iniciarSesion}>
-
-        {error && <div className="error">{error}</div>}
-
-        <div className="input-group">
-          <label>Usuario</label>
-          <input
-            type="text"
-            value={usuario}
-            onChange={(e) => setUsuario(e.target.value)}
-            required
-          />
-        </div>
-
-        <div className="input-group">
-          <label>Contraseña</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        <button type="submit" disabled={cargando}>
-          {cargando ? 'Ingresando...' : 'Iniciar Sesión'}
-        </button>
-
-      </form>
     </div>
   );
 }

@@ -1,0 +1,200 @@
+/* ─── Reportes ─── */
+.reportes-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.reportes-header {
+  background: white;
+  border: 1px solid var(--caramel);
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.reportes-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--chocolate);
+}
+
+.reportes-header .periodo-info {
+  font-size: 0.85rem;
+  color: var(--caramel);
+}
+
+.reportes-controles {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Tarjetas de totales */
+.reportes-totales {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.reportes-total-card {
+  background: white;
+  border-left: 4px solid var(--chocolate);
+  padding: 0.75rem 1rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.reportes-total-card.ingresos {
+  border-left-color: #22c55e;
+}
+
+.reportes-total-card.egresos {
+  border-left-color: #ef4444;
+}
+
+.reportes-total-card.saldo {
+  border-left-color: var(--chocolate);
+}
+
+.reportes-total-card.ticket {
+  border-left-color: var(--caramel);
+}
+
+.reportes-total-card .label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--caramel);
+  margin-bottom: 0.25rem;
+}
+
+.reportes-total-card .value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--chocolate);
+}
+
+/* Grid de dos columnas */
+.reportes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+/* Tablas (contenedor y estilo) */
+.reportes-table-container {
+  background: white;
+  border: 1px solid var(--caramel);
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.reportes-table-container h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--chocolate);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.reportes-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.reportes-table th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  color: var(--chocolate);
+  font-weight: 600;
+  border-bottom: 1px solid var(--caramel);
+}
+
+.reportes-table td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--caramel);
+  color: var(--chocolate);
+}
+
+.reportes-table tr:last-child td {
+  border-bottom: none;
+}
+
+.reportes-table .text-right {
+  text-align: right;
+}
+
+.reportes-table .text-center {
+  text-align: center;
+}
+
+.reportes-table .text-green {
+  color: #16a34a;
+  font-weight: 500;
+}
+
+.reportes-table .text-red {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+.reportes-table .text-blue {
+  color: #2563eb;
+  font-weight: 500;
+}
+
+/* Scroll en tablas */
+.reportes-scroll {
+  max-height: 20rem;
+  overflow-y: auto;
+}
+
+/* Campos de fecha personalizados */
+.reportes-fecha-filtro {
+  background: white;
+  border: 1px solid var(--caramel);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.reportes-fecha-filtro label {
+  font-size: 0.75rem;
+  color: var(--caramel);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.reportes-fecha-filtro input {
+  border: 1px solid var(--caramel);
+  border-radius: 0.25rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.85rem;
+}
+
+/* Responsividad */
+@media (max-width: 768px) {
+  .reportes-totales {
+    grid-template-columns: 1fr 1fr;
+  }
+  .reportes-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .reportes-totales {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,60 @@
+/* ─── Layout de la página de Caja ─── */
+.caja-page { @apply space-y-6; }
+
+/* Encabezado */
+.caja-header { @apply flex items-center justify-between; }
+.caja-title { @apply text-3xl font-bold text-[var(--chocolate)]; }
+.caja-subtitle { @apply text-[var(--caramel)]; }
+
+/* Aviso de no hay turno */
+.caja-no-turno-card { @apply card-warning; }
+.caja-no-turno-text { @apply text-center text-lg text-[var(--chocolate)] pt-6; }
+
+/* Tarjetas de resumen */
+.caja-summary-grid { @apply grid-cards; }
+.caja-summary-card { @apply card-cafe; }
+.caja-summary-card-success { @apply card-success; }
+.caja-summary-card-danger { @apply card-danger; }
+.caja-summary-card-title { @apply heading-card; }
+.caja-summary-card-amount { @apply text-2xl font-bold; }
+
+/* Métodos de pago */
+.caja-metodos-grid { @apply grid-cards; }
+.caja-metodo-card { @apply card-cafe; }
+.caja-metodo-card-warning { @apply card-warning; }
+.caja-metodo-amount { @apply text-lg font-bold; }
+
+/* Movimientos del turno */
+.caja-movimientos-card { @apply card-cafe; }
+
+/* Botones específicos */
+.caja-btn-abrir { @apply btn-secondary; }
+.caja-btn-cerrar { @apply btn-danger; }
+
+/* Diálogo de apertura */
+.caja-abrir-input { @apply input-cafe; }
+.caja-abrir-btn { @apply btn-secondary; }
+
+/* Diálogo de cierre */
+.caja-cierre-scroll { @apply max-h-[65vh] pr-4; }
+.caja-cierre-totales { @apply grid grid-cols-2 gap-4; }
+.caja-cierre-total-box { @apply p-3 rounded; }
+.caja-cierre-total-box-success { @apply bg-green-50; }
+.caja-cierre-total-box-danger { @apply bg-red-50; }
+.caja-cierre-total-label { @apply text-sm text-[var(--chocolate)]; }
+.caja-cierre-total-amount { @apply text-xl font-bold; }
+
+/* Arqueo y totales */
+.caja-arqueo-bloque { @apply bg-white p-3 rounded border border-[var(--caramel)]; }
+.caja-arqueo-label { @apply font-medium text-[var(--chocolate)] mb-2; }
+.caja-arqueo-fila { @apply flex justify-between text-sm text-[var(--chocolate)]; }
+.caja-arqueo-total { @apply border-t border-[var(--caramel)] pt-2 flex justify-between font-semibold; }
+.caja-arqueo-input { @apply w-36 input-cafe; }
+
+/* Diferencias */
+.caja-diferencia-perfecta { @apply text-green-700; }
+.caja-diferencia-positiva { @apply text-blue-700; }
+.caja-diferencia-negativa { @apply text-red-700; }
+
+/* Notas al pie */
+.caja-arqueo-nota { @apply text-xs text-[var(--caramel)] mt-2; }

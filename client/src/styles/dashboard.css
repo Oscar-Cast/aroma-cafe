@@ -1,0 +1,174 @@
+/* ─── Dashboard ─── */
+.dashboard-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.dashboard-welcome {
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-welcome h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--chocolate);
+}
+
+.dashboard-welcome p {
+  font-size: 0.95rem;
+  color: var(--caramel);
+  margin-top: 0.25rem;
+}
+
+/* Tarjetas de estadísticas */
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.dashboard-card {
+  background: white;
+  border: 1px solid var(--caramel);
+  border-radius: 0.75rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.dashboard-card .label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--caramel);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dashboard-card .value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--chocolate);
+}
+
+.dashboard-card .sub {
+  font-size: 0.75rem;
+  color: var(--caramel);
+}
+
+/* Lista de pedidos recientes */
+.dashboard-recent {
+  background: white;
+  border: 1px solid var(--caramel);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+}
+
+.dashboard-recent h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--chocolate);
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-recent .item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--caramel);
+}
+
+.dashboard-recent .item:last-child {
+  border-bottom: none;
+}
+
+.dashboard-recent .item .info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.dashboard-recent .item .info .circle {
+  width: 2.25rem;
+  height: 2.25rem;
+  background: var(--chocolate);
+  color: var(--vanilla);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.dashboard-recent .item .info .text .mesa {
+  font-weight: 600;
+  color: var(--chocolate);
+}
+
+.dashboard-recent .item .info .text .meta {
+  font-size: 0.8rem;
+  color: var(--caramel);
+}
+
+/* Alertas de inventario */
+.dashboard-alert {
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+
+.dashboard-alert h2 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #991b1b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-alert .grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.dashboard-alert .item {
+  background: white;
+  border: 1px solid #fecaca;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.dashboard-alert .item .name {
+  font-weight: 600;
+  color: var(--chocolate);
+}
+
+.dashboard-alert .item .detail {
+  font-size: 0.8rem;
+  color: #dc2626;
+  margin-top: 0.25rem;
+}
+
+/* Responsividad básica */
+@media (max-width: 768px) {
+  .dashboard-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-cards {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-alert .grid {
+    grid-template-columns: 1fr;
+  }
+}

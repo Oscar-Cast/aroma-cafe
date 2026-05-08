@@ -183,6 +183,7 @@ export function PedidosView() {
     numero_pedido: g.numero_pedido,
   }));
 
+  
   const filtered = groupedArray.filter((p: any) => activeTab === 'todos' ? true : p.estado === activeTab);
 
   if (loading) return <div className="text-center py-12" style={{ color: 'var(--caramel)' }}>Cargando pedidos...</div>

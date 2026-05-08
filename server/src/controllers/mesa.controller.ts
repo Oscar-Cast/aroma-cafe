@@ -4,7 +4,16 @@ import pool from '../config/database.js';
 // Obtener todas las mesas
 export const getMesas = async (req: Request, res: Response) => {
     try {
-        const result = await pool.query('SELECT * FROM mesas ORDER BY numero_mesa ASC');
+        // Si se pasa ?todos=1, se muestran todas (incluyendo inactivas)
+        const mostrarTodas = req.query.todos === '1';
+        
+        let query = 'SELECT * FROM mesas';
+        if (!mostrarTodas) {
+            query += " WHERE estado != 'inactiva'";
+        }
+        query += ' ORDER BY numero_mesa ASC';
+        
+        const result = await pool.query(query);
         res.json(result.rows);
     } catch (error) {
         console.error(error);
@@ -50,7 +59,10 @@ export const updateMesa = async (req: Request, res: Response) => {
 export const deleteMesa = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const result = await pool.query('DELETE FROM mesas WHERE id_mesa = $1 RETURNING *', [id]);
+        const result = await pool.query(
+            'DELETE FROM mesas WHERE id_mesa = $1 RETURNING *',
+            [id]
+        );
         if (result.rowCount === 0) return res.status(404).json({ message: 'Mesa no encontrada' });
         res.json({ message: 'Mesa eliminada correctamente' });
     } catch (error) {

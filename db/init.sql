@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS mesas (
     numero_mesa VARCHAR(20) UNIQUE NOT NULL,
     capacidad INTEGER NOT NULL CHECK (capacidad > 0),
     ubicacion VARCHAR(10) NOT NULL CHECK (ubicacion IN ('interior', 'terraza')),
-    estado VARCHAR(15) NOT NULL DEFAULT 'disponible' CHECK (estado IN ('disponible', 'ocupada', 'reservada'))
+    estado VARCHAR(15) NOT NULL DEFAULT 'disponible' CHECK (estado IN ('disponible', 'ocupada', 'reservada', 'inactiva'))
 );
 
 -- Tabla: turnos_caja (apertura de turno)

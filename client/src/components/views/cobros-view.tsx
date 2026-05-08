@@ -11,12 +11,12 @@ import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Receipt, CreditCard, Banknote, Smartphone, CheckCircle, Clock, Coffee } from 'lucide-react'
+import { Receipt, CreditCard, Banknote, Smartphone, CheckCircle, Clock, Coffee, Trash2 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import '@/styles/cobros.css'
 
 interface DetalleProducto {
+  id_detalle: number
   cantidad: number
   nombre_producto: string
   precio_unitario: number
@@ -37,7 +37,9 @@ export function CobrosView() {
   const [cuentasAbiertas, setCuentasAbiertas] = useState<CuentaAbierta[]>([])
   const [cuentasCerradas, setCuentasCerradas] = useState<any[]>([])
   const [selectedCuenta, setSelectedCuenta] = useState<CuentaAbierta | null>(null)
+  const [selectedCerrada, setSelectedCerrada] = useState<any | null>(null)
   const [isCobrarDialogOpen, setIsCobrarDialogOpen] = useState(false)
+  const [openDetalleCuenta, setOpenDetalleCuenta] = useState(false)
   const [propina, setPropina] = useState(0)
   const [metodoPago, setMetodoPago] = useState<'efectivo' | 'tarjeta' | 'transferencia'>('efectivo')
   const [loading, setLoading] = useState(true)
@@ -45,7 +47,6 @@ export function CobrosView() {
   const cargarDatos = async () => {
     try {
       const abiertas = await api.getCuentasAbiertas()
-      // Convertir subtotal_acumulado a número
       setCuentasAbiertas(abiertas.map((c: any) => ({ ...c, subtotal_acumulado: Number(c.subtotal_acumulado) })))
       const todas = await api.getCuentas()
       const cerradas = todas.filter((c: any) => c.estado === 'cerrada')
@@ -66,9 +67,24 @@ export function CobrosView() {
 
   const openCobrarDialog = (cuenta: CuentaAbierta) => {
     setSelectedCuenta(cuenta)
-    setPropina(0)          // reiniciar propina
+    setPropina(0)
     setMetodoPago('efectivo')
     setIsCobrarDialogOpen(true)
+  }
+
+  const verDetalleCuenta = async (cuenta: any) => {
+    try {
+      const cuentasDetalle = await api.getCuentas({ detalle: true })
+      const cuentaDetalle = cuentasDetalle.find((c: any) => c.id_cuenta === cuenta.id_cuenta)
+      if (cuentaDetalle) {
+        setSelectedCerrada(cuentaDetalle)
+        setOpenDetalleCuenta(true)
+      } else {
+        toast({ title: 'Error', description: 'No se pudo obtener el detalle', variant: 'destructive' })
+      }
+    } catch (error) {
+      toast({ title: 'Error', description: 'Error al obtener detalle', variant: 'destructive' })
+    }
   }
 
   const handleCobrar = async () => {
@@ -86,13 +102,24 @@ export function CobrosView() {
     }
   }
 
+  const handleEliminarProducto = async (cuentaId: number, detalleId: number) => {
+    if (!window.confirm('¿Estás seguro de eliminar este producto de la cuenta?')) return
+    try {
+      await api.eliminarDetalleCuenta(cuentaId, detalleId)
+      toast({ title: 'Producto eliminado' })
+      cargarDatos() // recargar cuentas abiertas
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'No se pudo eliminar', variant: 'destructive' })
+    }
+  }
+
   const hoy = new Date().toISOString().split('T')[0]
   const totalCobradoHoy = cuentasCerradas
     .filter(c => c.fecha_cierre?.startsWith(hoy))
-    .reduce((sum, c) => sum + c.total, 0)
+    .reduce((sum, c) => sum + Number(c.total || 0), 0)
   const propinasTotales = cuentasCerradas
     .filter(c => c.fecha_cierre?.startsWith(hoy))
-    .reduce((sum, c) => sum + (c.propina || 0), 0)
+    .reduce((sum, c) => sum + Number(c.propina || 0), 0)
 
   if (loading) return <div className="text-center py-12" style={{ color: 'var(--caramel)' }}>Cargando cobros...</div>
 
@@ -143,7 +170,20 @@ export function CobrosView() {
                   {cuenta.detalles.map((item, idx) => (
                     <div className="cobros-account-item" key={idx}>
                       <span>{item.cantidad}x {item.nombre_producto}</span>
-                      <span>{formatCurrency(item.subtotal)}</span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {formatCurrency(item.subtotal)}
+                        {user?.rol === 'administrador' && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEliminarProducto(cuenta.id_cuenta, item.id_detalle);
+                            }}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -166,48 +206,46 @@ export function CobrosView() {
         </TabsContent>
 
         <TabsContent value="historial" style={{ marginTop: '1rem' }}>
-          <Card className="cobros-historial-card">
-            <div style={{ padding: '1rem' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--chocolate)' }}>Historial de Cobros</h2>
-            </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Cuenta</TableHead>
-                  <TableHead>Mesa</TableHead>
-                  <TableHead>Subtotal</TableHead>
-                  <TableHead>Propina</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Método</TableHead>
-                  <TableHead>Fecha</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {cuentasCerradas.map(c => (
-                  <TableRow key={c.id_cuenta}>
-                    <TableCell>#{c.id_cuenta}</TableCell>
-                    <TableCell>{c.numero_mesa}</TableCell>
-                    <TableCell>{formatCurrency(c.subtotal_acumulado)}</TableCell>
-                    <TableCell>{c.propina ? formatCurrency(c.propina) : '-'}</TableCell>
-                    <TableCell style={{ fontWeight: 600 }}>{formatCurrency(c.total)}</TableCell>
-                    <TableCell><span className={`cobros-badge-pago ${c.metodo_pago}`}>{c.metodo_pago}</span></TableCell>
-                    <TableCell style={{ fontSize: '0.85rem', color: 'var(--caramel)' }}>{formatDate(c.fecha_cierre)}</TableCell>
-                  </TableRow>
-                ))}
-                {cuentasCerradas.length === 0 && (
+          {cuentasCerradas.length > 0 ? (
+            <Card className="cobros-historial-card">
+              <div style={{ padding: '1rem' }}>
+                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--chocolate)' }}>Historial de Cobros</h2>
+              </div>
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center" style={{ padding: '2rem', color: 'var(--caramel)' }}>
-                      No hay cuentas cerradas aún
-                    </TableCell>
+                    <TableHead>Cuenta</TableHead>
+                    <TableHead>Mesa</TableHead>
+                    <TableHead>Subtotal</TableHead>
+                    <TableHead>Propina</TableHead>
+                    <TableHead>Total</TableHead>
+                    <TableHead>Método</TableHead>
+                    <TableHead>Fecha</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </Card>
+                </TableHeader>
+                <TableBody>
+                  {cuentasCerradas.map(c => (
+                    <TableRow key={c.id_cuenta} onClick={() => verDetalleCuenta(c)} style={{ cursor: 'pointer' }}>
+                      <TableCell>#{c.id_cuenta}</TableCell>
+                      <TableCell>{c.numero_mesa}</TableCell>
+                      <TableCell>{formatCurrency(c.subtotal_acumulado)}</TableCell>
+                      <TableCell>{c.propina ? formatCurrency(c.propina) : '-'}</TableCell>
+                      <TableCell style={{ fontWeight: 600 }}>{formatCurrency(c.total)}</TableCell>
+                      <TableCell><span className={`cobros-badge-pago ${c.metodo_pago}`}>{c.metodo_pago}</span></TableCell>
+                      <TableCell style={{ fontSize: '0.85rem', color: 'var(--caramel)' }}>{formatDate(c.fecha_cierre)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          ) : (
+            <div className="text-center" style={{ padding: '2rem', color: 'var(--caramel)' }}>
+              No hay cuentas cerradas aún
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
-      {/* Diálogo para cobrar */}
       <Dialog open={isCobrarDialogOpen} onOpenChange={setIsCobrarDialogOpen}>
         <DialogContent style={{ maxWidth: '28rem' }}>
           <DialogHeader>
@@ -270,6 +308,43 @@ export function CobrosView() {
             <Button variant="outline" onClick={() => setIsCobrarDialogOpen(false)}>Cancelar</Button>
             <Button style={{ background: '#16a34a', color: 'white' }} onClick={handleCobrar}><CheckCircle size={14} style={{ marginRight: '0.5rem' }} /> Confirmar Cobro</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={openDetalleCuenta} onOpenChange={setOpenDetalleCuenta}>
+        <DialogContent style={{ maxWidth: '32rem' }}>
+          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)' }}>Cuenta #{selectedCerrada?.id_cuenta}</DialogTitle></DialogHeader>
+          {selectedCerrada && (
+            <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+              <p>Mesa: {selectedCerrada.numero_mesa}</p>
+              <p>Método: <Badge>{selectedCerrada.metodo_pago}</Badge></p>
+              <Table>
+                <TableHeader><TableRow><TableHead>Producto</TableHead><TableHead className="text-right">Cant.</TableHead><TableHead className="text-right">Precio</TableHead><TableHead className="text-right">Subtotal</TableHead></TableRow></TableHeader>
+                <TableBody>
+                  {selectedCerrada.productos?.map((prod: any, idx: number) => (
+                    <TableRow key={prod.id_producto + '-' + idx}>
+                      <TableCell>{prod.nombre_producto}</TableCell>
+                      <TableCell className="text-right">{prod.cantidad}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(prod.precio_unitario)}</TableCell>
+                      <TableCell className="text-right">{formatCurrency(prod.subtotal)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', fontWeight: 600 }}>
+                <span>Subtotal</span><span>{formatCurrency(selectedCerrada.subtotal_acumulado)}</span>
+              </div>
+              {selectedCerrada.propina > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
+                  <span>Propina</span><span>{formatCurrency(selectedCerrada.propina)}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '1.1rem', fontWeight: 700 }}>
+                <span>Total</span><span>{formatCurrency(selectedCerrada.total)}</span>
+              </div>
+            </div>
+          )}
+          <DialogFooter><Button variant="outline" onClick={() => setOpenDetalleCuenta(false)}>Cerrar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

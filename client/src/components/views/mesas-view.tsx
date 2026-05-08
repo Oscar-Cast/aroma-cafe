@@ -25,7 +25,7 @@ export function MesasView() {
 
   const cargar = async () => {
     try {
-      const data = await api.getMesas()
+      const data = await api.getMesas({ todos: true });
       setMesas(data)
     } catch {
       toast({ title: 'Error', description: 'No se pudieron cargar las mesas', variant: 'destructive' })

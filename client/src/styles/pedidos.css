@@ -50,9 +50,10 @@
   border: 1px solid var(--caramel);
   border-radius: 0.75rem;
   padding: 1rem;
-  height: 450px;
+  max-height: 450px;               /* altura máxima antes de hacer scroll */
   display: flex;
   flex-direction: column;
+  overflow-y: auto;                /* barra de desplazamiento vertical */
 }
 
 .pedidos-dialog-carrito-vacio {

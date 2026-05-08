@@ -3,7 +3,6 @@ import pool from '../config/database.js';
 
 // ── Helper: obtener o crear cuenta ──────────────────────────────────
 async function obtenerOCrearCuenta(mesa: string, id_usuario: number): Promise<number> {
-    // Buscar turno activo (obligatorio para crear cuentas)
     const turnoResult = await pool.query(
         `SELECT id_turno FROM turnos_caja WHERE estado = 'abierto' LIMIT 1`
     );
@@ -11,7 +10,6 @@ async function obtenerOCrearCuenta(mesa: string, id_usuario: number): Promise<nu
         throw new Error('No hay turno abierto. Primero debes abrir un turno.');
     }
 
-    // Buscar la mesa por número
     const mesaRow = await pool.query(
         `SELECT id_mesa FROM mesas WHERE numero_mesa = $1`,
         [mesa]
@@ -21,7 +19,6 @@ async function obtenerOCrearCuenta(mesa: string, id_usuario: number): Promise<nu
     }
     const id_mesa = mesaRow.rows[0].id_mesa;
 
-    // Buscar cuenta abierta para esa mesa
     const cuentaAbierta = await pool.query(
         `SELECT id_cuenta FROM cuentas WHERE id_mesa = $1 AND estado = 'abierta' LIMIT 1`,
         [id_mesa]
@@ -30,27 +27,32 @@ async function obtenerOCrearCuenta(mesa: string, id_usuario: number): Promise<nu
         return cuentaAbierta.rows[0].id_cuenta;
     }
 
-    // Crear nueva cuenta vinculada al turno activo
+    // Crear nueva cuenta
     const nuevaCuenta = await pool.query(
         `INSERT INTO cuentas (id_mesa, estado, id_usuario_apertura)
          VALUES ($1, 'abierta', $2)
          RETURNING id_cuenta`,
         [id_mesa, id_usuario]
     );
+
+    // Actualizar la mesa a "ocupada"
+    await pool.query(
+        `UPDATE mesas SET estado = 'ocupada' WHERE id_mesa = $1`,
+        [id_mesa]
+    );
+
     return nuevaCuenta.rows[0].id_cuenta;
 }
 
-// ── OBTENER PEDIDOS (con numero_pedido virtual por día) ─────────────
+// ── OBTENER PEDIDOS (con filtro por turno y opción todas) ─────────
 export const getPedidos = async (req: Request, res: Response) => {
     try {
-        // Parámetro opcional: si se envía ?todas=1, no se filtra por turno activo
         const incluirTodas = req.query.todas === '1';
 
         let filtroExtra = '';
         const params: any[] = [];
 
         if (!incluirTodas) {
-            // Comportamiento normal: ocultar entregados anteriores al turno activo
             const turnoActivo = await pool.query(
                 `SELECT fecha_apertura FROM turnos_caja WHERE estado = 'abierto' LIMIT 1`
             );
@@ -104,7 +106,7 @@ export const getPedidos = async (req: Request, res: Response) => {
     }
 };
 
-// ── CREAR PEDIDO  ────────────────────────────────
+// ── CREAR PEDIDO (subpedidos, actualiza mesa) ─────────────────────
 export const crearPedido = async (req: Request, res: Response) => {
     const { mesa, productos, notas } = req.body;
     const id_usuario = (req as any).user.id_usuario;
@@ -116,7 +118,6 @@ export const crearPedido = async (req: Request, res: Response) => {
         return res.status(400).json({ message: 'Debe especificar una mesa' });
     }
 
-    // Obtener categorías reales desde la BD
     const ids = productos.map((p: any) => p.id_producto);
     const prodsInfo = await pool.query(
         `SELECT id_producto, categoria FROM productos WHERE id_producto = ANY($1)`,
@@ -146,7 +147,6 @@ export const crearPedido = async (req: Request, res: Response) => {
     try {
         await client.query('BEGIN');
 
-        // Obtener número de ticket diario (común para todos los subpedidos)
         const conteoHoy = await client.query(
             `SELECT COUNT(*)::int + 1 AS siguiente
              FROM pedidos
@@ -154,7 +154,6 @@ export const crearPedido = async (req: Request, res: Response) => {
         );
         const numeroPedido = conteoHoy.rows[0].siguiente;
 
-        // Obtener o crear cuenta
         let id_cuenta: number;
         try {
             id_cuenta = await obtenerOCrearCuenta(mesa, id_usuario);
@@ -181,7 +180,6 @@ export const crearPedido = async (req: Request, res: Response) => {
             );
             const id_pedido = nuevo.rows[0].id_pedido;
 
-            // Insertar detalles con extras
             for (const prod of grupo.productos) {
                 const subtotal = prod.cantidad * prod.precio_unitario;
                 await client.query(
@@ -212,7 +210,7 @@ export const crearPedido = async (req: Request, res: Response) => {
     }
 };
 
-// ── ACTUALIZAR ESTADO DE PEDIDO ──────────────────────────────────────
+// ── ACTUALIZAR ESTADO DE PEDIDO (entrega inteligente) ─────────────
 export const actualizarEstadoPedido = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { estado } = req.body;
@@ -223,7 +221,6 @@ export const actualizarEstadoPedido = async (req: Request, res: Response) => {
         return res.status(400).json({ message: `Estado inválido: "${estado}"` });
     }
 
-    // Validar permisos por rol
     const permisosRol: Record<string, string[]> = {
         administrador:  ['pendiente', 'en preparación', 'listo', 'entregado'],
         cajero:         ['entregado'],
@@ -238,25 +235,44 @@ export const actualizarEstadoPedido = async (req: Request, res: Response) => {
     }
 
     try {
-        // Obtener estado actual para validar transición hacia adelante
         const actual = await pool.query(
-            'SELECT estado FROM pedidos WHERE id_pedido = $1', [id]
+            'SELECT id_pedido, numero_pedido, id_cuenta, estado FROM pedidos WHERE id_pedido = $1',
+            [id]
         );
         if (actual.rowCount === 0) {
             return res.status(404).json({ message: 'Pedido no encontrado' });
         }
 
-        const idxActual = estadosValidos.indexOf(actual.rows[0].estado);
+        const pedidoActual = actual.rows[0];
+        const idxActual = estadosValidos.indexOf(pedidoActual.estado);
         const idxNuevo  = estadosValidos.indexOf(estado);
 
-        // Solo permitir avanzar (no retroceder)
         if (idxNuevo <= idxActual) {
             return res.status(400).json({
-                message: `No se puede cambiar de "${actual.rows[0].estado}" a "${estado}".`
+                message: `No se puede cambiar de "${pedidoActual.estado}" a "${estado}". Solo se puede avanzar en el flujo.`
             });
         }
 
-        // Registrar hora de entrega si corresponde
+        // Entrega inteligente
+        if (estado === 'entregado' && pedidoActual.numero_pedido) {
+            const horaEntrega = new Date();
+            await pool.query(
+                `UPDATE pedidos SET estado = 'entregado', hora_entrega = $2 WHERE id_pedido = $1`,
+                [id, horaEntrega]
+            );
+            await pool.query(
+                `UPDATE pedidos
+                 SET estado = 'entregado', hora_entrega = $2
+                 WHERE numero_pedido = $1 AND id_cuenta = $3 AND estado != 'entregado'`,
+                [pedidoActual.numero_pedido, horaEntrega, pedidoActual.id_cuenta]
+            );
+
+            const result = await pool.query(
+                `SELECT * FROM pedidos WHERE id_pedido = $1`, [id]
+            );
+            return res.json(result.rows[0]);
+        }
+
         const horaEntrega = estado === 'entregado' ? new Date() : null;
         const query = horaEntrega
             ? 'UPDATE pedidos SET estado=$1, hora_entrega=$2 WHERE id_pedido=$3 RETURNING *'

@@ -59,14 +59,22 @@ export const updateMesa = async (req: Request, res: Response) => {
 export const deleteMesa = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
+        const mesa = await pool.query('SELECT estado FROM mesas WHERE id_mesa = $1', [id]);
+        if (mesa.rowCount === 0) {
+            return res.status(404).json({ message: 'Mesa no encontrada' });
+        }
+        if (mesa.rows[0].estado === 'ocupada') {
+            return res.status(400).json({ message: 'No se puede desactivar una mesa ocupada' });
+        }
+
+        // En lugar de DELETE, ponemos estado 'inactiva'
         const result = await pool.query(
-            'DELETE FROM mesas WHERE id_mesa = $1 RETURNING *',
+            `UPDATE mesas SET estado = 'inactiva' WHERE id_mesa = $1 RETURNING *`,
             [id]
         );
-        if (result.rowCount === 0) return res.status(404).json({ message: 'Mesa no encontrada' });
-        res.json({ message: 'Mesa eliminada correctamente' });
+        res.json({ message: 'Mesa desactivada correctamente', mesa: result.rows[0] });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error al eliminar mesa' });
+        res.status(500).json({ message: 'Error al desactivar mesa' });
     }
 };

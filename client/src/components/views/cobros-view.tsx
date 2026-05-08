@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Receipt, CreditCard, Banknote, Smartphone, CheckCircle, Clock, Coffee, Trash2 } from 'lucide-react'
@@ -31,6 +32,17 @@ interface CuentaAbierta {
   detalles: DetalleProducto[]
 }
 
+const motivosMerma = [
+  'Error de captura',
+  'Caducidad',
+  'Daño en transporte',
+  'Daño en almacén',
+  'Producto defectuoso',
+  'Error de preparación',
+  'Devolución de cliente',
+  'Otro',
+]
+
 export function CobrosView() {
   const { user } = useAuth()
   const { toast } = useToast()
@@ -43,6 +55,12 @@ export function CobrosView() {
   const [propina, setPropina] = useState(0)
   const [metodoPago, setMetodoPago] = useState<'efectivo' | 'tarjeta' | 'transferencia'>('efectivo')
   const [loading, setLoading] = useState(true)
+
+  // Estados para el diálogo de motivo al eliminar producto
+  const [showEliminarDialog, setShowEliminarDialog] = useState(false)
+  const [motivoSeleccionado, setMotivoSeleccionado] = useState('Error de preparación')
+  const [motivoPersonalizado, setMotivoPersonalizado] = useState('')
+  const [cuentaAEliminar, setCuentaAEliminar] = useState<{ cuentaId: number; detalleId: number } | null>(null)
 
   const cargarDatos = async () => {
     try {
@@ -61,9 +79,19 @@ export function CobrosView() {
 
   useEffect(() => { cargarDatos() }, [])
 
-  const formatCurrency = (amount: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount)
-  const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
-  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('es-MX', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount)
+
+  const formatTime = (dateString: string) =>
+    new Date(dateString).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
+
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('es-MX', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
 
   const openCobrarDialog = (cuenta: CuentaAbierta) => {
     setSelectedCuenta(cuenta)
@@ -92,9 +120,14 @@ export function CobrosView() {
     try {
       await api.cerrarCuenta(selectedCuenta.id_cuenta, {
         metodo_pago: metodoPago,
-        propina: propina > 0 ? propina : undefined
+        propina: propina > 0 ? propina : undefined,
       })
-      toast({ title: 'Cuenta cobrada', description: `${selectedCuenta.numero_mesa} - ${formatCurrency(selectedCuenta.subtotal_acumulado + propina)}` })
+      toast({
+        title: 'Cuenta cobrada',
+        description: `${selectedCuenta.numero_mesa} - ${formatCurrency(
+          selectedCuenta.subtotal_acumulado + propina
+        )}`,
+      })
       setIsCobrarDialogOpen(false)
       cargarDatos()
     } catch (error) {
@@ -102,14 +135,31 @@ export function CobrosView() {
     }
   }
 
-  const handleEliminarProducto = async (cuentaId: number, detalleId: number) => {
-    if (!window.confirm('¿Estás seguro de eliminar este producto de la cuenta?')) return
+  const handleEliminarProducto = (cuentaId: number, detalleId: number) => {
+    setCuentaAEliminar({ cuentaId, detalleId })
+    setMotivoSeleccionado('Error de preparación')
+    setMotivoPersonalizado('')
+    setShowEliminarDialog(true)
+  }
+
+  const confirmarEliminacion = async () => {
+    if (!cuentaAEliminar) return
+    const motivoFinal = motivoSeleccionado === 'Otro' ? motivoPersonalizado : motivoSeleccionado
+    if (!motivoFinal.trim()) {
+      toast({ title: 'Error', description: 'Debes especificar un motivo', variant: 'destructive' })
+      return
+    }
     try {
-      await api.eliminarDetalleCuenta(cuentaId, detalleId)
+      await api.eliminarDetalleCuenta(cuentaAEliminar.cuentaId, cuentaAEliminar.detalleId, {
+        motivo: motivoFinal,
+      })
       toast({ title: 'Producto eliminado' })
-      cargarDatos() // recargar cuentas abiertas
+      cargarDatos()
     } catch (error: any) {
       toast({ title: 'Error', description: error.message || 'No se pudo eliminar', variant: 'destructive' })
+    } finally {
+      setShowEliminarDialog(false)
+      setCuentaAEliminar(null)
     }
   }
 
@@ -121,12 +171,19 @@ export function CobrosView() {
     .filter(c => c.fecha_cierre?.startsWith(hoy))
     .reduce((sum, c) => sum + Number(c.propina || 0), 0)
 
-  if (loading) return <div className="text-center py-12" style={{ color: 'var(--caramel)' }}>Cargando cobros...</div>
+  if (loading)
+    return (
+      <div className="text-center py-12" style={{ color: 'var(--caramel)' }}>
+        Cargando cobros...
+      </div>
+    )
 
   return (
     <div className="cobros-page">
       <div className="cobros-header">
-        <div className="cobros-icon"><Receipt /></div>
+        <div className="cobros-icon">
+          <Receipt />
+        </div>
         <div>
           <h1>Cobros</h1>
           <p>Cierre de cuentas y registro de pagos</p>
@@ -144,7 +201,9 @@ export function CobrosView() {
         </div>
         <div className="cobros-stat-card blue">
           <div className="cobros-stat-label">Cuentas Cerradas Hoy</div>
-          <div className="cobros-stat-value">{cuentasCerradas.filter(c => c.fecha_cierre?.startsWith(hoy)).length}</div>
+          <div className="cobros-stat-value">
+            {cuentasCerradas.filter(c => c.fecha_cierre?.startsWith(hoy)).length}
+          </div>
         </div>
         <div className="cobros-stat-card purple">
           <div className="cobros-stat-label">Propinas Hoy</div>
@@ -164,21 +223,31 @@ export function CobrosView() {
               <Card key={cuenta.id_cuenta} className="cobros-account-card">
                 <div>
                   <div className="cobros-account-title">{cuenta.numero_mesa}</div>
-                  <div className="cobros-account-time"><Clock size={12} className="inline" /> {formatTime(cuenta.fecha_apertura)} — Cuenta #{cuenta.id_cuenta}</div>
+                  <div className="cobros-account-time">
+                    <Clock size={12} className="inline" /> {formatTime(cuenta.fecha_apertura)} — Cuenta #
+                    {cuenta.id_cuenta}
+                  </div>
                 </div>
                 <div className="cobros-account-detail">
                   {cuenta.detalles.map((item, idx) => (
                     <div className="cobros-account-item" key={idx}>
-                      <span>{item.cantidad}x {item.nombre_producto}</span>
+                      <span>
+                        {item.cantidad}x {item.nombre_producto}
+                      </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {formatCurrency(item.subtotal)}
                         {user?.rol === 'administrador' && (
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEliminarProducto(cuenta.id_cuenta, item.id_detalle);
+                            onClick={e => {
+                              e.stopPropagation()
+                              handleEliminarProducto(cuenta.id_cuenta, item.id_detalle)
                             }}
-                            style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: '#ef4444',
+                            }}
                           >
                             <Trash2 size={14} />
                           </button>
@@ -191,7 +260,10 @@ export function CobrosView() {
                   <span>Total</span>
                   <span>{formatCurrency(cuenta.subtotal_acumulado)}</span>
                 </div>
-                <button className="cobros-btn-cobrar" onClick={() => openCobrarDialog(cuenta)}>
+                <button
+                  className="cobros-btn-cobrar"
+                  onClick={() => openCobrarDialog(cuenta)}
+                >
                   <Receipt size={14} style={{ marginRight: '0.5rem' }} /> Cobrar Cuenta
                 </button>
               </Card>
@@ -209,7 +281,15 @@ export function CobrosView() {
           {cuentasCerradas.length > 0 ? (
             <Card className="cobros-historial-card">
               <div style={{ padding: '1rem' }}>
-                <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--chocolate)' }}>Historial de Cobros</h2>
+                <h2
+                  style={{
+                    fontSize: '1.25rem',
+                    fontWeight: 600,
+                    color: 'var(--chocolate)',
+                  }}
+                >
+                  Historial de Cobros
+                </h2>
               </div>
               <Table>
                 <TableHeader>
@@ -225,27 +305,43 @@ export function CobrosView() {
                 </TableHeader>
                 <TableBody>
                   {cuentasCerradas.map(c => (
-                    <TableRow key={c.id_cuenta} onClick={() => verDetalleCuenta(c)} style={{ cursor: 'pointer' }}>
+                    <TableRow
+                      key={c.id_cuenta}
+                      onClick={() => verDetalleCuenta(c)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <TableCell>#{c.id_cuenta}</TableCell>
                       <TableCell>{c.numero_mesa}</TableCell>
                       <TableCell>{formatCurrency(c.subtotal_acumulado)}</TableCell>
                       <TableCell>{c.propina ? formatCurrency(c.propina) : '-'}</TableCell>
-                      <TableCell style={{ fontWeight: 600 }}>{formatCurrency(c.total)}</TableCell>
-                      <TableCell><span className={`cobros-badge-pago ${c.metodo_pago}`}>{c.metodo_pago}</span></TableCell>
-                      <TableCell style={{ fontSize: '0.85rem', color: 'var(--caramel)' }}>{formatDate(c.fecha_cierre)}</TableCell>
+                      <TableCell style={{ fontWeight: 600 }}>
+                        {formatCurrency(c.total)}
+                      </TableCell>
+                      <TableCell>
+                        <span className={`cobros-badge-pago ${c.metodo_pago}`}>
+                          {c.metodo_pago}
+                        </span>
+                      </TableCell>
+                      <TableCell style={{ fontSize: '0.85rem', color: 'var(--caramel)' }}>
+                        {formatDate(c.fecha_cierre)}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
             </Card>
           ) : (
-            <div className="text-center" style={{ padding: '2rem', color: 'var(--caramel)' }}>
+            <div
+              className="text-center"
+              style={{ padding: '2rem', color: 'var(--caramel)' }}
+            >
               No hay cuentas cerradas aún
             </div>
           )}
         </TabsContent>
       </Tabs>
 
+      {/* Diálogo para cobrar */}
       <Dialog open={isCobrarDialogOpen} onOpenChange={setIsCobrarDialogOpen}>
         <DialogContent style={{ maxWidth: '28rem' }}>
           <DialogHeader>
@@ -254,10 +350,18 @@ export function CobrosView() {
           {selectedCuenta && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div className="cobros-dialog-detail">
-                <div style={{ maxHeight: '12rem', overflowY: 'auto', paddingRight: '0.25rem' }}>
+                <div
+                  style={{
+                    maxHeight: '12rem',
+                    overflowY: 'auto',
+                    paddingRight: '0.25rem',
+                  }}
+                >
                   {selectedCuenta.detalles.map((item, idx) => (
                     <div className="cobros-dialog-item" key={idx}>
-                      <span>{item.cantidad}x {item.nombre_producto}</span>
+                      <span>
+                        {item.cantidad}x {item.nombre_producto}
+                      </span>
                       <span>{formatCurrency(item.subtotal)}</span>
                     </div>
                   ))}
@@ -276,75 +380,242 @@ export function CobrosView() {
                     min={0}
                     step={1}
                     value={propina}
-                    onChange={(e) => {
-                      const val = parseFloat(e.target.value);
-                      setPropina(isNaN(val) ? 0 : val);
+                    onChange={e => {
+                      const val = parseFloat(e.target.value)
+                      setPropina(isNaN(val) ? 0 : val)
                     }}
                     className="cobros-propina-input"
                     placeholder="0.00"
                   />
-                  <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(Number(selectedCuenta.subtotal_acumulado) * 0.10))}>10%</Button>
-                  <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(Number(selectedCuenta.subtotal_acumulado) * 0.15))}>15%</Button>
-                  <Button variant="outline" size="sm" onClick={() => setPropina(Math.round(Number(selectedCuenta.subtotal_acumulado) * 0.20))}>20%</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setPropina(
+                        Math.round(Number(selectedCuenta.subtotal_acumulado) * 0.1)
+                      )
+                    }
+                  >
+                    10%
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setPropina(
+                        Math.round(Number(selectedCuenta.subtotal_acumulado) * 0.15)
+                      )
+                    }
+                  >
+                    15%
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      setPropina(
+                        Math.round(Number(selectedCuenta.subtotal_acumulado) * 0.2)
+                      )
+                    }
+                  >
+                    20%
+                  </Button>
                 </div>
               </div>
 
               <div>
                 <Label>Método de Pago</Label>
                 <div className="cobros-payment-grid" style={{ marginTop: '0.25rem' }}>
-                  <button className="cobros-payment-btn" style={{ background: metodoPago === 'efectivo' ? '#16a34a' : 'transparent', color: metodoPago === 'efectivo' ? 'white' : 'var(--chocolate)', borderColor: metodoPago === 'efectivo' ? '#16a34a' : 'var(--caramel)' }} onClick={() => setMetodoPago('efectivo')}><Banknote size={14} className="inline" /> Efectivo</button>
-                  <button className="cobros-payment-btn" style={{ background: metodoPago === 'tarjeta' ? '#2563eb' : 'transparent', color: metodoPago === 'tarjeta' ? 'white' : 'var(--chocolate)', borderColor: metodoPago === 'tarjeta' ? '#2563eb' : 'var(--caramel)' }} onClick={() => setMetodoPago('tarjeta')}><CreditCard size={14} className="inline" /> Tarjeta</button>
-                  <button className="cobros-payment-btn" style={{ background: metodoPago === 'transferencia' ? '#7c3aed' : 'transparent', color: metodoPago === 'transferencia' ? 'white' : 'var(--chocolate)', borderColor: metodoPago === 'transferencia' ? '#7c3aed' : 'var(--caramel)' }} onClick={() => setMetodoPago('transferencia')}><Smartphone size={14} className="inline" /> Transf.</button>
+                  <button
+                    className="cobros-payment-btn"
+                    style={{
+                      background: metodoPago === 'efectivo' ? '#16a34a' : 'transparent',
+                      color: metodoPago === 'efectivo' ? 'white' : 'var(--chocolate)',
+                      borderColor:
+                        metodoPago === 'efectivo' ? '#16a34a' : 'var(--caramel)',
+                    }}
+                    onClick={() => setMetodoPago('efectivo')}
+                  >
+                    <Banknote size={14} className="inline" /> Efectivo
+                  </button>
+                  <button
+                    className="cobros-payment-btn"
+                    style={{
+                      background: metodoPago === 'tarjeta' ? '#2563eb' : 'transparent',
+                      color: metodoPago === 'tarjeta' ? 'white' : 'var(--chocolate)',
+                      borderColor:
+                        metodoPago === 'tarjeta' ? '#2563eb' : 'var(--caramel)',
+                    }}
+                    onClick={() => setMetodoPago('tarjeta')}
+                  >
+                    <CreditCard size={14} className="inline" /> Tarjeta
+                  </button>
+                  <button
+                    className="cobros-payment-btn"
+                    style={{
+                      background:
+                        metodoPago === 'transferencia' ? '#7c3aed' : 'transparent',
+                      color:
+                        metodoPago === 'transferencia' ? 'white' : 'var(--chocolate)',
+                      borderColor:
+                        metodoPago === 'transferencia' ? '#7c3aed' : 'var(--caramel)',
+                    }}
+                    onClick={() => setMetodoPago('transferencia')}
+                  >
+                    <Smartphone size={14} className="inline" /> Transf.
+                  </button>
                 </div>
               </div>
 
               <div className="cobros-final-total">
                 <span className="label">Total a Cobrar</span>
-                <span className="value">{formatCurrency(selectedCuenta.subtotal_acumulado + propina)}</span>
+                <span className="value">
+                  {formatCurrency(selectedCuenta.subtotal_acumulado + propina)}
+                </span>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCobrarDialogOpen(false)}>Cancelar</Button>
-            <Button style={{ background: '#16a34a', color: 'white' }} onClick={handleCobrar}><CheckCircle size={14} style={{ marginRight: '0.5rem' }} /> Confirmar Cobro</Button>
+            <Button variant="outline" onClick={() => setIsCobrarDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              style={{ background: '#16a34a', color: 'white' }}
+              onClick={handleCobrar}
+            >
+              <CheckCircle size={14} style={{ marginRight: '0.5rem' }} /> Confirmar Cobro
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
+      {/* Diálogo de detalle de cuenta cerrada */}
       <Dialog open={openDetalleCuenta} onOpenChange={setOpenDetalleCuenta}>
         <DialogContent style={{ maxWidth: '32rem' }}>
-          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)' }}>Cuenta #{selectedCerrada?.id_cuenta}</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle style={{ color: 'var(--chocolate)' }}>
+              Cuenta #{selectedCerrada?.id_cuenta}
+            </DialogTitle>
+          </DialogHeader>
           {selectedCerrada && (
             <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-              <p>Mesa: {selectedCerrada.numero_mesa}</p>
-              <p>Método: <Badge>{selectedCerrada.metodo_pago}</Badge></p>
+              <p style={{ marginBottom: '0.5rem' }}>Mesa: {selectedCerrada.numero_mesa}</p>
+              <p style={{ marginBottom: '0.5rem' }}>
+                Método de pago: <Badge>{selectedCerrada.metodo_pago}</Badge>
+              </p>
               <Table>
-                <TableHeader><TableRow><TableHead>Producto</TableHead><TableHead className="text-right">Cant.</TableHead><TableHead className="text-right">Precio</TableHead><TableHead className="text-right">Subtotal</TableHead></TableRow></TableHeader>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Producto</TableHead>
+                    <TableHead className="text-right">Cant.</TableHead>
+                    <TableHead className="text-right">Precio</TableHead>
+                    <TableHead className="text-right">Subtotal</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {selectedCerrada.productos?.map((prod: any, idx: number) => (
                     <TableRow key={prod.id_producto + '-' + idx}>
                       <TableCell>{prod.nombre_producto}</TableCell>
                       <TableCell className="text-right">{prod.cantidad}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(prod.precio_unitario)}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(prod.subtotal)}</TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(prod.precio_unitario)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(prod.subtotal)}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', fontWeight: 600 }}>
-                <span>Subtotal</span><span>{formatCurrency(selectedCerrada.subtotal_acumulado)}</span>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginTop: '1rem',
+                  fontWeight: 600,
+                }}
+              >
+                <span>Subtotal</span>
+                <span>{formatCurrency(selectedCerrada.subtotal_acumulado)}</span>
               </div>
               {selectedCerrada.propina > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem' }}>
-                  <span>Propina</span><span>{formatCurrency(selectedCerrada.propina)}</span>
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    marginTop: '0.5rem',
+                  }}
+                >
+                  <span>Propina</span>
+                  <span>{formatCurrency(selectedCerrada.propina)}</span>
                 </div>
               )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.5rem', fontSize: '1.1rem', fontWeight: 700 }}>
-                <span>Total</span><span>{formatCurrency(selectedCerrada.total)}</span>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginTop: '0.5rem',
+                  fontSize: '1.1rem',
+                  fontWeight: 700,
+                }}
+              >
+                <span>Total</span>
+                <span>{formatCurrency(selectedCerrada.total)}</span>
               </div>
             </div>
           )}
-          <DialogFooter><Button variant="outline" onClick={() => setOpenDetalleCuenta(false)}>Cerrar</Button></DialogFooter>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpenDetalleCuenta(false)}>
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Diálogo para seleccionar motivo de eliminación */}
+      <Dialog open={showEliminarDialog} onOpenChange={setShowEliminarDialog}>
+        <DialogContent style={{ maxWidth: '24rem' }}>
+          <DialogHeader>
+            <DialogTitle style={{ color: 'var(--chocolate)' }}>
+              Motivo de eliminación
+            </DialogTitle>
+          </DialogHeader>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <Select
+              value={motivoSeleccionado}
+              onValueChange={v => setMotivoSeleccionado(v)}
+            >
+              <SelectTrigger style={{ borderColor: 'var(--caramel)' }}>
+                <SelectValue placeholder="Selecciona un motivo" />
+              </SelectTrigger>
+              <SelectContent>
+                {motivosMerma.map(m => (
+                  <SelectItem key={m} value={m}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {motivoSeleccionado === 'Otro' && (
+              <Input
+                placeholder="Escribe el motivo"
+                value={motivoPersonalizado}
+                onChange={e => setMotivoPersonalizado(e.target.value)}
+                className="input-cafe"
+              />
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEliminarDialog(false)}>
+              Cancelar
+            </Button>
+            <Button
+              style={{ background: 'var(--chocolate)', color: 'white' }}
+              onClick={confirmarEliminacion}
+            >
+              Eliminar producto
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

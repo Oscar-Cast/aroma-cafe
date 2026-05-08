@@ -8,7 +8,7 @@ const router = Router();
 router.get('/', authMiddleware, hasRole('administrador', 'cajero'), getCuentas);
 router.get('/abiertas', authMiddleware, hasRole('administrador', 'cajero'), getCuentasAbiertas);
 router.patch('/:id/cerrar', authMiddleware, hasRole('administrador', 'cajero'), cerrarCuenta);
-router.delete('/:idCuenta/detalle/:idDetalle', authMiddleware, hasRole('administrador'), eliminarDetalleCuenta);
+router.post('/:idCuenta/detalle/:idDetalle/eliminar', authMiddleware, hasRole('administrador'), eliminarDetalleCuenta);
 
 
 export default router;

@@ -187,7 +187,7 @@ export const cerrarCuenta = async (req: Request, res: Response) => {
     }
 };
 
-// ── NUEVO: Eliminar un detalle de una cuenta abierta (solo administrador) ──
+// Eliminar un detalle de una cuenta abierta (solo administrador)
 export const eliminarDetalleCuenta = async (req: Request, res: Response) => {
     const { idCuenta, idDetalle } = req.params;
     const userId = (req as any).user.id_usuario;
@@ -210,6 +210,7 @@ export const eliminarDetalleCuenta = async (req: Request, res: Response) => {
             await client.query('ROLLBACK');
             return res.status(404).json({ message: 'Cuenta no encontrada o ya está cerrada' });
         }
+        const cuenta = cuentaResult.rows[0];
 
         // 2. Obtener detalle a eliminar
         const detalleResult = await client.query(
@@ -244,7 +245,7 @@ export const eliminarDetalleCuenta = async (req: Request, res: Response) => {
             [subtotal, idCuenta]
         );
 
-        // 6. Si el pedido se quedó sin detalles, eliminarlo
+        // 6. Si el pedido quedó sin detalles, eliminarlo
         const detallesRestantes = await client.query(
             `SELECT COUNT(*) FROM detalle_pedidos WHERE id_pedido = $1`, [idPedido]
         );
@@ -252,16 +253,18 @@ export const eliminarDetalleCuenta = async (req: Request, res: Response) => {
             await client.query(`DELETE FROM pedidos WHERE id_pedido = $1`, [idPedido]);
         }
 
-        // 7. Registrar merma
+        // 7. Registrar merma con el motivo enviado
+        const motivo = req.body.motivo || 'Error de preparación';
         await client.query(
+        
             `INSERT INTO merma_productos (id_producto, cantidad, motivo, id_usuario)
-             VALUES ($1, $2, 'Error de preparación', $3)`,
-            [idProducto, cantidad, userId]
+             VALUES ($1, $2, $3, $4)`,
+            [idProducto, cantidad, motivo, userId]
         );
 
         await client.query('COMMIT');
 
-        // Devolver cuenta actualizada
+        // Devolver cuenta actualizada (sin el detalle eliminado)
         const cuentaActualizada = await client.query(`
             SELECT c.id_cuenta, m.numero_mesa, c.subtotal_acumulado, c.fecha_apertura,
                    COALESCE(

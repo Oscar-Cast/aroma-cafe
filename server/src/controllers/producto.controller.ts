@@ -42,10 +42,17 @@ export const updateProducto = async (req: Request, res: Response) => {
 export const deleteProducto = async (req: Request, res: Response) => {
     const { id } = req.params;
     try {
-        const result = await pool.query('DELETE FROM productos WHERE id_producto = $1', [id]);
-        if (result.rowCount === 0) return res.status(404).json({ message: "Producto no encontrado" });
-        res.json({ message: "Producto eliminado correctamente" });
+        // Soft delete: simplemente desactivamos el producto
+        const result = await pool.query(
+            `UPDATE productos SET disponible = 'inactivo' WHERE id_producto = $1 RETURNING *`,
+            [id]
+        );
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Producto no encontrado' });
+        }
+        res.json({ message: 'Producto desactivado correctamente', producto: result.rows[0] });
     } catch (error) {
-        res.status(500).json({ message: "Error al eliminar" });
+        console.error(error);
+        res.status(500).json({ message: 'Error al desactivar el producto' });
     }
 };

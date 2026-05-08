@@ -75,7 +75,7 @@ export const api = {
   createInsumo: (data: any) =>
     request('/insumos', { method: 'POST', body: JSON.stringify(data) }),
   updateInsumo: (id: number, data: any) =>
-    request(`/insumos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+      request(`/insumos/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
 
   // Movimientos inventario
   getMovimientosInventario: () => request<any[]>('/movimientos-inventario'),
@@ -129,8 +129,11 @@ export const api = {
           const query = params?.detalle ? '?detalle=1' : '';
           return request<any[]>(`/cuentas${query}`);
       },
-      eliminarDetalleCuenta: (idCuenta: number, idDetalle: number) =>
-          request(`/cuentas/${idCuenta}/detalle/${idDetalle}`, { method: 'DELETE' }),  
+      eliminarDetalleCuenta: (idCuenta: number, idDetalle: number, data?: { motivo?: string }) =>
+              request(`/cuentas/${idCuenta}/detalle/${idDetalle}/eliminar`, {
+                  method: 'POST',
+                  body: JSON.stringify(data),
+              }),  
       cerrarCuenta: (id: number, data: { metodo_pago: string; propina?: number }) =>
           request(`/cuentas/${id}/cerrar`, { method: 'PATCH', body: JSON.stringify(data) }),
 

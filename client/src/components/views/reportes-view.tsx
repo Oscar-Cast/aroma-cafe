@@ -21,9 +21,8 @@ export function ReportesView() {
     try {
       let inicio = '', fin = ''
       const hoy = new Date().toISOString().split('T')[0]
-      if (periodo === 'today') {
-        inicio = hoy; fin = hoy
-      } else if (periodo === '7d') {
+      if (periodo === 'today') { inicio = hoy; fin = hoy }
+      else if (periodo === '7d') {
         const h = new Date(Date.now() - 6 * 24 * 60 * 60 * 1000)
         inicio = h.toISOString().split('T')[0]; fin = hoy
       } else if (periodo === '30d') {
@@ -63,16 +62,199 @@ export function ReportesView() {
 
   useEffect(() => { cargarReportes() }, [periodo, desde, hasta])
 
-  const formatCurrency = (amount: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount)
-  const formatDate = (dateString: string) => new Date(dateString).toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(amount)
 
-  const exportarXML = () => { /* ... misma lógica de antes ... */ }
-  const exportarPDF = () => { /* ... misma lógica de antes ... */ }
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('es-MX', { weekday: 'short', day: 'numeric', month: 'short' })
 
+  const formatISODate = (dateString: string) => {
+    if (!dateString) return ''
+    return new Date(dateString).toISOString().split('T')[0]
+  }
+
+  const formatShortDate = (dateString: string) => {
+    if (!dateString) return ''
+    return new Date(dateString).toLocaleDateString('es-MX', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
+  }
+
+  // ═══════════════ EXPORTACIÓN XML ═══════════════
+  const exportarXML = () => {
+    if (!datos) return
+
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<reporte>\n'
+    xml += `  <periodo inicio="${formatISODate(datos.periodo.inicio)}" fin="${formatISODate(datos.periodo.fin)}"/>\n`
+    xml += `  <totales>\n    <ingresos>${datos.totalIngresos}</ingresos>\n    <egresos>${datos.totalEgresos}</egresos>\n    <saldo_neto>${datos.saldoNeto}</saldo_neto>\n    <ticket_promedio>${datos.ticketPromedio}</ticket_promedio>\n  </totales>\n`
+
+    xml += '  <ventas_diarias>\n'
+    datos.ventasDiarias.forEach((v: any) => {
+      xml += `    <dia fecha="${formatISODate(v.fecha)}" total="${v.total}"/>\n`
+    })
+    xml += '  </ventas_diarias>\n'
+
+    xml += '  <productos>\n'
+    datos.productosVendidos.forEach((p: any) => {
+      xml += `    <producto nombre="${p.nombre_producto}" categoria="${p.categoria}" cantidad="${p.cantidad_vendida}" total="${p.total_vendido}"/>\n`
+    })
+    xml += '  </productos>\n'
+
+    xml += '  <metodos_pago>\n'
+    datos.metodosPago.forEach((m: any) => {
+      xml += `    <metodo nombre="${m.metodo_pago}" total="${m.total}"/>\n`
+    })
+    xml += '  </metodos_pago>\n'
+
+    xml += '  <egresos>\n'
+    datos.egresosDetalle.forEach((e: any) => {
+      xml += `    <egreso concepto="${e.concepto}" total="${e.total}"/>\n`
+    })
+    xml += '  </egresos>\n'
+
+    // Mermas
+    xml += '  <mermas>\n'
+    xml += '    <productos>\n'
+    if (datos.mermasProductos) {
+      datos.mermasProductos.forEach((m: any) => {
+        xml += `      <merma_producto fecha="${formatISODate(m.fecha_hora)}" producto="${m.nombre_producto}" cantidad="${m.cantidad}" motivo="${m.motivo}" valor="${m.valor_perdida}"/>\n`
+      })
+    }
+    xml += '    </productos>\n'
+    xml += '    <insumos>\n'
+    if (datos.mermasInsumos) {
+      datos.mermasInsumos.forEach((m: any) => {
+        xml += `      <merma_insumo fecha="${formatISODate(m.fecha_movimiento)}" insumo="${m.nombre_insumo}" cantidad="${m.cantidad}" unidad="${m.unidad_medida}" motivo="${m.tipo_movimiento === 'merma_caducidad' ? 'Caducidad' : 'Daño'}"/>\n`
+      })
+    }
+    xml += '    </insumos>\n'
+    xml += '  </mermas>\n'
+
+    xml += '  <cierres_turno>\n'
+    if (Array.isArray(cierres)) {
+      cierres.forEach((c: any) => {
+        xml += '    <turno>\n'
+        xml += `      <fecha_apertura>${formatISODate(c.fecha_apertura)}</fecha_apertura>\n`
+        xml += `      <fecha_cierre>${formatISODate(c.fecha_cierre)}</fecha_cierre>\n`
+        xml += `      <responsable>${c.nombre_usuario || ''}</responsable>\n`
+        xml += `      <fondo_inicial>${c.monto_inicial ?? 0}</fondo_inicial>\n`
+        xml += `      <totales>\n        <ingresos>${c.total_ingresos ?? 0}</ingresos>\n        <egresos>${c.total_egresos ?? 0}</egresos>\n        <saldo>${c.saldo ?? 0}</saldo>\n        <ganancia>${(c.total_ingresos ?? 0) - (c.total_egresos ?? 0)}</ganancia>\n      </totales>\n`
+        if (c.efectivo_contado != null) {
+          xml += `      <arqueo>\n        <efectivo_contado>${c.efectivo_contado}</efectivo_contado>\n        <diferencia>${c.diferencia ?? 0}</diferencia>\n      </arqueo>\n`
+        }
+        xml += '    </turno>\n'
+      })
+    }
+    xml += '  </cierres_turno>\n'
+    xml += '</reporte>'
+
+    const blob = new Blob([xml], { type: 'application/xml' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `reporte_${formatISODate(datos.periodo.inicio)}_${formatISODate(datos.periodo.fin)}.xml`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  }
+
+  // ═══════════════ EXPORTACIÓN PDF ═══════════════
+  const exportarPDF = () => {
+    if (!datos) return
+    const ventana = window.open('', '_blank')
+    if (!ventana) return
+
+    // Mermas productos
+    let filasMermasProd = ''
+    if (datos.mermasProductos) {
+      datos.mermasProductos.forEach((m: any) => {
+        filasMermasProd += `<tr><td>${formatShortDate(m.fecha_hora)}</td><td>${m.nombre_producto}</td><td>${m.cantidad}</td><td>${m.motivo}</td><td>${formatCurrency(parseFloat(m.valor_perdida))}</td></tr>`
+      })
+    }
+
+    // Mermas insumos
+    let filasMermasIns = ''
+    if (datos.mermasInsumos) {
+      datos.mermasInsumos.forEach((m: any) => {
+        filasMermasIns += `<tr><td>${formatShortDate(m.fecha_movimiento)}</td><td>${m.nombre_insumo}</td><td>${m.cantidad} ${m.unidad_medida}</td><td>${m.tipo_movimiento === 'merma_caducidad' ? 'Caducidad' : 'Daño'}</td></tr>`
+      })
+    }
+
+    let filasCierres = ''
+    cierres.forEach((c: any) => {
+      const ganancia = (c.total_ingresos ?? 0) - (c.total_egresos ?? 0)
+      filasCierres += `<tr>
+        <td>${formatShortDate(c.fecha_apertura)}<br><small>${new Date(c.fecha_apertura).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })} - ${new Date(c.fecha_cierre).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })}</small></td>
+        <td>${c.nombre_usuario || ''}</td>
+        <td>${formatCurrency(c.monto_inicial ?? 0)}</td>
+        <td>${formatCurrency(c.total_ingresos ?? 0)}</td>
+        <td>${formatCurrency(c.total_egresos ?? 0)}</td>
+        <td>${formatCurrency(c.saldo ?? 0)}</td>
+        <td>${formatCurrency(ganancia)}</td>
+        <td>${c.efectivo_contado != null ? formatCurrency(c.efectivo_contado) : '-'}</td>
+        <td>${c.diferencia != null ? formatCurrency(c.diferencia) : '-'}</td>
+      </tr>`
+    })
+
+    const html = `<!DOCTYPE html><html><head><title>Reporte Aroma Café</title>
+      <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { color: #4C3D19; border-bottom: 2px solid #CFBB99; }
+        h2 { color: #4C3D19; margin-top: 30px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+        th, td { border: 1px solid #CFBB99; padding: 8px; text-align: left; }
+        th { background: #4C3D19; color: white; }
+        .totales { display: flex; gap: 20px; margin: 20px 0; }
+        .total { border: 1px solid #CFBB99; padding: 15px; border-radius: 8px; flex: 1; }
+      </style></head><body>
+      <h1>Reporte Aroma Café</h1>
+      <p>Período: ${formatISODate(datos.periodo.inicio)} al ${formatISODate(datos.periodo.fin)}</p>
+      <div class="totales">
+        <div class="total"><strong>Ingresos:</strong> ${formatCurrency(datos.totalIngresos)}</div>
+        <div class="total"><strong>Egresos:</strong> ${formatCurrency(datos.totalEgresos)}</div>
+        <div class="total"><strong>Saldo neto:</strong> ${formatCurrency(datos.saldoNeto)}</div>
+        <div class="total"><strong>Ticket prom.:</strong> ${formatCurrency(datos.ticketPromedio)}</div>
+      </div>
+      <h2>Ventas por día</h2>
+      <table><tr><th>Día</th><th>Total</th></tr>
+        ${datos.ventasDiarias.map((v:any) => `<tr><td>${formatShortDate(v.fecha)}</td><td>${formatCurrency(v.total)}</td></tr>`).join('')}
+      </table>
+      <h2>Productos vendidos</h2>
+      <table><tr><th>Producto</th><th>Cantidad</th><th>Total</th></tr>
+        ${datos.productosVendidos.map((p:any) => `<tr><td>${p.nombre_producto}</td><td>${p.cantidad_vendida}</td><td>${formatCurrency(p.total_vendido)}</td></tr>`).join('')}
+      </table>
+      <h2>Egresos</h2>
+      <table><tr><th>Concepto</th><th>Monto</th></tr>
+        ${datos.egresosDetalle.map((e:any) => `<tr><td>${e.concepto}</td><td>${formatCurrency(e.total)}</td></tr>`).join('')}
+      </table>
+      <h2>Métodos de pago</h2>
+      <table><tr><th>Método</th><th>Total</th></tr>
+        ${datos.metodosPago.map((m:any) => `<tr><td>${m.metodo_pago}</td><td>${formatCurrency(m.total)}</td></tr>`).join('')}
+      </table>
+      <h2>Mermas – Productos</h2>
+      <table><tr><th>Fecha</th><th>Producto</th><th>Cant.</th><th>Motivo</th><th>Valor</th></tr>${filasMermasProd}</table>
+      <h2>Mermas – Insumos</h2>
+      <table><tr><th>Fecha</th><th>Insumo</th><th>Cant.</th><th>Motivo</th></tr>${filasMermasIns}</table>
+      <h2>Cierres de turno</h2>
+      <table>
+        <tr><th>Fecha</th><th>Responsable</th><th>Fondo inicial</th><th>Ingresos</th><th>Egresos</th><th>Saldo</th><th>Ganancia</th><th>Efectivo contado</th><th>Diferencia</th></tr>
+        ${filasCierres}
+      </table>
+    </body></html>`
+
+    ventana.document.write(html)
+    ventana.document.close()
+    ventana.onload = () => ventana.print()
+  }
+
+  // ═══════════════ RENDER ═══════════════
   if (loading) return <div className="text-center py-12" style={{ color: 'var(--caramel)' }}>Cargando reportes...</div>
   if (!datos) return <div className="text-center py-12">No hay datos disponibles</div>
 
-  const ventasData = datos.ventasDiarias.map((v: any) => ({ fecha: formatDate(v.fecha), total: parseFloat(v.total) }))
+  const ventasData = datos.ventasDiarias.map((v: any) => ({
+    fecha: formatDate(v.fecha),
+    total: parseFloat(v.total)
+  }))
 
   return (
     <div className="reportes-page">
@@ -86,8 +268,10 @@ export function ReportesView() {
           <Button variant={periodo === '7d' ? 'default' : 'outline'} size="sm" onClick={() => setPeriodo('7d')}>7 días</Button>
           <Button variant={periodo === '30d' ? 'default' : 'outline'} size="sm" onClick={() => setPeriodo('30d')}>30 días</Button>
           <Button variant={periodo === 'custom' ? 'default' : 'outline'} size="sm" onClick={() => setPeriodo('custom')}>Personalizado</Button>
-          <Button variant="outline" size="sm" onClick={exportarXML}><FileText size={16} /> XML</Button>
-          <Button variant="outline" size="sm" onClick={exportarPDF}><Printer size={16} /> PDF</Button>
+          <div className="flex gap-1 ml-2">
+            <Button variant="outline" size="sm" onClick={exportarXML}><FileText size={16} /> XML</Button>
+            <Button variant="outline" size="sm" onClick={exportarPDF}><Printer size={16} /> PDF</Button>
+          </div>
         </div>
       </div>
 
@@ -155,7 +339,6 @@ export function ReportesView() {
         </div>
       </div>
 
-      {/* Mermas (productos e insumos) */}
       {datos.mermasProductos && datos.mermasInsumos && (
         <div className="reportes-grid">
           <div className="reportes-table-container">
@@ -198,7 +381,6 @@ export function ReportesView() {
         </div>
       )}
 
-      {/* Cierres de turno */}
       <div className="reportes-table-container">
         <h2>Cierres de turno ({cierres.length})</h2>
         <div className="reportes-scroll">
@@ -206,8 +388,8 @@ export function ReportesView() {
             <thead><tr><th>Fecha</th><th>Responsable</th><th className="text-right">Fondo</th><th className="text-right">Ingresos</th><th className="text-right">Egresos</th><th className="text-right">Saldo</th><th className="text-right">Ganancia</th><th className="text-right">Contado</th><th className="text-right">Dif.</th></tr></thead>
             <tbody>
               {cierres.map((c: any) => {
-                const ganancia = c.total_ingresos - c.total_egresos
-                const diffClass = c.diferencia < 0 ? 'text-red' : c.diferencia > 0 ? 'text-blue' : 'text-green'
+                const ganancia = (c.total_ingresos ?? 0) - (c.total_egresos ?? 0)
+                const diffClass = (c.diferencia ?? 0) < 0 ? 'text-red' : (c.diferencia ?? 0) > 0 ? 'text-blue' : 'text-green'
                 return (
                   <tr key={c.id_cierre}>
                     <td>
@@ -216,14 +398,16 @@ export function ReportesView() {
                         {new Date(c.fecha_apertura).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })} – {new Date(c.fecha_cierre).toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })}
                       </div>
                     </td>
-                    <td>{c.nombre_usuario}</td>
-                    <td className="text-right">{formatCurrency(c.monto_inicial)}</td>
-                    <td className="text-right text-green">{formatCurrency(c.total_ingresos)}</td>
-                    <td className="text-right text-red">{formatCurrency(c.total_egresos)}</td>
-                    <td className="text-right">{formatCurrency(c.saldo)}</td>
+                    <td>{c.nombre_usuario || ''}</td>
+                    <td className="text-right">{formatCurrency(c.monto_inicial ?? 0)}</td>
+                    <td className="text-right text-green">{formatCurrency(c.total_ingresos ?? 0)}</td>
+                    <td className="text-right text-red">{formatCurrency(c.total_egresos ?? 0)}</td>
+                    <td className="text-right">{formatCurrency(c.saldo ?? 0)}</td>
                     <td className="text-right" style={{ fontWeight: 700 }}>{formatCurrency(ganancia)}</td>
                     <td className="text-right">{c.efectivo_contado != null ? formatCurrency(c.efectivo_contado) : '–'}</td>
-                    <td className={`text-right ${c.diferencia != null ? diffClass : ''}`}>{c.diferencia != null ? formatCurrency(c.diferencia) : '–'}</td>
+                    <td className={`text-right ${c.diferencia != null ? diffClass : ''}`}>
+                      {c.diferencia != null ? formatCurrency(c.diferencia) : '–'}
+                    </td>
                   </tr>
                 )
               })}
@@ -232,7 +416,6 @@ export function ReportesView() {
         </div>
       </div>
 
-      {/* Egresos y métodos de pago */}
       <div className="reportes-grid">
         <div className="reportes-table-container">
           <h2>Egresos por concepto</h2>

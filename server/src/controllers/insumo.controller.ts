@@ -28,15 +28,42 @@ export const createInsumo = async (req: Request, res: Response) => {
 // Actualizar stock de insumo (útil para cuando llega un proveedor)
 export const updateInsumo = async (req: Request, res: Response) => {
     const { id } = req.params;
-    const { nombre_insumo, unidad_medida, existencia_actual, nivel_minimo } = req.body;
+    const campos = req.body;               // { nombre_insumo?, unidad_medida?, existencia_actual?, nivel_minimo? }
+
+    if (!id || Object.keys(campos).length === 0) {
+        return res.status(400).json({ message: 'Debe proporcionar al menos un campo para actualizar' });
+    }
+
+    // Construir dinámicamente la consulta SET
+    const setClauses: string[] = [];
+    const values: any[] = [];
+    let contador = 1;
+
+    for (const [campo, valor] of Object.entries(campos)) {
+        // Evitar campos no deseados (solo los permitidos)
+        if (['nombre_insumo', 'unidad_medida', 'existencia_actual', 'nivel_minimo'].includes(campo)) {
+            setClauses.push(`${campo} = $${contador}`);
+            values.push(valor);
+            contador++;
+        }
+    }
+
+    if (setClauses.length === 0) {
+        return res.status(400).json({ message: 'Ningún campo válido para actualizar' });
+    }
+
+    values.push(id);
+
+    const query = `UPDATE insumos SET ${setClauses.join(', ')} WHERE id_insumo = $${contador} RETURNING *`;
+
     try {
-        const result = await pool.query(
-            'UPDATE insumos SET nombre_insumo=$1, unidad_medida=$2, existencia_actual=$3, nivel_minimo=$4 WHERE id_insumo=$5 RETURNING *',
-            [nombre_insumo, unidad_medida, existencia_actual, nivel_minimo, id]
-        );
-        if (result.rowCount === 0) return res.status(404).json({ message: "Insumo no encontrado" });
+        const result = await pool.query(query, values);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Insumo no encontrado' });
+        }
         res.json(result.rows[0]);
     } catch (error) {
-        res.status(500).json({ message: "Error al actualizar insumo" });
+        console.error(error);
+        res.status(500).json({ message: 'Error al actualizar insumo' });
     }
 };

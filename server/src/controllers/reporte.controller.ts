@@ -2,13 +2,13 @@ import { Request, Response } from 'express';
 import pool from '../config/database.js';
 
 export const getVentasPorPeriodo = async (req: Request, res: Response) => {
-    const { inicio, fin } = req.query;
+    const { inicio, fin } = req.query; // formato YYYY-MM-DD
     if (!inicio || !fin) {
         return res.status(400).json({ message: 'Debe especificar inicio y fin (YYYY-MM-DD)' });
     }
 
     try {
-        // Ingresos agrupados por día (ventas diarias)
+        // Ventas totales y por día (sin cambios)
         const ventasQuery = await pool.query(`
             SELECT
                 DATE(mf.fecha_hora) AS fecha,
@@ -20,25 +20,10 @@ export const getVentasPorPeriodo = async (req: Request, res: Response) => {
             ORDER BY fecha ASC
         `, [inicio, fin]);
 
-        // Total de ingresos
+        // Total ingresos
         const totalIngresos = ventasQuery.rows.reduce((sum: number, row: any) => sum + parseFloat(row.total), 0);
 
-        // Egresos desglosados por concepto (agrupados)
-        const egresosQuery = await pool.query(`
-            SELECT
-                concepto,
-                SUM(monto) AS total
-            FROM movimientos_financieros mf
-            WHERE mf.tipo = 'egreso'
-              AND mf.fecha_hora::date BETWEEN $1 AND $2
-            GROUP BY concepto
-            ORDER BY total DESC
-        `, [inicio, fin]);
-
-        // Total de egresos
-        const totalEgresos = egresosQuery.rows.reduce((sum: number, row: any) => sum + parseFloat(row.total), 0);
-
-        // Productos vendidos (todos, sin límite de 10)
+        // Productos vendidos (sin límite)
         const productosQuery = await pool.query(`
             SELECT
                 pr.nombre_producto,
@@ -54,7 +39,21 @@ export const getVentasPorPeriodo = async (req: Request, res: Response) => {
             ORDER BY cantidad_vendida DESC
         `, [inicio, fin]);
 
-        // Ingresos por método de pago (de cuentas cerradas)
+        // Egresos desglosados
+        const egresosQuery = await pool.query(`
+            SELECT
+                concepto,
+                SUM(monto) AS total
+            FROM movimientos_financieros mf
+            WHERE mf.tipo = 'egreso'
+              AND mf.fecha_hora::date BETWEEN $1 AND $2
+            GROUP BY concepto
+            ORDER BY total DESC
+        `, [inicio, fin]);
+
+        const totalEgresos = egresosQuery.rows.reduce((sum: number, row: any) => sum + parseFloat(row.total), 0);
+
+        // Ingresos por método de pago
         const metodoPagoQuery = await pool.query(`
             SELECT
                 c.metodo_pago,
@@ -73,27 +72,26 @@ export const getVentasPorPeriodo = async (req: Request, res: Response) => {
         const numCuentas = parseInt(totalCuentas.rows[0]?.cantidad || '0');
         const ticketPromedio = numCuentas > 0 ? totalIngresos / numCuentas : 0;
 
-		// Mermas de productos
-		const mermasProd = await pool.query(`
-		    SELECT mp.id_merma_prod, mp.fecha_hora, pr.nombre_producto, mp.cantidad, mp.motivo,
-		           (mp.cantidad * pr.precio) AS valor_perdida
-		    FROM merma_productos mp
-		    JOIN productos pr ON mp.id_producto = pr.id_producto
-		    WHERE mp.fecha_hora::date BETWEEN $1 AND $2
-		    ORDER BY mp.fecha_hora DESC
-		`, [inicio, fin]);
-		
-		// Mermas de insumos
-		const mermasInsumos = await pool.query(`
-		    SELECT mi.id_movimiento, mi.fecha_movimiento, ins.nombre_insumo, ins.unidad_medida,
-		           mi.cantidad, mi.tipo_movimiento
-		    FROM movimientos_inventario mi
-		    JOIN insumos ins ON mi.id_insumo = ins.id_insumo
-		    WHERE mi.tipo_movimiento IN ('merma_caducidad', 'merma_dano')
-		      AND mi.fecha_movimiento::date BETWEEN $1 AND $2
-		    ORDER BY mi.fecha_movimiento DESC
-		`, [inicio, fin]);
-		
+        // *** NUEVO: Mermas de productos ***
+        const mermasProd = await pool.query(`
+            SELECT mp.id_merma_prod, mp.fecha_hora, pr.nombre_producto, mp.cantidad, mp.motivo,
+                   (mp.cantidad * pr.precio) AS valor_perdida
+            FROM merma_productos mp
+            JOIN productos pr ON mp.id_producto = pr.id_producto
+            WHERE mp.fecha_hora::date BETWEEN $1 AND $2
+            ORDER BY mp.fecha_hora DESC
+        `, [inicio, fin]);
+
+        // *** NUEVO: Mermas de insumos ***
+        const mermasInsumos = await pool.query(`
+            SELECT mi.id_movimiento, mi.fecha_movimiento, ins.nombre_insumo, ins.unidad_medida,
+                   mi.cantidad, mi.tipo_movimiento
+            FROM movimientos_inventario mi
+            JOIN insumos ins ON mi.id_insumo = ins.id_insumo
+            WHERE mi.tipo_movimiento IN ('merma_caducidad', 'merma_dano')
+              AND mi.fecha_movimiento::date BETWEEN $1 AND $2
+            ORDER BY mi.fecha_movimiento DESC
+        `, [inicio, fin]);
 
         res.json({
             ventasDiarias: ventasQuery.rows,
@@ -101,11 +99,11 @@ export const getVentasPorPeriodo = async (req: Request, res: Response) => {
             totalEgresos,
             saldoNeto: totalIngresos - totalEgresos,
             ticketPromedio,
-            productosVendidos: productosQuery.rows,       // lista completa
+            productosVendidos: productosQuery.rows,
             metodosPago: metodoPagoQuery.rows,
             egresosDetalle: egresosQuery.rows,
-            mermasProductos: mermasProd.rows,
-            mermasInsumos: mermasInsumos.rows,
+            mermasProductos: mermasProd.rows,   
+            mermasInsumos: mermasInsumos.rows,   
             periodo: { inicio, fin }
         });
     } catch (error) {

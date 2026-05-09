@@ -1,3 +1,4 @@
+
 .pedidos-page {
   display: flex;
   flex-direction: column;
@@ -8,10 +9,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-}
+  }
 
 .pedidos-header h1 {
-  font-size: 1.875rem;
+  font-size: 4rem;
   font-weight: 700;
   color: var(--chocolate);
 }
@@ -89,7 +90,9 @@
 }
 
 .pedidos-tabs-list {
-  background: color-mix(in srgb, var(--vanilla) 30%, transparent);
+  display: flex;
+  gap: 3rem;
+  border-bottom: 2px solid var(--caramel);
 }
 
 /* -- tarjetas de pedido -- */
@@ -190,7 +193,7 @@
   font-size: 0.85rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 2000px) {
   .pedidos-dialog-grid {
     grid-template-columns: 1fr;
   }

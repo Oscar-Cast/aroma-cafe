@@ -24,7 +24,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="login-page-wrapper">
+    <div className="login-page-wrapper" style={{ position: 'fixed', inset: 0, width: '100%', height: '100%' }} >
       <div className="container">
         <div className="header">
           <div className="logo">
@@ -63,6 +63,9 @@ export function LoginPage() {
           </button>
         </form>
       </div>
+      <footer className="footer">
+        <p>&copy; 2026 Aroma Café.</p>
+      </footer>
     </div>
   );
 }

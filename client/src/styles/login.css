@@ -1,65 +1,81 @@
-/* ─── Contenedor principal (solo para el login) ─── */
+
 .login-page-wrapper {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #442c0a;
+  background-image: url('/fondo.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.6;
-  color: #4C3D19;
+  color: #725c3f;
+  position: relative;
+}
+.login-page-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  z-index: 0;
 }
 
 .container {
-  width: 100%;
-  max-width: 1000px;
+  position: relative;
+  z-index: 1;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 2rem;
+  gap: 1rem;
+  width: 100%;
+  max-width: 420px;
+  padding: 2rem 1.5rem;
 }
 
 .header {
   display: flex;
   flex-direction: column;
   align-items: center;
-  flex-shrink: 0;
-  line-height: 1.2;
+  line-height: 1;
 }
 
 .logo {
-  width: 250px;
-  height: 250px;
-  border-radius: 50%;
+  width: 360px;
+  height: 360px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .logo img {
-  width: auto;
+  width: 100%;
   height: auto;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.4));
 }
 
 .title {
-  font-size: 5rem;
+  font-size: 4.2rem;
   font-weight: 700;
-  color: #4C3D19;
+  color: #fff8f0;
   text-align: center;
+  margin-top: 0.5rem;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.5);
 }
 
 .login-box {
-  background: rgba(255, 255, 255, 0.5);
-  backdrop-filter: blur(12px);
-  border-radius: 12px;
-  padding: 25px;
-  width: 50%;
-  max-width: 60px;
-  border: 1px solid rgba(207, 187, 153, 0.65);
-  box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.2);
+  background: rgba(239, 232, 216, 0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 16px;
+  padding: 28px 24px;
+  width: 100%;
+  border: 1px solid rgba(207, 187, 153, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 .input-group {
@@ -70,77 +86,84 @@
 }
 
 .input-group label {
-  color: #8a7355;
-  font-size: 0.95rem;
+  color: #5a3e22;
+  font-size: 1.75rem;
   font-weight: 600;
+  text-align: center;
 }
 
-/* Inputs locales del login */
 .login-input {
-  background: rgba(255, 255, 255, 0.96);
+  background: rgba(255, 255, 255, 0.75);
   border: 2px solid #CFBB99;
   border-radius: 8px;
   padding: 12px 16px;
   color: #1e293b;
-  font-size: 1rem;
+  font-size: 1.25rem;
   width: 100%;
   outline: none;
+  box-sizing: border-box;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .login-input:focus {
-  border-color: #4C3D19;
-  box-shadow: 0 0 0 2px rgba(76, 61, 25, 0.15);
+  border-color: #684c1e;
+  box-shadow: 0 0 0 3px rgba(148, 103, 52, 0.25);
 }
 
-/* Botón exclusivo del login */
 .login-button {
   width: 100%;
-  padding: 12px 24px;
-  background-color: #4C3D19;
-  color: white;
+  padding: 13px 24px;
+  margin-top: 0.5rem;
+  background-color: #725c3f;
+  color: #f5f0e8;
   border: none;
   border-radius: 8px;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 12px rgba(114, 92, 63, 0.5);
 }
 
 .login-button:hover {
-  background-color: #af8a67;
+  background-color: #684c1e;
+  box-shadow: 0 6px 16px rgba(114, 92, 63, 0.6);
 }
 
 .login-button:active {
-  transform: translateY(1px);
+  transform: scale(0.98);
 }
 
 .login-button:disabled {
-  opacity: 0.5;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
 .error {
-  background-color: #ffe5e5;
-  color: #ef4444;
+  background-color: rgba(255, 229, 229, 0.9);
+  color: #cc0000;
   padding: 10px;
   border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 500;
   text-align: center;
+  margin-bottom: 0.5rem;
 }
 
-/* Ajuste para móviles */
-@media (max-width: 2000px) {
-  .container {
-    flex-direction: column;
-    gap: 1.25rem;
-    padding: 1rem;
-  }
+.footer {
+  position: absolute;
+  bottom: 1rem;
+  width: 100%;
+  text-align: center;
+  color: rgba(255, 248, 240, 0.7);
+  font-size: 1.5rem;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  z-index: 1;
+}
 
-  .login-box {
-    order: 1;
-    width: 100%;
-    max-width: none;
+/* ─── Móviles ─── */
+@media (max-width: 2000px) {
+  .login-box{
+    width: 50%;
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react' // ← se añadió useEffect para la vista inicial
 import { useAuth } from '@/providers/AuthProvider';
 import { AppSidebar } from './app-sidebar'
 import { DashboardView } from './views/dashboard-view'
@@ -17,14 +17,18 @@ import { MesasView } from './views/mesas-view'
 import { CobrosView } from './views/cobros-view'
 import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils' // ← utilidad para concatenar clases condicionales
 import { MovimientosFinancierosView } from './views/movimientos-financieros-view'
 
 export function MainDashboard() {
   const { user } = useAuth()
   const [currentView, setCurrentView] = useState('dashboard')
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false) // controla menú móvil (overlay)
+  
+  // ===== NUEVO ESTADO: colapso del sidebar en escritorio =====
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
-  // Determine initial view based on role
+  // Vista inicial según el rol del usuario
   const getInitialView = () => {
     if (!user) return 'dashboard'
     
@@ -40,13 +44,13 @@ export function MainDashboard() {
     }
   }
 
-  // Set initial view on mount
-  useState(() => {
+  // Establece la vista inicial solo al montar el componente
+  useEffect(() => {
     const initial = getInitialView()
     if (initial !== 'dashboard') {
       setCurrentView(initial)
     }
-  })
+  }, []) // ← array vacío: se ejecuta una sola vez
 
   const renderView = () => {
     switch (currentView) {
@@ -83,7 +87,7 @@ export function MainDashboard() {
 
   return (
     <div className="min-h-screen bg-[#E5D7C4]">
-      {/* Mobile menu button */}
+      {/* ===== BOTÓN MÓVIL (no se modifica) ===== */}
       <div className="lg:hidden fixed top-4 left-4 z-50">
         <Button
           variant="outline"
@@ -95,7 +99,7 @@ export function MainDashboard() {
         </Button>
       </div>
 
-      {/* Sidebar overlay for mobile */}
+      {/* Overlay para cerrar menú en móvil */}
       {sidebarOpen && (
         <div 
           className="lg:hidden fixed inset-0 bg-black/50 z-40"
@@ -103,7 +107,7 @@ export function MainDashboard() {
         />
       )}
 
-      {/* Sidebar */}
+      {/* ===== SIDEBAR ===== */}
       <div className={`
         fixed lg:translate-x-0 z-50 transition-transform duration-300
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -112,13 +116,22 @@ export function MainDashboard() {
           currentView={currentView} 
           onViewChange={(view) => {
             setCurrentView(view)
-            setSidebarOpen(false)
+            setSidebarOpen(false) // cierra el menú móvil al seleccionar vista
           }} 
+          // ===== PROPS DE COLAPSO =====
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
       </div>
 
-      {/* Main content */}
-      <main className="lg:ml-64 p-6 lg:p-8 pt-16 lg:pt-8 min-h-screen">
+      {/* ===== CONTENIDO PRINCIPAL: margen adaptable al colapso ===== */}
+      <main className={cn(
+        "p-6 lg:p-8 pt-16 lg:pt-8 min-h-screen transition-all duration-300",
+        sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
+        //                 ^^^^^^^^^^   ^^^^^^^^^^
+        //  Si collapsed → margen pequeño (ancho del sidebar colapsado)
+        //  Si no        → margen normal (sidebar completo)
+      )}>
         <div className="max-w-7xl mx-auto">
           {renderView()}
         </div>

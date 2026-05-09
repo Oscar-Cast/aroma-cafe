@@ -23,7 +23,7 @@ export function BarraView() {
         .map((p: Pedido) => ({
           ...p,
           detalles: p.detalles?.filter((d: any) =>
-            ['Bebidas Calientes', 'Bebidas Frías', 'Postres'].includes(d.categoria)
+            ['Bebidas Calientes', 'Bebidas Frías', 'Postres', 'Cafetería'].includes(d.categoria)
           )
         }))
         .filter((p: Pedido) => p.detalles && p.detalles.length > 0)

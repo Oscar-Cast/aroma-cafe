@@ -16,7 +16,8 @@ import {
   Home,
   LayoutGrid,
   Receipt,
-  Menu
+  PanelLeftClose,   // ← Ícono para colapsar (flecha hacia la izquierda)
+  PanelLeftOpen     // ← Ícono para expandir (flecha hacia la derecha)
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -30,12 +31,6 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  {
-    title: 'Ocultar Menú',
-    icon: <Menu className="w-5 h-5" />,
-    href: 'toggle',
-    roles: ['administrador', 'cajero', 'mesero', 'barra', 'cocina']
-  },
   {
     title: 'Inicio',
     icon: <Home className="w-5 h-5" />,

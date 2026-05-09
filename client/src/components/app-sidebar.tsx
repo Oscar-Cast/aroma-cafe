@@ -15,7 +15,8 @@ import {
   AlertTriangle,
   Home,
   LayoutGrid,
-  Receipt
+  Receipt,
+  Menu
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -29,6 +30,12 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
+  {
+    title: 'Ocultar Menú',
+    icon: <Menu className="w-5 h-5" />,
+    href: 'toggle',
+    roles: ['administrador', 'cajero', 'mesero', 'barra', 'cocina']
+  },
   {
     title: 'Inicio',
     icon: <Home className="w-5 h-5" />,

@@ -24,7 +24,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="login-page-wrapper" style={{ position: 'fixed', inset: 0, width: '100%', height: '100%' }} >
+    <div className="login-page-wrapper"  >
       <div className="container">
         <div className="header">
           <div className="logo">

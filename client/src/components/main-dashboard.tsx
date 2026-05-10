@@ -86,20 +86,20 @@ export function MainDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#E5D7C4]">
-      {/* ===== BOTÓN MÓVIL (no se modifica) ===== */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+    <div className="min-h-screen bg-[#E5D7C4] flex">
+      {/* ===== BOTÓN MÓVIL ===== */}
+      <div className="lg:hidden fixed top-4 left-4 z-[60]">
         <Button
           variant="outline"
           size="icon"
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="bg-white border-[#CFBB99]"
+          className="border-[#CFBB99]"
         >
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </Button>
       </div>
 
-      {/* Overlay para cerrar menú en móvil */}
+      {/* Overlay para móvil */}
       {sidebarOpen && (
         <div 
           className="lg:hidden fixed inset-0 bg-black/50 z-40"
@@ -108,29 +108,40 @@ export function MainDashboard() {
       )}
 
       {/* ===== SIDEBAR ===== */}
-      <div className={`
-        fixed lg:translate-x-0 z-50 transition-transform duration-300
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
+      <aside className={cn(
+        // Posicionamiento y comportamiento de scroll
+        "fixed inset-y-0 left-0 z-50 transition-all duration-300 ease-in-out",
+        "bg-[#4C3D19] border-r border-[#CFBB99] flex flex-col",
+        "overflow-y-auto overflow-x-hidden", // Scroll vertical interno si el contenido no cabe
+        
+        // Manejo de visibilidad en móvil
+        sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+        
+        // ANCHOS PROPORCIONALES (Deben coincidir con los márgenes del main)
+        sidebarCollapsed 
+          ? "w-16" 
+          : "w-[70vw] sm:w-[280px] lg:w-[20vw] xl:w-[16vw]"
+      )}>
         <AppSidebar 
           currentView={currentView} 
           onViewChange={(view) => {
             setCurrentView(view)
-            setSidebarOpen(false) // cierra el menú móvil al seleccionar vista
+            setSidebarOpen(false)
           }} 
-          // ===== PROPS DE COLAPSO =====
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
         />
-      </div>
+      </aside>
 
-      {/* ===== CONTENIDO PRINCIPAL: margen adaptable al colapso ===== */}
+      {/* ===== CONTENIDO PRINCIPAL ===== */}
       <main className={cn(
-        "p-6 lg:p-8 pt-16 lg:pt-8 min-h-screen transition-all duration-300",
-        sidebarCollapsed ? "lg:ml-16" : "lg:ml-64"
-        //                 ^^^^^^^^^^   ^^^^^^^^^^
-        //  Si collapsed → margen pequeño (ancho del sidebar colapsado)
-        //  Si no        → margen normal (sidebar completo)
+        "flex-1 min-h-screen transition-all duration-300",
+        "p-6 lg:p-8 pt-20 lg:pt-8",
+        
+        // MARGEN DINÁMICO (Espejo del ancho del Sidebar)
+        sidebarCollapsed 
+          ? "lg:ml-16" 
+          : "lg:ml-[20vw] xl:ml-[16vw]" 
       )}>
         <div className="max-w-7xl mx-auto">
           {renderView()}

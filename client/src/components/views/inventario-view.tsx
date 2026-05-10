@@ -136,7 +136,7 @@ export function InventarioView() {
     if (existencia <= nivel) {
       color = 'red'
       label = 'Crítico'
-    } else if (existencia > maxVisual) {
+    } else if (existencia >= maxVisual) {
       color = 'red'
       label = 'Exceso'
     } else if (existencia <= nivel * 1.5) {

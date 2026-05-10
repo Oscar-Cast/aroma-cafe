@@ -120,15 +120,15 @@ export function InventarioView() {
 
   // ── LÓGICA DE ESTADO ──
   const getStockStatus = (insumo: Insumo) => {
-    const nivel = insumo.nivel_minimo
-    const existencia = insumo.existencia_actual
+    const nivel: number = Number(insumo.nivel_minimo)
+    const existencia: number = Number(insumo.existencia_actual)
 
     if (nivel <= 0) {
       return { color: 'red', label: 'Sin mínimo', percentage: 0 }
     }
 
-    const maxVisual = nivel * 3
-    const porcentaje = Math.min((existencia / maxVisual) * 100, 100)
+    const maxVisual: number = Number(nivel * 3)
+    const porcentaje: number = Math.min((existencia / maxVisual) * 100, 100)
 
     let color = 'green'
     let label = 'Normal'
@@ -136,7 +136,7 @@ export function InventarioView() {
     if (existencia <= nivel) {
       color = 'red'
       label = 'Crítico'
-    } else if (existencia > nivel * 3) {
+    } else if (existencia > maxVisual) {
       color = 'red'
       label = 'Exceso'
     } else if (existencia <= nivel * 1.5) {
@@ -147,7 +147,7 @@ export function InventarioView() {
     return { color, label, percentage: porcentaje }
   }
 
-  const lowStock = insumos.filter(i => i.existencia_actual <= i.nivel_minimo && i.nivel_minimo > 0)
+  const lowStock = insumos.filter((i) => parseFloat(i.existencia_actual) <= parseFloat(i.nivel_minimo)); //&& i.nivel_minimo > 0)
 
   if (loading) return <div className="text-center py-12" style={{ color: 'var(--caramel)' }}>Cargando inventario...</div>
 
@@ -206,7 +206,7 @@ export function InventarioView() {
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                    <span className={`inventario-badge ${s.color}`}>{s.label}</span>
+                      <span className={`inventario-badge ${s.color}`}>{s.label}</span>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button

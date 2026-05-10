@@ -29,7 +29,7 @@ export function DashboardView() {
 
       // Insumos (no dependen del turno)
       const insumos = await api.getInsumos();
-      const bajos = insumos.filter((i: any) => i.existencia_actual <= i.nivel_minimo);
+      const bajos = insumos.filter((i: any) => parseFloat(i.existencia_actual) <= parseFloat(i.nivel_minimo) || parseFloat(i.existencia_actual) >= parseInt(i.nivel_minimo * 3));
 
       // Para los contadores de pendientes y en preparación usamos TODOS los pedidos activos (no solo del turno) para que el admin vea la realidad completa
       const pendientes = todosPedidos.filter((p: any) => p.estado === 'pendiente').length;

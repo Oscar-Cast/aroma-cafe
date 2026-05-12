@@ -133,7 +133,6 @@ export function BarraView() {
                     <div key={d.id_detalle}>
                       <div className="produccion-order-card-detail">
                         <span>{d.cantidad}x {d.nombre_producto}</span>
-                        <span>{d.subtotal}</span>
                       </div>
                       {d.extras_ids && d.extras_ids.length > 0 && (
                         <div style={{ paddingLeft: '1.25rem', fontSize: '0.8rem', color: 'var(--caramel)' }}>
@@ -142,7 +141,6 @@ export function BarraView() {
                             return extra ? (
                               <div key={id} style={{ display: 'flex', gap: '0.5rem' }}>
                                 <span>+ {extra.nombre}</span>
-                                {extra.precio > 0 && <span>({new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(extra.precio)})</span>}
                               </div>
                             ) : null;
                           })}
@@ -184,7 +182,6 @@ export function BarraView() {
                     <div key={d.id_detalle}>
                       <div className="produccion-order-card-detail">
                         <span>{d.cantidad}x {d.nombre_producto}</span>
-                        <span>{d.subtotal}</span>
                       </div>
                       {d.extras_ids && d.extras_ids.length > 0 && (
                         <div style={{ paddingLeft: '1.25rem', fontSize: '0.8rem', color: 'var(--caramel)' }}>
@@ -193,7 +190,6 @@ export function BarraView() {
                             return extra ? (
                               <div key={id} style={{ display: 'flex', gap: '0.5rem' }}>
                                 <span>+ {extra.nombre}</span>
-                                {extra.precio > 0 && <span>({new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(extra.precio)})</span>}
                               </div>
                             ) : null;
                           })}
@@ -243,7 +239,6 @@ export function BarraView() {
                             return extra ? (
                               <div key={id} style={{ display: 'flex', gap: '0.5rem' }}>
                                 <span>+ {extra.nombre}</span>
-                                {extra.precio > 0 && <span>({new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(extra.precio)})</span>}
                               </div>
                             ) : null;
                           })}

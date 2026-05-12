@@ -130,7 +130,6 @@ export function CocinaView() {
                     <div key={d.id_detalle}>
                       <div className="produccion-order-detail-row">
                         <span>{d.cantidad}x {d.nombre_producto}</span>
-                        <span>{d.subtotal}</span>
                       </div>
                       {d.extras_ids && d.extras_ids.length > 0 && (
                         <div className="produccion-extras">
@@ -139,7 +138,6 @@ export function CocinaView() {
                             return extra ? (
                               <div key={id} className="produccion-extra-item">
                                 <span>+ {extra.nombre}</span>
-                                {extra.precio > 0 && <span>(+${extra.precio})</span>}
                               </div>
                             ) : null;
                           })}
@@ -187,7 +185,6 @@ export function CocinaView() {
                     <div key={d.id_detalle}>
                       <div className="produccion-order-detail-row">
                         <span>{d.cantidad}x {d.nombre_producto}</span>
-                        <span>{d.subtotal}</span>
                       </div>
                       {d.extras_ids && d.extras_ids.length > 0 && (
                         <div className="produccion-extras">
@@ -196,7 +193,6 @@ export function CocinaView() {
                             return extra ? (
                               <div key={id} className="produccion-extra-item">
                                 <span>+ {extra.nombre}</span>
-                                {extra.precio > 0 && <span>(+${extra.precio})</span>}
                               </div>
                             ) : null;
                           })}
@@ -239,7 +235,6 @@ export function CocinaView() {
                     <div key={d.id_detalle}>
                       <div className="produccion-order-detail-row">
                         <span>{d.cantidad}x {d.nombre_producto}</span>
-                        <span>{d.subtotal}</span>
                       </div>
                       {d.extras_ids && d.extras_ids.length > 0 && (
                         <div className="produccion-extras">
@@ -248,7 +243,6 @@ export function CocinaView() {
                             return extra ? (
                               <div key={id} className="produccion-extra-item">
                                 <span>+ {extra.nombre}</span>
-                                {extra.precio > 0 && <span>(+${extra.precio})</span>}
                               </div>
                             ) : null;
                           })}

@@ -4,9 +4,9 @@ services:
     container_name: aroma_db
     restart: always
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: cosadelacosa  # Asegúrate que coincida con tu .env
-      POSTGRES_DB: aroma_cafe
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
@@ -26,6 +26,19 @@ services:
       - db
     env_file:
       - ./server/.env
+
+  frontend:
+    build: ./client
+    container_name: aroma_frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules # Evita que los nodos locales sobrescriban los del contenedor
+    depends_on:
+      - db
+      - backend
 
 volumes:
   postgres_data:

@@ -6,9 +6,7 @@ dist/
 build/
 
 # Variables de entorno con secretos
-.env
-.env.local
-.env.*.local
+**/.env*
 
 # Docker (volúmenes de datos, aunque el compose está bien)
 postgres_data/

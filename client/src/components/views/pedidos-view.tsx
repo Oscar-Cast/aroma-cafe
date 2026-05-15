@@ -74,9 +74,9 @@ export function PedidosView() {
     ids.reduce((sum, id) => sum + (Number(extrasDisponibles.find(e => e.id === id)?.precio) || 0), 0)
 
   const totalCarrito = () =>
-    carrito.reduce((sum, item) => {
-      const precioProducto = Number(item.producto.precio);
-      const costoExtras = calcularCostoExtras(item.extrasIds);
+    carrito.reduce((sum: number, item) => {
+      const precioProducto: number = Number(item.producto.precio);
+      const costoExtras: number = calcularCostoExtras(item.extrasIds);
       return sum + (precioProducto + costoExtras) * item.cantidad;
     }, 0)
 

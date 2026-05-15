@@ -76,7 +76,7 @@ CREATE TABLE IF NOT EXISTS detalle_pedidos (
     cantidad INTEGER NOT NULL CHECK (cantidad > 0),
     precio_unitario NUMERIC(10,2) NOT NULL,
     subtotal NUMERIC(10,2) NOT NULL,
-    extras_ids JSONB DEFAULT '[]' --nueva columna para poder agregar los extras de manera denamica a cada producto den los detalles
+    extras_ids JSONB DEFAULT '[]' --nueva columna para poder agregar los extras de manera dinamica a cada producto den los detalles
 );
 
 -- Tabla: insumos
@@ -139,3 +139,71 @@ CREATE TABLE IF NOT EXISTS merma_productos (
     fecha_hora TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     id_usuario INTEGER NOT NULL REFERENCES usuarios(id_usuario)
 );
+
+-- Crear Roles (Grupos)
+CREATE ROLE rol_admin;
+CREATE ROLE rol_cajero;
+CREATE ROLE rol_mesero;
+CREATE ROLE rol_barra;
+CREATE ROLE rol_cocina;
+
+-- Admin
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO rol_admin;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO rol_admin;
+GRANT ALL PRIVILEGES ON DATABASE aroma_cafe TO rol_admin;
+
+-- Permisos Básicos (Lectura de catálogos para todos)
+GRANT SELECT ON productos, mesas, insumos TO rol_cajero, rol_mesero, rol_barra, rol_cocina;
+
+-- Cajero
+GRANT SELECT, INSERT, UPDATE ON cuentas, pedidos, detalle_pedidos TO rol_cajero;
+GRANT SELECT, INSERT, UPDATE ON turnos_caja, cierre_caja, movimientos_financieros TO rol_cajero;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO rol_cajero;
+
+-- Mesero
+GRANT SELECT, UPDATE ON mesas TO rol_mesero;
+GRANT SELECT, INSERT, UPDATE ON cuentas TO rol_mesero; -- Update para propinas/estado
+GRANT SELECT, INSERT, UPDATE ON pedidos, detalle_pedidos TO rol_mesero;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO rol_mesero;
+
+-- Ambos necesitan ver pedidos y detalles
+GRANT SELECT ON pedidos, detalle_pedidos TO rol_barra, rol_cocina;
+-- Solo pueden actualizar el estado del pedido
+GRANT UPDATE (estado, hora_entrega) ON pedidos TO rol_barra, rol_cocina;
+-- Movimientos de inventario (si descuentan insumos al preparar)
+GRANT INSERT ON movimientos_inventario TO rol_barra, rol_cocina;
+
+-- Creacion del usuario principal
+SET session.backend_pass = :'BACKEND_PASS';
+
+DO $$
+BEGIN
+   EXECUTE format(
+      'CREATE USER usuario_backend_cafe WITH PASSWORD %L', 
+      current_setting('session.backend_pass')
+   );
+END
+$$;
+
+-- Permitir que el usuario principal "se convierta" en los otros
+GRANT rol_admin TO usuario_backend_cafe;
+GRANT rol_cajero TO usuario_backend_cafe;
+GRANT rol_mesero TO usuario_backend_cafe;
+GRANT rol_barra TO usuario_backend_cafe;
+GRANT rol_cocina TO usuario_backend_cafe;
+
+-- Da permisos al usuario del backend sobre es esquema publico
+GRANT ALL ON SCHEMA public TO usuario_backend_cafe;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO usuario_backend_cafe;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO usuario_backend_cafe;
+
+-- Dar permisos sobre las SECUENCIAS a los roles de trabajo
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO rol_admin;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO rol_cajero;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO rol_mesero;
+
+-- Asegurar que si creas tablas en el futuro, 
+-- los roles tengan permiso a sus secuencias automáticamente
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO rol_admin;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO rol_cajero;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO rol_mesero;

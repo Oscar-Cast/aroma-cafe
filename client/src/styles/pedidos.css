@@ -14,7 +14,7 @@
 .pedidos-header h1 {
   font-size: 4rem;
   font-weight: 700;
-  color: var(--chocolate);
+  color: rgb(114, 92, 63);
 }
 
 /* -- diálogo nuevo pedido -- */
@@ -26,7 +26,7 @@
 
 .pedidos-dialog-label {
   font-weight: 500;
-  color: var(--chocolate);
+  color: rgb(114, 92, 63);
   display: block;
   margin-bottom: 0.25rem;
 }
@@ -34,21 +34,22 @@
 .pedidos-dialog-select {
   width: 100%;
   padding: 0.5rem;
-  border: 1px solid var(--caramel);
+  border: 1px solid var(--chocolate);
   border-radius: 0.375rem;
   font-size: 0.9rem;
+  background: white;
 }
 
 .pedidos-dialog-productos {
-  height: 400px;
-  border: 1px solid var(--caramel);
+  height: 300px;
+  border: 1px solid var(--chocolate);
   border-radius: 0.75rem;
   padding: 0.75rem;
   overflow-y: auto;
 }
 
 .pedidos-dialog-carrito {
-  border: 1px solid var(--caramel);
+  border: 1px solid var(--chocolate);
   border-radius: 0.75rem;
   padding: 1rem;
   max-height: 450px;               /* altura máxima antes de hacer scroll */
@@ -63,10 +64,12 @@
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: var(--caramel);
+  color: rgb(114, 92, 63, 0.4);
+  font-weight: 900;
 }
 
 .pedidos-dialog-carrito-item {
+  color: rgb(114, 92, 63, 0.5);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -92,7 +95,7 @@
 .pedidos-tabs-list {
   display: flex;
   gap: 3rem;
-  border-bottom: 2px solid var(--caramel);
+  background-color: var();
 }
 
 /* -- tarjetas de pedido -- */

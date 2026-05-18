@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Plus, Minus, ShoppingCart, Clock, CheckCircle, ChefHat, Package, Trash2 } from 'lucide-react'
+import { Plus, Minus, ShoppingCart, Clock, CheckCircle, ChefHat, Package, Trash2, Weight } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import '@/styles/pedidos.css'
 
@@ -142,15 +142,15 @@ export function PedidosView() {
       'listo': 'badge-success',
       'entregado': 'badge-gray'
     }
-    return <Badge className={map[estado] || ''} variant="outline">{estado}</Badge>
+    return <Badge className={map[estado] || ''} variant="outline" style={{ fontSize: '1rem'}}>{estado}</Badge>
   }
 
   const statusIcon = (estado: string) => {
     const icons: Record<string, React.ReactNode> = {
-      'pendiente': <Clock size={16} />,
-      'en preparación': <ChefHat size={16} />,
-      'listo': <CheckCircle size={16} />,
-      'entregado': <Package size={16} />
+      'pendiente': <Clock size={20} />,
+      'en preparación': <ChefHat size={20} />,
+      'listo': <CheckCircle size={20} />,
+      'entregado': <Package size={20} />
     }
     return icons[estado]
   }
@@ -194,27 +194,33 @@ export function PedidosView() {
         <h1>Pedidos</h1>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button style={{ background: 'var(--chocolate)', color: 'white' }}>
-              <Plus size={16} style={{ marginRight: '0.5rem' }} /> Nuevo Pedido
+            <Button style={{ background: 'var(--chocolate)', color: 'white', fontSize: '1.2rem' }} >
+              <Plus style={{height: '25', width: '25'}}/> Nuevo Pedido
             </Button>
           </DialogTrigger>
           <DialogContent style={{ maxWidth: '64rem' }}>
             <DialogHeader>
-              <DialogTitle className="heading-3">Crear Pedido</DialogTitle>
+              <DialogTitle className="heading-3" style={{ fontSize: '1.9rem', fontWeight: 500, color: 'var(--chocolate)' }}>
+                Crear Pedido
+              </DialogTitle>
             </DialogHeader>
             <div className="pedidos-dialog-grid">
               <div>
                 <div style={{ marginBottom: '1rem' }}>
-                  <Label className="pedidos-dialog-label">Mesa / Destino</Label>
+                  <Label className="pedidos-dialog-label" style={{fontSize: '1.3rem', fontWeight: 800, color: 'rgb(114, 92, 63, 0.5)' }}>
+                    Mesa / Destino
+                  </Label>
                   <Select value={selectedMesa} onValueChange={setSelectedMesa}>
-                    <SelectTrigger className="pedidos-dialog-select">
+                    <SelectTrigger className="pedidos-dialog-select" style={{fontSize: '1.2rem', fontWeight: 700, background: 'rgb(114,92,63,0.9)', color: 'white' }}>
                       <SelectValue placeholder="Selecciona una mesa" />
                     </SelectTrigger>
                     <SelectContent>{mesas.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
                   </Select>
                 </div>
 
-                <Label className="pedidos-dialog-label">Productos</Label>
+                <Label className="pedidos-dialog-label" style={{fontSize: '1.7rem', fontWeight: 500, color: 'var(--chocolate)' }}>
+                  Productos
+                </Label>
                 <ScrollArea className="pedidos-dialog-productos">
                   {categorias.map(cat => (
                     <div key={cat} style={{ marginBottom: '1.25rem' }}>
@@ -222,10 +228,10 @@ export function PedidosView() {
                       {productos.filter(p => p.categoria === cat).map(prod => (
                         <div key={prod.id_producto} className="pedidos-producto-item">
                           <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: 500 }}>{prod.nombre_producto}</div>
-                            <div style={{ fontSize: '0.8rem', color: 'var(--caramel)' }}>{formatCurrency(Number(prod.precio))}</div>
+                            <div style={{fontSize: '1.30rem', fontWeight: 500 }}>{prod.nombre_producto}</div>
+                            <div style={{fontWeight: 900, fontSize: '1.2rem', color: 'rgb(114, 92, 63, 0.5)' }}>{formatCurrency(Number(prod.precio))}</div>
                           </div>
-                          <Button size="sm" variant="outline" onClick={() => openExtrasPopup(prod)}><Plus size={16} /></Button>
+                          <Button size="sm" variant="outline" onClick={() => openExtrasPopup(prod)}><Plus size={20} /></Button>
                         </div>
                       ))}
                     </div>
@@ -234,65 +240,76 @@ export function PedidosView() {
               </div>
 
               <div>
-                <Label className="pedidos-dialog-label">Resumen</Label>
-                <div className="pedidos-dialog-carrito">
+                <Label className="pedidos-dialog-label" style={{fontSize: '1.7rem', fontWeight: 500, color: 'var(--chocolate)' }}>
+                  Resumen
+                </Label>
+                <div className="pedidos-dialog-carrito" style={{ display: 'flex', flexDirection: 'column', height: '200px' }}>
                   <ScrollArea style={{ flex: 1 }}>
-                    {carrito.length === 0 ? (
-                      <div className="pedidos-dialog-carrito-vacio">
-                        <ShoppingCart size={48} style={{ marginBottom: '0.5rem' }} />
-                        <p>Carrito vacío</p>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                        {carrito.map((item, idx) => (
-                          <div key={idx} className="pedidos-dialog-carrito-item">
-                            <div style={{ flex: 1 }}>
-                              <div style={{ fontWeight: 500 }}>{item.producto.nombre_producto}</div>
-                              <div style={{ fontSize: '0.8rem', color: 'var(--caramel)' }}>
-                                {formatCurrency(Number(item.producto.precio) + calcularCostoExtras(item.extrasIds))} x {item.cantidad}
-                              </div>
-                              {item.extrasIds.length > 0 && (
-                                <div style={{ fontSize: '0.7rem', color: 'var(--caramel)' }}>
-                                  {item.extrasIds.map(id => {
-                                    const extra = extrasDisponibles.find(e => e.id === id);
-                                    return extra ? <span key={id}>+ {extra.nombre} </span> : null;
-                                  })}
+                    <div style={{ padding: '0.75rem' }}>
+                      {carrito.length === 0 ? (
+                        <div className="pedidos-dialog-carrito-vacio">
+                          <ShoppingCart size={60} style={{ marginBottom: '0.5rem' }} />
+                          <p>Carrito vacío</p>
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                          {carrito.map((item, idx) => (
+                            <div key={idx} className="pedidos-dialog-carrito-item">
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: 500, fontSize: '1.3rem', color: 'rgb(114, 92, 63)' }}>{item.producto.nombre_producto}</div>
+                                <div style={{fontWeight: 900, fontSize: '1.2rem', color: 'rgb(114, 92, 63, 0.5)' }}>
+                                  {formatCurrency(Number(item.producto.precio) + calcularCostoExtras(item.extrasIds))} x {item.cantidad}
                                 </div>
-                              )}
+                                {item.extrasIds.length > 0 && (
+                                  <div style={{fontWeight: 700, fontSize: '1rem', color: 'rgb(114, 92, 63, 0.5)' }}>
+                                    {item.extrasIds.map(id => {
+                                      const extra = extrasDisponibles.find(e => e.id === id);
+                                      return extra ? <span key={id}>+ {extra.nombre} </span> : null;
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                              <Button style={{ color: '#ef4444', backgroundColor: 'var(--lemon)'}} onClick={() => quitarDelCarrito(idx)}>
+                                <Trash2 style={{height: '40', width: '35'}}/>
+                              </Button>
                             </div>
-                            <Button size="icon" variant="ghost" style={{ color: '#ef4444' }} onClick={() => quitarDelCarrito(idx)}>
-                              <Trash2 size={14} />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </ScrollArea>
-                  <div className="pedidos-dialog-total">
-                    <span>Total</span><span>{formatCurrency(totalCarrito())}</span>
+
+                  <div className="pedidos-dialog-total" style={{ padding: '1rem', borderTop: '1px solid #dfcfbc', fontSize: '1.4rem' }}>
+                    <span>Total</span>
+                    <span>{formatCurrency(totalCarrito())}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div style={{ marginTop: '1rem' }}>
-              <Label className="pedidos-dialog-label">Notas adicionales</Label>
+            <div style={{ marginTop: '1rem'}}>
+              <Label className="pedidos-dialog-label" style={{fontSize: '1.8rem', fontWeight: 500, color: 'var(--chocolate)' }}>
+                Notas adicionales
+              </Label>
               <textarea
                 className="pedidos-notas-input"
                 placeholder="Instrucciones especiales para cocina/barra..."
                 value={notas}
                 onChange={e => setNotas(e.target.value)}
-                rows={2}
+                rows={2} style={{height: '120px', fontSize: '1.7rem', fontWeight: 400 }}
               />
             </div>
 
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={crearPedido} disabled={carrito.length === 0 || !selectedMesa}>
+              <Button variant="outline" onClick={() => setDialogOpen(false) } style={{ fontSize: '1.2rem', background: 'rgb(114, 92, 63)', color: 'white' }}>
+                Cancelar
+              </Button>
+              <Button style={{fontSize: '1.2rem', background: 'rgb(114, 92, 63)', color: 'white' }} onClick={crearPedido} disabled={carrito.length === 0 || !selectedMesa}>
                 Crear Pedido
               </Button>
             </DialogFooter>
           </DialogContent>
+          {/* fin del scrollarea */}
         </Dialog>
       </div>
 
@@ -300,8 +317,8 @@ export function PedidosView() {
       <Dialog open={showExtrasPopup} onOpenChange={setShowExtrasPopup}>
         <DialogContent style={{ maxWidth: '32rem' }}>
           <DialogHeader>
-            <DialogTitle className="heading-3">Extras para {currentProducto?.nombre_producto}</DialogTitle>
-            <DialogDescription>Selecciona los extras que deseas agregar</DialogDescription>
+            <DialogTitle className="heading-3" style={{fontSize: '1.8rem', fontWeight: '700'}}>Extras para {currentProducto?.nombre_producto}</DialogTitle>
+            <DialogDescription style={{fontSize: '1.3rem', fontWeight: '600', color: 'rgb(114, 92, 63, 0.5)'}}>Selecciona los extras que deseas agregar</DialogDescription>
           </DialogHeader>
           {currentProducto && (
             <div className="extras-popup-container">
@@ -317,8 +334,8 @@ export function PedidosView() {
                       )
                     }}
                   >
-                    <span className="extra-nombre">{extra.nombre}</span>
-                    <span className="extra-precio">
+                    <span className="extra-nombre" style={{fontSize: '1.3rem'}}>{extra.nombre}</span>
+                    <span className="extra-precio" style={{fontSize: '1.1rem', fontWeight: '800', color: 'rgb(114, 92, 63, 0.5)'}}>
                       {Number(extra.precio) > 0 ? `+ ${formatCurrency(Number(extra.precio))}` : 'Gratis'}
                     </span>
                   </button>
@@ -327,8 +344,10 @@ export function PedidosView() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowExtrasPopup(false)}>Cancelar</Button>
-            <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={confirmExtras}>
+            <Button variant="outline" onClick={() => setShowExtrasPopup(false)} style={{ fontSize: '1.2rem', background: 'rgb(114, 92, 63)', color: 'white' }}>
+              Cancelar
+            </Button>
+            <Button style={{fontSize: '1.2rem', background: 'rgb(114, 92, 63)', color: 'white' }} onClick={confirmExtras}>
               Agregar al pedido
             </Button>
           </DialogFooter>
@@ -337,33 +356,35 @@ export function PedidosView() {
 
       {/* Tabs y lista de pedidos */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="pedidos-tabs">
-        <TabsList className="pedidos-tabs-list">
-          <TabsTrigger value="todos">Todos</TabsTrigger>
-          <TabsTrigger value="pendiente">Pendientes</TabsTrigger>
-          <TabsTrigger value="en preparación">En preparación</TabsTrigger>
-          <TabsTrigger value="listo">Listos</TabsTrigger>
-          <TabsTrigger value="entregado">Entregados</TabsTrigger>
+        <TabsList className="pedidos-tabs-list" style={{background: 'var(--chocolate, 0.1)', height: '3rem'}} >
+          <TabsTrigger value="todos" style={{fontSize: '1.3rem', color: 'white', backgroundColor: 'var(--chocolate)', height: '2rem'}}>Todos</TabsTrigger>
+          <TabsTrigger value="pendiente" style={{fontSize: '1.3rem', color: 'white', backgroundColor: 'var(--chocolate)', height: '2rem'}}>Pendientes</TabsTrigger>
+          <TabsTrigger value="en preparación" style={{fontSize: '1.3rem', color: 'white', backgroundColor: 'var(--chocolate)', height: '2rem'}}>En preparación</TabsTrigger>
+          <TabsTrigger value="listo" style={{fontSize: '1.3rem', color: 'white', backgroundColor: 'var(--chocolate)', height: '2rem'}}>Listos</TabsTrigger>
+          <TabsTrigger value="entregado" style={{fontSize: '1.3rem', color: 'white', backgroundColor: 'var(--chocolate)', height: '2rem'}}>Entregados</TabsTrigger>
         </TabsList>
         <TabsContent value={activeTab} style={{ marginTop: '1rem' }}>
           <div className="pedidos-grid">
             {filtered.map((p: any) => (
               <Card key={p.id_pedido} className="pedidos-card">
                 <div className="pedidos-card-header">
-                  <div className="pedidos-card-title">
+                  <div className="pedidos-card-title" style={{fontSize: '1.8rem', fontWeight: 600, color: 'var(--chocolate)' }}>
                     {statusIcon(p.estado)} Pedido #{p.numero_pedido ?? p.id_pedido}
                   </div>
                   {statusBadge(p.estado)}
                 </div>
-                <div className="pedidos-card-desc">{p.mesa} • {formatTime(p.hora_registro)}</div>
+                <div className="pedidos-card-desc" style={{fontWeight: '700', fontSize: '1.2rem', color: 'rgb(114, 92, 63, 0.4)' }}>
+                  {p.mesa} • {formatTime(p.hora_registro)}
+                </div>
                 <div className="pedidos-card-detalle">
                   {p.detalles?.map((d: any, idx: number) => (
                     <div key={idx}>
-                      <div className="pedidos-card-item">
+                      <div className="pedidos-card-item" style={{fontSize: '1.15rem', fontWeight: '600', color: 'rgb(114, 92, 63)' }}>
                         <span>{d.cantidad}x {d.nombre_producto}</span>
                         <span>{formatCurrency(d.subtotal)}</span>
                       </div>
                       {d.extras_ids && d.extras_ids.length > 0 && (
-                        <div style={{ paddingLeft: '1.25rem', fontSize: '0.8rem', color: 'var(--caramel)' }}>
+                        <div style={{fontWeight: '900', paddingLeft: '1.25rem', fontSize: '1rem', color: 'rgb(114, 92, 63, 0.5)' }}>
                           {d.extras_ids.map((id: string) => {
                             const extra = extrasDisponibles.find(e => e.id === id);
                             return extra ? (
@@ -378,8 +399,8 @@ export function PedidosView() {
                     </div>
                   ))}
                 </div>
-                {p.notas && <div className="pedidos-card-notas">📝 {p.notas}</div>}
-                <div className="pedidos-card-total">
+                {p.notas && <div className="pedidos-card-notas"> {p.notas}</div>}
+                <div className="pedidos-card-total"style ={{fontSize: '1.25rem', fontWeight: '700', color: 'var(--chocolate)' }}>
                   <span>Total</span><span>{formatCurrency(p.monto_total)}</span>
                 </div>
                 {/* Botón Entregar (visible solo cuando el estado agrupado es "listo") */}

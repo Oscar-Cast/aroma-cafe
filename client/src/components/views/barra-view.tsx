@@ -49,7 +49,7 @@ export function BarraView() {
 
   const getStatusBadge = (estado: string) => {
     const claseEstado = estado === 'en preparación' ? 'en-preparacion' : estado;
-    return <Badge className={`produccion-status-badge ${claseEstado}`} variant="outline">{estado}</Badge>;
+    return <Badge className={`produccion-status-badge ${claseEstado}`} variant="outline" style={{fontSize: '1.3rem'}}>{estado}</Badge>;
   }
 
   const formatTime = (dateString: string) => new Date(dateString).toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' })
@@ -69,61 +69,52 @@ export function BarraView() {
   return (
     <div className="produccion-page">
       <div className="produccion-header">
-        <div className="produccion-icon produccion-icon-barra">
-          <GlassWater size={24} />
+        <div className="produccion-icon produccion-icon-barra" style={{height: '75px', width: '75px'}}>
+          <GlassWater size={60} />
         </div>
         <div>
-          <h1 className="produccion-title">Barra</h1>
-          <p className="produccion-subtitle">Bebidas Calientes, Frías y Postres</p>
+          <h1 className="produccion-title" style={{fontSize: '4rem'}}>Barra</h1>
+          <p className="produccion-subtitle" style={{fontSize: '2rem', fontWeight: '700', color: 'rgb(114, 92, 63,0.5)'}}>Bebidas Calientes, Frías y Postres</p>
         </div>
       </div>
 
       <div className="produccion-stats-grid">
-        <Card className="produccion-stat-card pendiente">
-          <CardContent className="produccion-stat-card">
-            <div>
-              <div className="produccion-stat-label" style={{ color: '#92400e' }}>Pendientes</div>
-              <div className="produccion-stat-number" style={{ color: '#92400e' }}>{pendientes.length}</div>
-            </div>
-            <Clock size={40} style={{ color: '#f59e0b' }} />
-          </CardContent>
+        <Card className="produccion-stat-card pendiente" style={{height: '100px', width: '400px'}}>
+          <div>
+            <div className="produccion-stat-label" style={{ color: '#92400e',fontSize: '1.4rem', fontWeight: '700' }}>Pendientes</div>
+            <div className="produccion-stat-number" style={{ color: 'rgb(146, 64, 14,0.5)',fontSize: '1.4rem', fontWeight: '800' }}>{pendientes.length}</div>
+          </div>
         </Card>
-        <Card className="produccion-stat-card en-preparacion">
-          <CardContent className="produccion-stat-card">
-            <div>
-              <div className="produccion-stat-label" style={{ color: '#1e40af' }}>En Preparación</div>
-              <div className="produccion-stat-number" style={{ color: '#1e40af' }}>{enPreparacion.length}</div>
-            </div>
-            <ChefHat size={40} style={{ color: '#3b82f6' }} />
-          </CardContent>
+        <Card className="produccion-stat-card en-preparacion" style={{height: '100px', width: '400px'}}>
+          <div>
+            <div className="produccion-stat-label" style={{ color: '#1e40af',fontSize: '1.4rem', fontWeight: '700' }}>En Preparación</div>
+            <div className="produccion-stat-number" style={{ color: 'rgb(30, 64, 175,0.5)',fontSize: '1.4rem', fontWeight: '800' }}>{enPreparacion.length}</div>
+          </div>
         </Card>
-        <Card className="produccion-stat-card listo">
-          <CardContent className="produccion-stat-card">
-            <div>
-              <div className="produccion-stat-label" style={{ color: '#166534' }}>Listos</div>
-              <div className="produccion-stat-number" style={{ color: '#166534' }}>{listos.length}</div>
-            </div>
-            <CheckCircle size={40} style={{ color: '#22c55e' }} />
-          </CardContent>
+        <Card className="produccion-stat-card listo" style={{height: '100px', width: '400px'}}>
+          <div>
+            <div className="produccion-stat-label" style={{ color: '#166534',fontSize: '1.4rem', fontWeight: '700' }}>Listos</div>
+            <div className="produccion-stat-number" style={{ color: 'rgb(22, 101, 52,0.5)',fontSize: '1.4rem', fontWeight: '800' }}>{listos.length}</div>
+          </div>
         </Card>
       </div>
 
       <div className="grid-cards" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
         {/* Pendientes */}
         <div className="produccion-column">
-          <h2 className="produccion-column-title" style={{ color: '#92400e' }}>
-            <Clock size={20} /> Pendientes ({pendientes.length})
+          <h2 className="produccion-column-title" style={{ color: '#92400e', fontSize: '1.8rem', fontWeight: '700' }}>
+            <Clock size={30} /> Pendientes
           </h2>
           {pendientes.map(pedido => (
-            <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#fcd34d' }}>
+            <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#fcd34d', borderWidth: '3px' }}>
               <CardHeader className="produccion-order-card-header">
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <CardTitle className="produccion-order-card-title">
+                  <CardTitle className="produccion-order-card-title" style={{fontSize: '2.3rem'}}>
                     Pedido #{pedido.numero_pedido ?? pedido.id_pedido}
                   </CardTitle>
-                  <Badge className="badge-warning">{getElapsedTime(pedido.hora_registro)}</Badge>
+                  <Badge className="badge-warning" style={{width: '25%', fontSize: '1.3rem'}}>{getElapsedTime(pedido.hora_registro)}</Badge>
                 </div>
-                <CardDescription className="produccion-order-card-desc">
+                <CardDescription className="produccion-order-card-desc" style={{fontSize: '1.3rem', fontWeight: '700', color: 'rgb(114, 92, 63, 0.5)'}}>
                   {pedido.mesa} • {formatTime(pedido.hora_registro)}
                 </CardDescription>
               </CardHeader>
@@ -131,11 +122,11 @@ export function BarraView() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   {pedido.detalles?.map(d => (
                     <div key={d.id_detalle}>
-                      <div className="produccion-order-card-detail">
+                      <div className="produccion-order-card-detail"style={{fontSize: '1.5rem'}}>
                         <span>{d.cantidad}x {d.nombre_producto}</span>
                       </div>
                       {d.extras_ids && d.extras_ids.length > 0 && (
-                        <div style={{ paddingLeft: '1.25rem', fontSize: '0.8rem', color: 'var(--caramel)' }}>
+                        <div style={{ paddingLeft: '1.25rem', fontSize: '1.2rem', color: 'rgb(114, 92, 63, 0.5)', fontWeight: '700' }}>
                           {d.extras_ids.map((id: string) => {
                             const extra = extrasDisponibles.find(e => e.id === id);
                             return extra ? (
@@ -149,9 +140,9 @@ export function BarraView() {
                     </div>
                   ))}
                 </div>
-                {pedido.notas && <div className="produccion-order-card-notas">📝 {pedido.notas}</div>}
-                <Button className="produccion-btn-start" onClick={() => cambiarEstado(pedido.id_pedido, 'en preparación')}>
-                  <ChefHat size={16} style={{ marginRight: '0.5rem' }} /> Comenzar Preparación
+                {pedido.notas && <div className="produccion-order-card-notas">Nota: {pedido.notas}</div>}
+                <Button className="produccion-btn-start" onClick={() => cambiarEstado(pedido.id_pedido, 'en preparación')} style={{fontSize: '1.2rem', width: '100%'}}>
+                  <ChefHat style={{width: '1.5rem', height: '1.5rem'}} /> Comenzar Preparación
                 </Button>
               </CardContent>
             </Card>
@@ -160,19 +151,19 @@ export function BarraView() {
 
         {/* En Preparación */}
         <div className="produccion-column">
-          <h2 className="produccion-column-title" style={{ color: '#1e40af' }}>
-            <ChefHat size={20} /> En Preparación ({enPreparacion.length})
+          <h2 className="produccion-column-title" style={{ color: '#1e40af', fontSize: '1.8rem', fontWeight: '700' }}>
+            <ChefHat size={30} /> En Preparación
           </h2>
           {enPreparacion.map(pedido => (
-            <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#93c5fd' }}>
+            <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#93c5fd', borderWidth: '3px' }}>
               <CardHeader className="produccion-order-card-header">
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <CardTitle className="produccion-order-card-title">
+                  <CardTitle className="produccion-order-card-title" style={{fontSize: '2.3rem'}}>
                     Pedido #{pedido.numero_pedido ?? pedido.id_pedido}
                   </CardTitle>
-                  <Badge className="badge-info">{getElapsedTime(pedido.hora_registro)}</Badge>
+                  <Badge className="badge-info" style={{width: '25%', fontSize: '1.3rem'}}>{getElapsedTime(pedido.hora_registro)}</Badge>
                 </div>
-                <CardDescription className="produccion-order-card-desc">
+                <CardDescription className="produccion-order-card-desc" style={{fontSize: '1.3rem', fontWeight: '700', color: 'rgb(114, 92, 63, 0.5)'}}>
                   {pedido.mesa} • {formatTime(pedido.hora_registro)}
                 </CardDescription>
               </CardHeader>
@@ -180,11 +171,11 @@ export function BarraView() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   {pedido.detalles?.map(d => (
                     <div key={d.id_detalle}>
-                      <div className="produccion-order-card-detail">
+                      <div className="produccion-order-card-detail" style={{fontSize: '1.5rem'}}>
                         <span>{d.cantidad}x {d.nombre_producto}</span>
                       </div>
                       {d.extras_ids && d.extras_ids.length > 0 && (
-                        <div style={{ paddingLeft: '1.25rem', fontSize: '0.8rem', color: 'var(--caramel)' }}>
+                        <div style={{ paddingLeft: '1.25rem', fontSize: '1.2rem', color: 'rgb(114, 92, 63, 0.5)', fontWeight: '700' }}>
                           {d.extras_ids.map((id: string) => {
                             const extra = extrasDisponibles.find(e => e.id === id);
                             return extra ? (
@@ -199,7 +190,7 @@ export function BarraView() {
                   ))}
                 </div>
                 <Button className="produccion-btn-ready" onClick={() => cambiarEstado(pedido.id_pedido, 'listo')}>
-                  <CheckCircle size={16} style={{ marginRight: '0.5rem' }} /> Marcar como Listo
+                  <CheckCircle size={20} style={{ marginRight: '0.5rem' }} /> Marcar como Listo
                 </Button>
               </CardContent>
             </Card>
@@ -208,19 +199,19 @@ export function BarraView() {
 
         {/* Listos */}
         <div className="produccion-column">
-          <h2 className="produccion-column-title" style={{ color: '#166534' }}>
-            <CheckCircle size={20} /> Listos para Entregar ({listos.length})
+          <h2 className="produccion-column-title" style={{ color: '#166534', fontSize: '1.8rem', fontWeight: '700' }}>
+            <CheckCircle size={30} /> Listos para Entregar
           </h2>
           {listos.map(pedido => (
-            <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#86efac' }}>
+            <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#86efac', borderWidth: '3px' }}>
               <CardHeader className="produccion-order-card-header">
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <CardTitle className="produccion-order-card-title">
+                  <CardTitle className="produccion-order-card-title" style={{ fontSize: '2.3rem' }}>
                     Pedido #{pedido.numero_pedido ?? pedido.id_pedido}
                   </CardTitle>
                   {getStatusBadge(pedido.estado)}
                 </div>
-                <CardDescription className="produccion-order-card-desc">
+                <CardDescription className="produccion-order-card-desc" style={{fontSize: '1.3rem', fontWeight: '700', color: 'rgb(114, 92, 63, 0.5)'}}>
                   {pedido.mesa} • {formatTime(pedido.hora_registro)}
                 </CardDescription>
               </CardHeader>
@@ -228,12 +219,12 @@ export function BarraView() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   {pedido.detalles?.map(d => (
                     <div key={d.id_detalle}>
-                      <div className="produccion-order-card-detail">
+                      <div className="produccion-order-card-detail" style={{ fontSize: '1.5rem' }}>
                         <span>{d.cantidad}x {d.nombre_producto}</span>
                         <span>{d.subtotal}</span>
                       </div>
                       {d.extras_ids && d.extras_ids.length > 0 && (
-                        <div style={{ paddingLeft: '1.25rem', fontSize: '0.8rem', color: 'var(--caramel)' }}>
+                        <div style={{ paddingLeft: '1.25rem', fontSize: '1.2rem', color: 'rgb(114, 92, 63, 0.5)', fontWeight: '700' }}>
                           {d.extras_ids.map((id: string) => {
                             const extra = extrasDisponibles.find(e => e.id === id);
                             return extra ? (
@@ -247,7 +238,7 @@ export function BarraView() {
                     </div>
                   ))}
                 </div>
-                <p style={{ fontSize: '0.75rem', color: '#16a34a', textAlign: 'center', marginTop: '0.5rem' }}>
+                <p style={{ fontSize: '1.3rem', color: '#16a34a', textAlign: 'center', marginTop: '0.5rem' }}>
                   Esperando que el mesero lo entregue
                 </p>
               </CardContent>

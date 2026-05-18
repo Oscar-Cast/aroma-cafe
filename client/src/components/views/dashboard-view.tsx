@@ -83,22 +83,22 @@ export function DashboardView() {
 
       <div className="dashboard-cards">
         <div className="dashboard-card">
-          <div className="label"><DollarSign size={16} /> Ventas del Día</div>
+          <div className="label"><DollarSign size={20} /> Ventas del Día</div>
           <div className="value">{formatCurrency(stats.ventasHoy)}</div>
-          <div className="sub"><TrendingUp size={12} className="inline" /> Actualizado en tiempo real</div>
+          <div className="sub"><TrendingUp size={15} className="inline" style={{ color: 'green' }} /> Actualizado en tiempo real</div>
         </div>
         <div className="dashboard-card">
-          <div className="label"><ShoppingCart size={16} /> Pedidos Pendientes</div>
+          <div className="label"><ShoppingCart size={20} /> Pedidos Pendientes</div>
           <div className="value">{stats.pedidosPendientes}</div>
           <div className="sub">Esperando preparación</div>
         </div>
         <div className="dashboard-card">
-          <div className="label"><Clock size={16} /> En Preparación</div>
+          <div className="label"><Clock size={20} style={{color: 'blue'}} /> En Preparación</div>
           <div className="value">{stats.pedidosEnPreparacion}</div>
           <div className="sub">En barra y cocina</div>
         </div>
         <div className="dashboard-card">
-          <div className="label"><AlertTriangle size={16} /> Alertas Inventario</div>
+          <div className="label"><AlertTriangle size={20} style={{ color: 'red' }} /> Alertas Inventario</div>
           <div className="value">{stats.insumosEnAlerta}</div>
           <div className="sub">Insumos bajo stock mínimo</div>
         </div>
@@ -116,7 +116,7 @@ export function DashboardView() {
               </div>
             </div>
             <div>
-              <span style={{ fontWeight: 600, color: 'var(--chocolate)', marginRight: '1rem' }}>
+              <span style={{ fontWeight: 600, color: 'var(--chocolate)', marginRight: '2rem' }}>
                 {formatCurrency(pedido.monto_total)}
               </span>
               {getStatusBadge(pedido.estado)}
@@ -124,7 +124,7 @@ export function DashboardView() {
           </div>
         ))}
         {stats.pedidosRecientes.length === 0 && (
-          <div style={{ textAlign: 'center', color: 'var(--caramel)' }}>
+          <div style={{ textAlign: 'center', color: 'var(--chocolate)' }}>
             <Package size={48} style={{ margin: '0 auto 0.5rem', opacity: 0.5 }} />
             <p>No hay pedidos recientes</p>
           </div>
@@ -133,7 +133,7 @@ export function DashboardView() {
 
       {user?.rol === 'administrador' && stats.insumosEnAlerta > 0 && (
         <div className="dashboard-alert">
-          <h2><AlertTriangle size={20} /> Alertas de Inventario</h2>
+          <h2><AlertTriangle size={20} style={{color: 'red'}} /> Alertas de Inventario</h2>
           <div className="grid">
             {insumosBajos.map((insumo: any) => (
               <div className="item" key={insumo.id_insumo}>

@@ -10,14 +10,15 @@
 }
 
 .dashboard-welcome h1 {
-  font-size: 2rem;
+  font-size: 3rem;
   font-weight: 700;
   color: var(--chocolate);
 }
 
 .dashboard-welcome p {
-  font-size: 0.95rem;
-  color: var(--caramel);
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgb(114, 92, 63, 0.5);
   margin-top: 0.25rem;
 }
 
@@ -30,7 +31,7 @@
 
 .dashboard-card {
   background: white;
-  border: 1px solid var(--caramel);
+  border: 1px solid var(--chocolate);
   border-radius: 0.75rem;
   padding: 1rem 1.25rem;
   display: flex;
@@ -39,9 +40,9 @@
 }
 
 .dashboard-card .label {
-  font-size: 0.85rem;
+  font-size: 1.25rem;
   font-weight: 500;
-  color: var(--caramel);
+  color: var(--chocolate);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -54,14 +55,15 @@
 }
 
 .dashboard-card .sub {
-  font-size: 0.75rem;
-  color: var(--caramel);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: rgb(114, 92, 63, 0.5);
 }
 
 /* Lista de pedidos recientes */
 .dashboard-recent {
   background: white;
-  border: 1px solid var(--caramel);
+  border: 1px solid var(--chocolate);
   border-radius: 0.75rem;
   padding: 1.25rem;
 }
@@ -111,7 +113,8 @@
 
 .dashboard-recent .item .info .text .meta {
   font-size: 0.8rem;
-  color: var(--caramel);
+  font-weight: 700;
+  color: rgb(114, 92, 63, 0.5);
 }
 
 /* Alertas de inventario */
@@ -126,7 +129,7 @@
 .dashboard-alert h2 {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #991b1b;
+  color: var(--chocolate);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -152,8 +155,9 @@
 }
 
 .dashboard-alert .item .detail {
-  font-size: 0.8rem;
-  color: #dc2626;
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(252, 0, 0, 0.4);
   margin-top: 0.25rem;
 }
 

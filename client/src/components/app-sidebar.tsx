@@ -146,10 +146,6 @@ export function AppSidebar({ currentView, onViewChange, collapsed, onToggleColla
       {/* ===== HEADER: logo + botón de colapso ===== */}
       <div className="p-4 border-b border-[#354024] flex items-center justify-between">
         <div className="flex items-center gap-3 overflow-hidden">
-          {/* Logo (siempre visible) */}
-          <div className="w-10 h-10 bg-[#E5D7C4] rounded-full flex items-center justify-center shrink-0">
-            <Coffee className="w-6 h-6 text-[#4C3D19]" />
-          </div>
           {/* Texto del título: se oculta al colapsar en escritorio */}
           <div className={cn(
             "transition-opacity duration-200",
@@ -157,8 +153,8 @@ export function AppSidebar({ currentView, onViewChange, collapsed, onToggleColla
             //            ^^^^^^^^^^^^^^^^^^^^^^^^^
             //            Oculta el texto suavemente en lg+ cuando collapsed
           )}>
-            <h1 className="font-bold text-lg whitespace-nowrap">Aroma Café</h1>
-            <p className="text-xs text-[#CFBB99] whitespace-nowrap">Sistema de Gestión</p>
+            <h1 className="ml-10 font-bold text-lg whitespace-nowrap">Aroma Café</h1>
+            <p className="ml-10 text-xs text-[#CFBB99] whitespace-nowrap">Sistema de Gestión</p>
           </div>
         </div>
         {/* ===== BOTÓN DE COLAPSO (SOLO VISIBLE EN ESCRITORIO) ===== */}
@@ -217,7 +213,8 @@ export function AppSidebar({ currentView, onViewChange, collapsed, onToggleColla
         <div className="flex items-center gap-3 mb-3">
           <div className="w-10 h-10 bg-[#889063] rounded-full flex items-center justify-center">
             <span className="text-sm font-bold text-[#E5D7C4]">
-              {user?.nombre?.charAt(0).toUpperCase()}
+              {/*poner el logo sin fondo  */}
+              <img src="/logo_sin_fondo.png" alt="Logo" className="w-10 h-10 bg-[#4C3D19]" />
             </span>
           </div>
           <div className="flex-1 min-w-0">
@@ -230,7 +227,7 @@ export function AppSidebar({ currentView, onViewChange, collapsed, onToggleColla
           className="w-full border-[#354024] bg-transparent text-[#E5D7C4] hover:bg-[#354024] hover:text-[#E5D7C4]"
           onClick={logout}
         >
-          <LogOut className="w-4 h-4 mr-2" />
+          <LogOut className="w-4 h-4" />
           Cerrar Sesión
         </Button>
       </div>

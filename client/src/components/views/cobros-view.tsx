@@ -181,40 +181,40 @@ export function CobrosView() {
   return (
     <div className="cobros-page">
       <div className="cobros-header">
-        <div className="cobros-icon">
-          <Receipt />
+        <div className="cobros-icon" style={{marginTop: '-40px', height: '75px', width: '75px'}}>
+          <Receipt style={{ width: '60px', height: '60px'}}/>
         </div>
         <div>
-          <h1>Cobros</h1>
-          <p>Cierre de cuentas y registro de pagos</p>
+          <h1 style={{ fontSize: '4rem'}}>Cobros</h1>
+          <p style={{fontSize: '2rem', fontWeight: '700', color: 'rgb(114, 92, 63,0.5)'}}>Cierre de cuentas y registro de pagos</p>
         </div>
       </div>
 
       <div className="cobros-stats-grid">
         <div className="cobros-stat-card amber">
-          <div className="cobros-stat-label">Por Cobrar</div>
-          <div className="cobros-stat-value">{cuentasAbiertas.length}</div>
+          <div className="cobros-stat-label" style={{fontSize: '1.5rem', fontWeight: '600'}}>Por Cobrar</div>
+          <div className="cobros-stat-value" style={{ color: 'rgb(146, 64, 14,0.5)',fontSize: '1.6rem', fontWeight: '800' }}>{cuentasAbiertas.length}</div>
         </div>
         <div className="cobros-stat-card green">
-          <div className="cobros-stat-label">Cobrado Hoy</div>
-          <div className="cobros-stat-value">{formatCurrency(totalCobradoHoy)}</div>
+          <div className="cobros-stat-label" style={{fontSize: '1.5rem', fontWeight: '600'}}>Cobrado Hoy</div>
+          <div className="cobros-stat-value" style={{ color: 'rgb(22, 101, 52,0.5)',fontSize: '1.6rem', fontWeight: '800' }}>{formatCurrency(totalCobradoHoy)}</div>
         </div>
         <div className="cobros-stat-card blue">
-          <div className="cobros-stat-label">Cuentas Cerradas Hoy</div>
-          <div className="cobros-stat-value">
+          <div className="cobros-stat-label" style={{fontSize: '1.5rem', fontWeight: '600'}}>Cuentas Cerradas Hoy</div>
+          <div className="cobros-stat-value" style={{ color: 'rgb(30, 64, 175,0.5)',fontSize: '1.6rem', fontWeight: '800' }}>
             {cuentasCerradas.filter(c => c.fecha_cierre?.startsWith(hoy)).length}
           </div>
         </div>
         <div className="cobros-stat-card purple">
-          <div className="cobros-stat-label">Propinas Hoy</div>
-          <div className="cobros-stat-value">{formatCurrency(propinasTotales)}</div>
+          <div className="cobros-stat-label" style={{fontSize: '1.5rem', fontWeight: '600'}}>Propinas Hoy</div>
+          <div className="cobros-stat-value" style={{ color: 'rgb(126, 34, 206,0.5)',fontSize: '1.6rem', fontWeight: '800' }}>{formatCurrency(propinasTotales)}</div>
         </div>
       </div>
 
-      <Tabs defaultValue="abiertas">
-        <TabsList className="cobros-tabs-list">
-          <TabsTrigger value="abiertas">Cuentas Abiertas ({cuentasAbiertas.length})</TabsTrigger>
-          <TabsTrigger value="historial">Historial</TabsTrigger>
+      <Tabs defaultValue="abiertas" style={{}}>
+        <TabsList className="cobros-tabs-list" style={{background: 'var(--chocolate, 0.1)', height: '3rem'}}>
+          <TabsTrigger value="abiertas" style={{fontSize: '1.3rem', color: 'white', backgroundColor: 'var(--chocolate)', height: '2rem'}}>Cuentas Abiertas</TabsTrigger>
+          <TabsTrigger value="historial" style={{fontSize: '1.3rem', color: 'white', backgroundColor: 'var(--chocolate)', height: '2rem'}}>Historial</TabsTrigger>
         </TabsList>
 
         <TabsContent value="abiertas" style={{ marginTop: '1rem' }}>
@@ -222,19 +222,21 @@ export function CobrosView() {
             {cuentasAbiertas.map(cuenta => (
               <Card key={cuenta.id_cuenta} className="cobros-account-card">
                 <div>
-                  <div className="cobros-account-title">{cuenta.numero_mesa}</div>
-                  <div className="cobros-account-time">
-                    <Clock size={12} className="inline" /> {formatTime(cuenta.fecha_apertura)} — Cuenta #
+                  <div className="cobros-account-title" style={{ fontSize: '1.7rem', fontWeight: '500' }}>
+                    {cuenta.numero_mesa}
+                  </div>
+                  <div className="cobros-account-time" style={{fontSize: '1.2rem', color: 'rgb(114, 92, 63, 0.5)', fontWeight: '700'}}>
+                    <Clock size={20} className="inline" /> {formatTime(cuenta.fecha_apertura)} — Cuenta #
                     {cuenta.id_cuenta}
                   </div>
                 </div>
                 <div className="cobros-account-detail">
                   {cuenta.detalles.map((item, idx) => (
                     <div className="cobros-account-item" key={idx}>
-                      <span>
+                      <span style={{fontSize: '1.3rem'}}>
                         {item.cantidad}x {item.nombre_producto}
                       </span>
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1.3rem' }}>
                         {formatCurrency(item.subtotal)}
                         {user?.rol === 'administrador' && (
                           <button
@@ -249,22 +251,22 @@ export function CobrosView() {
                               color: '#ef4444',
                             }}
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={25} />
                           </button>
                         )}
                       </span>
                     </div>
                   ))}
                 </div>
-                <div className="cobros-account-total">
-                  <span>Total</span>
-                  <span>{formatCurrency(cuenta.subtotal_acumulado)}</span>
+                <div className="cobros-account-total" style={{color: 'rgb(114, 92, 63,0.6)'}}>
+                  <span style={{fontSize: '1.3rem', fontWeight: '700'}}>Total</span>
+                  <span style={{ fontSize: '1.3rem', fontWeight: '700' }}>{formatCurrency(cuenta.subtotal_acumulado)}</span>
                 </div>
                 <button
                   className="cobros-btn-cobrar"
                   onClick={() => openCobrarDialog(cuenta)}
-                >
-                  <Receipt size={14} style={{ marginRight: '0.5rem' }} /> Cobrar Cuenta
+                style={{display: 'inline-flex', fontSize: '1.2rem', alignItems: 'center', gap: '0.5rem'}}>
+                  <Receipt size={24} style={{ marginRight: '0.5rem'}} /> Cobrar Cuenta
                 </button>
               </Card>
             ))}
@@ -283,8 +285,8 @@ export function CobrosView() {
               <div style={{ padding: '1rem' }}>
                 <h2
                   style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 600,
+                    fontSize: '1.8rem',
+                    fontWeight: 500,
                     color: 'var(--chocolate)',
                   }}
                 >
@@ -293,14 +295,14 @@ export function CobrosView() {
               </div>
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Cuenta</TableHead>
-                    <TableHead>Mesa</TableHead>
-                    <TableHead>Subtotal</TableHead>
-                    <TableHead>Propina</TableHead>
-                    <TableHead>Total</TableHead>
-                    <TableHead>Método</TableHead>
-                    <TableHead>Fecha</TableHead>
+                  <TableRow style={{fontSize: '1.5rem'}}>
+                    <TableHead style={{fontWeight: 600, color: 'rgb(114, 92, 63, 0.7)'}}>Cuenta</TableHead>
+                    <TableHead style={{fontWeight: 600, color: 'rgb(114, 92, 63, 0.7)'}}>Mesa</TableHead>
+                    <TableHead style={{fontWeight: 600, color: 'rgb(114, 92, 63, 0.7)'}}>Subtotal</TableHead>
+                    <TableHead style={{fontWeight: 600, color: 'rgb(114, 92, 63, 0.7)'}}>Propina</TableHead>
+                    <TableHead style={{fontWeight: 600, color: 'rgb(114, 92, 63, 0.7)'}}>Total</TableHead>
+                    <TableHead style={{fontWeight: 600, color: 'rgb(114, 92, 63, 0.7)'}}>Método</TableHead>
+                    <TableHead style={{fontWeight: 600, color: 'rgb(114, 92, 63, 0.7)'}}>Fecha</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -310,19 +312,19 @@ export function CobrosView() {
                       onClick={() => verDetalleCuenta(c)}
                       style={{ cursor: 'pointer' }}
                     >
-                      <TableCell>#{c.id_cuenta}</TableCell>
-                      <TableCell>{c.numero_mesa}</TableCell>
-                      <TableCell>{formatCurrency(c.subtotal_acumulado)}</TableCell>
-                      <TableCell>{c.propina ? formatCurrency(c.propina) : '-'}</TableCell>
-                      <TableCell style={{ fontWeight: 600 }}>
+                      <TableCell style={{fontSize:'1.3rem', fontWeight: 600}}>#{c.id_cuenta}</TableCell>
+                      <TableCell style={{fontSize:'1.3rem', fontWeight: 600}}>{c.numero_mesa}</TableCell>
+                      <TableCell style={{fontSize:'1.3rem', fontWeight: 600}}>#{c.id_cuenta}</TableCell>
+                      <TableCell style={{fontSize: '1.3rem', fontWeight: 600}}>{c.propina ? formatCurrency(c.propina) : '-'}</TableCell>
+                      <TableCell style={{fontSize: '1.3rem', fontWeight: 600 }}>
                         {formatCurrency(c.total)}
                       </TableCell>
                       <TableCell>
-                        <span className={`cobros-badge-pago ${c.metodo_pago}`}>
+                        <span className={`cobros-badge-pago ${c.metodo_pago}`} style={{fontSize: '1.25rem', fontWeight: 500}}>
                           {c.metodo_pago}
                         </span>
                       </TableCell>
-                      <TableCell style={{ fontSize: '0.85rem', color: 'var(--caramel)' }}>
+                      <TableCell style={{ fontSize: '1.3rem', fontWeight: 600, color: 'rgb(114, 92, 63, 0.6)' }}>
                         {formatDate(c.fecha_cierre)}
                       </TableCell>
                     </TableRow>
@@ -333,7 +335,7 @@ export function CobrosView() {
           ) : (
             <div
               className="text-center"
-              style={{ padding: '2rem', color: 'var(--caramel)' }}
+              style={{ padding: '2rem', color: 'rgb(114, 92, 63, 0.6)' }}
             >
               No hay cuentas cerradas aún
             </div>
@@ -343,9 +345,9 @@ export function CobrosView() {
 
       {/* Diálogo para cobrar */}
       <Dialog open={isCobrarDialogOpen} onOpenChange={setIsCobrarDialogOpen}>
-        <DialogContent style={{ maxWidth: '28rem' }}>
+        <DialogContent style={{ maxHeight: '728px' }}>
           <DialogHeader>
-            <DialogTitle style={{ color: 'var(--chocolate)' }}>Cobrar Cuenta</DialogTitle>
+            <DialogTitle style={{fontSize: '1.7rem', fontWeight: 600}}>Cobrar Cuenta</DialogTitle>
           </DialogHeader>
           {selectedCuenta && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -359,21 +361,23 @@ export function CobrosView() {
                 >
                   {selectedCuenta.detalles.map((item, idx) => (
                     <div className="cobros-dialog-item" key={idx}>
-                      <span>
+                      <span style={{fontSize: '1.2rem', fontWeight: 600, color: 'rgb(114, 92, 63, 0.7)'}}>
                         {item.cantidad}x {item.nombre_producto}
                       </span>
-                      <span>{formatCurrency(item.subtotal)}</span>
+                      <span style={{fontSize: '1.2rem', fontWeight: 600, color: 'rgb(114, 92, 63, 0.7)'}}>
+                        {formatCurrency(item.subtotal)}
+                      </span>
                     </div>
                   ))}
                 </div>
-                <div className="cobros-dialog-total-row">
+                <div className="cobros-dialog-total-row" style={{fontSize: '1.3rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.9)'}}>
                   <span>Subtotal</span>
                   <span>{formatCurrency(selectedCuenta.subtotal_acumulado)}</span>
                 </div>
               </div>
 
               <div>
-                <Label>Propina (opcional)</Label>
+                <Label style={{fontSize: '1.7rem', fontWeight: 600}}>Propina (opcional)</Label>
                 <div className="cobros-propina-row" style={{ marginTop: '0.25rem' }}>
                   <Input
                     type="number"
@@ -386,6 +390,7 @@ export function CobrosView() {
                     }}
                     className="cobros-propina-input"
                     placeholder="0.00"
+                    style={{fontSize: '1.4rem'}}
                   />
                   <Button
                     variant="outline"
@@ -395,6 +400,7 @@ export function CobrosView() {
                         Math.round(Number(selectedCuenta.subtotal_acumulado) * 0.1)
                       )
                     }
+                    style={{fontSize: '1.4rem', fontWeight: 800, color: 'rgb(114, 92, 63,0.6)'}}
                   >
                     10%
                   </Button>
@@ -406,6 +412,7 @@ export function CobrosView() {
                         Math.round(Number(selectedCuenta.subtotal_acumulado) * 0.15)
                       )
                     }
+                    style={{fontSize: '1.4rem', fontWeight: 800, color: 'rgb(114, 92, 63,0.6)'}}
                   >
                     15%
                   </Button>
@@ -417,6 +424,7 @@ export function CobrosView() {
                         Math.round(Number(selectedCuenta.subtotal_acumulado) * 0.2)
                       )
                     }
+                    style={{fontSize: '1.4rem', fontWeight: 800, color: 'rgb(114, 92, 63,0.6)'}}
                   >
                     20%
                   </Button>
@@ -424,7 +432,7 @@ export function CobrosView() {
               </div>
 
               <div>
-                <Label>Método de Pago</Label>
+                <Label style={{fontSize: '1.7rem', fontWeight: 600}}>Método de Pago</Label>
                 <div className="cobros-payment-grid" style={{ marginTop: '0.25rem' }}>
                   <button
                     className="cobros-payment-btn"
@@ -433,10 +441,11 @@ export function CobrosView() {
                       color: metodoPago === 'efectivo' ? 'white' : 'var(--chocolate)',
                       borderColor:
                         metodoPago === 'efectivo' ? '#16a34a' : 'var(--caramel)',
+                      fontSize: '1.4rem'
                     }}
                     onClick={() => setMetodoPago('efectivo')}
                   >
-                    <Banknote size={14} className="inline" /> Efectivo
+                    <Banknote size={30} className="inline" /> Efectivo
                   </button>
                   <button
                     className="cobros-payment-btn"
@@ -445,10 +454,11 @@ export function CobrosView() {
                       color: metodoPago === 'tarjeta' ? 'white' : 'var(--chocolate)',
                       borderColor:
                         metodoPago === 'tarjeta' ? '#2563eb' : 'var(--caramel)',
+                      fontSize: '1.4rem'
                     }}
                     onClick={() => setMetodoPago('tarjeta')}
                   >
-                    <CreditCard size={14} className="inline" /> Tarjeta
+                    <CreditCard size={30} className="inline" /> Tarjeta
                   </button>
                   <button
                     className="cobros-payment-btn"
@@ -459,31 +469,34 @@ export function CobrosView() {
                         metodoPago === 'transferencia' ? 'white' : 'var(--chocolate)',
                       borderColor:
                         metodoPago === 'transferencia' ? '#7c3aed' : 'var(--caramel)',
+                      fontSize: '1.4rem'
                     }}
                     onClick={() => setMetodoPago('transferencia')}
                   >
-                    <Smartphone size={14} className="inline" /> Transf.
+                    <Smartphone size={30} className="inline" /> Transf.
                   </button>
                 </div>
               </div>
 
               <div className="cobros-final-total">
-                <span className="label">Total a Cobrar</span>
-                <span className="value">
+                <span className="label" style={{fontSize: '1.3rem', fontWeight: 600}}>
+                  Total a Cobrar
+                </span>
+                <span className="value" style={{fontSize: '1.3rem', fontWeight: 600}}>
                   {formatCurrency(selectedCuenta.subtotal_acumulado + propina)}
                 </span>
               </div>
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCobrarDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsCobrarDialogOpen(false)} style={{fontSize: '1.4rem'}}>
               Cancelar
             </Button>
             <Button
-              style={{ background: '#16a34a', color: 'white' }}
+              style={{ background: '#16a34a', color: 'white', fontSize: '1.4rem' }}
               onClick={handleCobrar}
             >
-              <CheckCircle size={14} style={{ marginRight: '0.5rem' }} /> Confirmar Cobro
+              <CheckCircle size={30} style={{ marginRight: '0.5rem'}} /> Confirmar Cobro
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -493,34 +506,36 @@ export function CobrosView() {
       <Dialog open={openDetalleCuenta} onOpenChange={setOpenDetalleCuenta}>
         <DialogContent style={{ maxWidth: '32rem' }}>
           <DialogHeader>
-            <DialogTitle style={{ color: 'var(--chocolate)' }}>
+            <DialogTitle style={{fontSize: '1.7rem', color: 'var(--chocolate)', fontWeight: 700}}>
               Cuenta #{selectedCerrada?.id_cuenta}
             </DialogTitle>
           </DialogHeader>
           {selectedCerrada && (
             <div style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-              <p style={{ marginBottom: '0.5rem' }}>Mesa: {selectedCerrada.numero_mesa}</p>
-              <p style={{ marginBottom: '0.5rem' }}>
-                Método de pago: <Badge>{selectedCerrada.metodo_pago}</Badge>
+              <p style={{ marginBottom: '0.5rem', fontSize: '1.3rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.6)' }}>
+                Mesa: {selectedCerrada.numero_mesa}
+              </p>
+              <p style={{ marginBottom: '0.5rem', fontSize: '1.3rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.6)' }}>
+                Método de pago: <Badge style={{backgroundColor: 'rgb(114, 92, 63, 0.2)', color: 'var(--chocolate)', fontSize: '1.2rem', fontWeight: 700}}>{selectedCerrada.metodo_pago}</Badge>
               </p>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Producto</TableHead>
-                    <TableHead className="text-right">Cant.</TableHead>
-                    <TableHead className="text-right">Precio</TableHead>
-                    <TableHead className="text-right">Subtotal</TableHead>
+                    <TableHead style={{fontSize: '1.4rem'}}>Producto</TableHead>
+                    <TableHead className="text-right" style={{fontSize: '1.4rem'}}>Cant.</TableHead>
+                    <TableHead className="text-right" style={{fontSize: '1.4rem'}}>Precio</TableHead>
+                    <TableHead className="text-right" style={{fontSize: '1.4rem'}}>Subtotal</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {selectedCerrada.productos?.map((prod: any, idx: number) => (
                     <TableRow key={prod.id_producto + '-' + idx}>
-                      <TableCell>{prod.nombre_producto}</TableCell>
-                      <TableCell className="text-right">{prod.cantidad}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell style={{fontSize: '1.2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.6)'}}>{prod.nombre_producto}</TableCell>
+                      <TableCell className="text-right" style={{fontSize: '1.2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.6)'}} >{prod.cantidad}</TableCell>
+                      <TableCell className="text-right" style={{fontSize: '1.2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.6)'}}>
                         {formatCurrency(prod.precio_unitario)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right" style={{fontSize: '1.2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.6)'}}>
                         {formatCurrency(prod.subtotal)}
                       </TableCell>
                     </TableRow>
@@ -532,7 +547,9 @@ export function CobrosView() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   marginTop: '1rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
+                  fontSize: '1.3rem',
+                  color: 'rgb(114, 92, 63, 0.6)',
                 }}
               >
                 <span>Subtotal</span>
@@ -544,6 +561,9 @@ export function CobrosView() {
                     display: 'flex',
                     justifyContent: 'space-between',
                     marginTop: '0.5rem',
+                    fontSize: '1.3rem',
+                    fontWeight: 700,
+                    color: 'rgb(114, 92, 63, 0.6)',
                   }}
                 >
                   <span>Propina</span>
@@ -555,7 +575,7 @@ export function CobrosView() {
                   display: 'flex',
                   justifyContent: 'space-between',
                   marginTop: '0.5rem',
-                  fontSize: '1.1rem',
+                  fontSize: '1.7rem',
                   fontWeight: 700,
                 }}
               >
@@ -565,7 +585,7 @@ export function CobrosView() {
             </div>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenDetalleCuenta(false)}>
+            <Button variant="outline" onClick={() => setOpenDetalleCuenta(false)} style={{ fontSize: '1.5rem', backgroundColor: 'var(--chocolate, 0.1)', color: 'white' }}>
               Cerrar
             </Button>
           </DialogFooter>
@@ -574,9 +594,9 @@ export function CobrosView() {
 
       {/* Diálogo para seleccionar motivo de eliminación */}
       <Dialog open={showEliminarDialog} onOpenChange={setShowEliminarDialog}>
-        <DialogContent style={{ maxWidth: '24rem' }}>
+        <DialogContent style={{ maxWidth: '30rem' }}>
           <DialogHeader>
-            <DialogTitle style={{ color: 'var(--chocolate)' }}>
+            <DialogTitle style={{ color: 'var(--chocolate)', fontSize: '1.7rem', fontWeight: 700}}>
               Motivo de eliminación
             </DialogTitle>
           </DialogHeader>
@@ -606,11 +626,11 @@ export function CobrosView() {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEliminarDialog(false)}>
+            <Button variant="outline" onClick={() => setShowEliminarDialog(false)} style={{ fontSize: '1.4rem', backgroundColor: 'var(--chocolate, 0.1)', color: 'white' }}>
               Cancelar
             </Button>
             <Button
-              style={{ background: 'var(--chocolate)', color: 'white' }}
+              style={{fontSize: '1.4rem', backgroundColor: 'var(--chocolate)', color: 'white' }}
               onClick={confirmarEliminacion}
             >
               Eliminar producto

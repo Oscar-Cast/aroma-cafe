@@ -69,7 +69,7 @@ export function BarraView() {
   return (
     <div className="produccion-page">
       <div className="produccion-header">
-        <div className="produccion-icon produccion-icon-barra" style={{height: '75px', width: '75px'}}>
+        <div className="produccion-icon produccion-icon-barra" style={{marginTop: '-40px', height: '75px', width: '75px'}}>
           <GlassWater size={60} />
         </div>
         <div>
@@ -103,7 +103,7 @@ export function BarraView() {
         {/* Pendientes */}
         <div className="produccion-column">
           <h2 className="produccion-column-title" style={{ color: '#92400e', fontSize: '1.8rem', fontWeight: '700' }}>
-            <Clock size={30} /> Pendientes
+            <Clock style={{width: '1.5rem', height: '1.5rem'}} /> Pendientes
           </h2>
           {pendientes.map(pedido => (
             <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#fcd34d', borderWidth: '3px' }}>
@@ -152,7 +152,7 @@ export function BarraView() {
         {/* En Preparación */}
         <div className="produccion-column">
           <h2 className="produccion-column-title" style={{ color: '#1e40af', fontSize: '1.8rem', fontWeight: '700' }}>
-            <ChefHat size={30} /> En Preparación
+            <ChefHat style={{width: '1.5rem', height: '1.5rem'}} /> En Preparación
           </h2>
           {enPreparacion.map(pedido => (
             <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#93c5fd', borderWidth: '3px' }}>
@@ -189,8 +189,8 @@ export function BarraView() {
                     </div>
                   ))}
                 </div>
-                <Button className="produccion-btn-ready" onClick={() => cambiarEstado(pedido.id_pedido, 'listo')}>
-                  <CheckCircle size={20} style={{ marginRight: '0.5rem' }} /> Marcar como Listo
+                <Button className="produccion-btn-ready" onClick={() => cambiarEstado(pedido.id_pedido, 'listo')} style={{fontSize: '1.2rem', width: '100%'}}>
+                  <CheckCircle style={{width: '1.5rem', height: '1.5rem'}} /> Marcar como Listo
                 </Button>
               </CardContent>
             </Card>

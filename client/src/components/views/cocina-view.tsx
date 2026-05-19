@@ -62,12 +62,12 @@ export function CocinaView() {
   return (
     <div className="produccion-page">
       <div className="produccion-header">
-        <div className="produccion-icon produccion-icon-cocina">
-          <Utensils size={24} />
+        <div className="produccion-icon produccion-icon-cocina"  style={{marginTop: '-40px', height: '75px', width: '75px'}}>
+          <Utensils size={60} />
         </div>
         <div>
-          <h1 className="produccion-title">Cocina</h1>
-          <p className="produccion-subtitle">Solo Alimentos</p>
+          <h1 className="produccion-title" style={{fontSize: '4rem'}}>Cocina</h1>
+          <p className="produccion-subtitle" style={{fontSize: '2rem', fontWeight: '700', color: 'rgb(114, 92, 63,0.5)'}}>Solo Alimentos</p>
         </div>
       </div>
 
@@ -76,8 +76,8 @@ export function CocinaView() {
         <Card className="produccion-stat-card pendiente">
           <CardContent className="produccion-stat-content">
             <div>
-              <div className="produccion-stat-label">Pendientes</div>
-              <div className="produccion-stat-number">{pendientes.length}</div>
+              <div className="produccion-stat-label"  style={{ color: '#92400e',fontSize: '1.4rem', fontWeight: '700' }}>Pendientes</div>
+              <div className="produccion-stat-number" style={{ color: 'rgb(146, 64, 14,0.5)',fontSize: '1.6rem', fontWeight: '800' }}>{pendientes.length}</div>
             </div>
             <Clock size={32} />
           </CardContent>
@@ -85,8 +85,8 @@ export function CocinaView() {
         <Card className="produccion-stat-card en-preparacion">
           <CardContent className="produccion-stat-content">
             <div>
-              <div className="produccion-stat-label">En Preparación</div>
-              <div className="produccion-stat-number">{enPreparacion.length}</div>
+              <div className="produccion-stat-label"  style={{ color: '#1e40af',fontSize: '1.4rem', fontWeight: '700' }}>En Preparación</div>
+              <div className="produccion-stat-number" style={{ color: 'rgb(30, 64, 175,0.5)',fontSize: '1.6rem', fontWeight: '800' }}>{enPreparacion.length}</div>
             </div>
             <ChefHat size={32} />
           </CardContent>
@@ -94,8 +94,8 @@ export function CocinaView() {
         <Card className="produccion-stat-card listo">
           <CardContent className="produccion-stat-content">
             <div>
-              <div className="produccion-stat-label">Listos</div>
-              <div className="produccion-stat-number">{listos.length}</div>
+              <div className="produccion-stat-label"  style={{ color: '#166534',fontSize: '1.4rem', fontWeight: '700' }}>Listos</div>
+              <div className="produccion-stat-number" style={{ color: 'rgb(22, 101, 52,0.5)',fontSize: '1.6rem', fontWeight: '800' }}>{listos.length}</div>
             </div>
             <CheckCircle size={32} />
           </CardContent>
@@ -106,33 +106,33 @@ export function CocinaView() {
       <div className="produccion-columns">
         {/* Pendientes */}
         <div className="produccion-column">
-          <h2 className="produccion-column-title pendiente">
-            <Clock size={18} /> Pendientes ({pendientes.length})
+          <h2 className="produccion-column-title pendiente" style={{ color: '#92400e', fontSize: '1.8rem', fontWeight: '700' }}>
+            <Clock size={25} /> Pendientes 
           </h2>
           {pendientes.map(pedido => (
-            <Card key={pedido.id_pedido} className="produccion-order-card">
+            <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#fcd34d', borderWidth: '3px' }}>
               <CardHeader className="produccion-order-card-header">
                 <div className="produccion-order-card-top">
-                  <CardTitle className="produccion-order-card-title">
+                  <CardTitle className="produccion-order-card-title" style={{ fontSize: '2rem' }}>
                     Pedido #{pedido.numero_pedido ?? pedido.id_pedido}
                   </CardTitle>
-                  <Badge className="produccion-status-badge pendiente">
+                  <Badge className="produccion-status-badge pendiente" style={{fontSize: '1.3rem'}}>
                     {getElapsedTime(pedido.hora_registro)}
                   </Badge>
                 </div>
-                <CardDescription className="produccion-order-card-desc">
+                <CardDescription className="produccion-order-card-desc" style={{fontSize: '1.3rem', fontWeight: '700', color: 'rgb(114, 92, 63, 0.5)'}}>
                   {pedido.mesa} • {formatTime(pedido.hora_registro)}
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="produccion-order-details">
+                <div className="produccion-order-details" >
                   {pedido.detalles?.map(d => (
                     <div key={d.id_detalle}>
-                      <div className="produccion-order-detail-row">
+                      <div className="produccion-order-detail-row" style={{fontSize: '1.5rem'}}>
                         <span>{d.cantidad}x {d.nombre_producto}</span>
                       </div>
                       {d.extras_ids && d.extras_ids.length > 0 && (
-                        <div className="produccion-extras">
+                        <div className="produccion-extras" style={{ paddingLeft: '1.25rem', fontSize: '1.2rem', color: 'rgb(114, 92, 63, 0.5)', fontWeight: '700' }}>
                           {d.extras_ids.map((id: string) => {
                             const extra = extrasDisponibles.find(e => e.id === id);
                             return extra ? (
@@ -147,8 +147,8 @@ export function CocinaView() {
                   ))}
                 </div>
                 {pedido.notas && (
-                  <div className="produccion-order-notas">
-                    📝 {pedido.notas}
+                  <div className="produccion-order-notas" style={{ fontSize: '1.2rem', color: 'rgb(114, 92, 63, 0.5)', fontWeight: '700' }}>
+                    Nota: {pedido.notas}
                   </div>
                 )}
                 <Button className="produccion-btn-start" onClick={() => cambiarEstado(pedido.id_pedido, 'en preparación')}>
@@ -161,21 +161,21 @@ export function CocinaView() {
 
         {/* En Preparación */}
         <div className="produccion-column">
-          <h2 className="produccion-column-title en-preparacion">
-            <ChefHat size={18} /> En Preparación ({enPreparacion.length})
+          <h2 className="produccion-column-title en-preparacion" style={{ color: '#1e40af', fontSize: '1.8rem', fontWeight: '700' }}>
+            <ChefHat size={25} /> En Preparación 
           </h2>
           {enPreparacion.map(pedido => (
-            <Card key={pedido.id_pedido} className="produccion-order-card">
+            <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#93c5fd', borderWidth: '3px' }}>
               <CardHeader className="produccion-order-card-header">
                 <div className="produccion-order-card-top">
-                  <CardTitle className="produccion-order-card-title">
+                  <CardTitle className="produccion-order-card-title" style={{ fontSize: '2rem' }}>
                     Pedido #{pedido.numero_pedido ?? pedido.id_pedido}
                   </CardTitle>
-                  <Badge className="produccion-status-badge en-preparacion">
+                  <Badge className="produccion-status-badge en-preparacion" style={{fontSize: '1.3rem'}}>
                     {getElapsedTime(pedido.hora_registro)}
                   </Badge>
                 </div>
-                <CardDescription className="produccion-order-card-desc">
+                <CardDescription className="produccion-order-card-desc" style={{fontSize: '1.3rem', fontWeight: '700', color: 'rgb(114, 92, 63, 0.5)'}}>
                   {pedido.mesa} • {formatTime(pedido.hora_registro)}
                 </CardDescription>
               </CardHeader>
@@ -183,11 +183,11 @@ export function CocinaView() {
                 <div className="produccion-order-details">
                   {pedido.detalles?.map(d => (
                     <div key={d.id_detalle}>
-                      <div className="produccion-order-detail-row">
+                      <div className="produccion-order-detail-row" style={{fontSize: '1.5rem'}} >
                         <span>{d.cantidad}x {d.nombre_producto}</span>
                       </div>
                       {d.extras_ids && d.extras_ids.length > 0 && (
-                        <div className="produccion-extras">
+                        <div className="produccion-extras" style={{ paddingLeft: '1.25rem', fontSize: '1.2rem', color: 'rgb(114, 92, 63, 0.5)', fontWeight: '700' }}>
                           {d.extras_ids.map((id: string) => {
                             const extra = extrasDisponibles.find(e => e.id === id);
                             return extra ? (
@@ -211,21 +211,21 @@ export function CocinaView() {
 
         {/* Listos */}
         <div className="produccion-column">
-          <h2 className="produccion-column-title listo">
-            <CheckCircle size={18} /> Listos para Entregar ({listos.length})
+          <h2 className="produccion-column-title listo" style={{ color: '#166534', fontSize: '1.8rem', fontWeight: '700' }}>
+            <CheckCircle size={25} /> Listos para Entregar 
           </h2>
           {listos.map(pedido => (
-            <Card key={pedido.id_pedido} className="produccion-order-card">
+            <Card key={pedido.id_pedido} className="produccion-order-card" style={{ borderColor: '#86efac', borderWidth: '3px' }}>
               <CardHeader className="produccion-order-card-header">
                 <div className="produccion-order-card-top">
-                  <CardTitle className="produccion-order-card-title">
+                  <CardTitle className="produccion-order-card-title" style={{ fontSize: '2rem' }}>
                     Pedido #{pedido.numero_pedido ?? pedido.id_pedido}
                   </CardTitle>
-                  <Badge className="produccion-status-badge listo">
+                  <Badge className="produccion-status-badge listo" style={{fontSize: '1.3rem'}}>
                     Listo
                   </Badge>
                 </div>
-                <CardDescription className="produccion-order-card-desc">
+                <CardDescription className="produccion-order-card-desc" style={{fontSize: '1.3rem', fontWeight: '700', color: 'rgb(114, 92, 63, 0.5)'}}>
                   {pedido.mesa} • {formatTime(pedido.hora_registro)}
                 </CardDescription>
               </CardHeader>
@@ -233,11 +233,11 @@ export function CocinaView() {
                 <div className="produccion-order-details">
                   {pedido.detalles?.map(d => (
                     <div key={d.id_detalle}>
-                      <div className="produccion-order-detail-row">
+                      <div className="produccion-order-detail-row" style={{fontSize: '1.5rem'}} >
                         <span>{d.cantidad}x {d.nombre_producto}</span>
                       </div>
                       {d.extras_ids && d.extras_ids.length > 0 && (
-                        <div className="produccion-extras">
+                        <div className="produccion-extras" style={{ paddingLeft: '1.25rem', fontSize: '1.2rem', color: 'rgb(114, 92, 63, 0.5)', fontWeight: '700' }}>
                           {d.extras_ids.map((id: string) => {
                             const extra = extrasDisponibles.find(e => e.id === id);
                             return extra ? (
@@ -251,7 +251,7 @@ export function CocinaView() {
                     </div>
                   ))}
                 </div>
-                <p className="produccion-espera">
+                <p className="produccion-espera" style={{ fontSize: '1.2rem', color: 'rgb(114, 92, 63, 0.5)', fontWeight: '700' }}>
                   Esperando que el mesero lo entregue
                 </p>
               </CardContent>

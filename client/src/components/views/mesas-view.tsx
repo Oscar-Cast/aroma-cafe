@@ -96,51 +96,72 @@ export function MesasView() {
     <div className="mesas-page">
       <div className="mesas-header">
         <div>
-          <h1>Mesas</h1>
-          <p>Gestiona las mesas del establecimiento</p>
+          <h1 style={{fontSize: '4rem' }}>Mesas</h1>
+          <p style={{fontSize: '2rem', fontWeight: '700', color: 'rgb(114, 92, 63,0.5)'}}>Gestiona las mesas del establecimiento</p>
         </div>
-        <button className="btn-primary" onClick={() => { resetForm(); setCreateOpen(true); }}>
-          <Plus size={16} style={{ marginRight: '0.5rem' }} /> Nueva Mesa
+        <button className="btn-primary" style={{fontSize: '1.5rem'}} onClick={() => { resetForm(); setCreateOpen(true);}}>
+          <Plus size={30} style={{ marginRight: '0.5rem', display: 'inline-flex' }} /> Nueva Mesa
         </button>
       </div>
-
       <div className="mesas-stats-grid">
         <Card className="mesas-stat-card">
-          <div><div className="label">Total Mesas</div><div className="value">{mesas.length}</div></div>
-          <LayoutGrid size={32} style={{ color: 'var(--caramel)' }} />
+          <div>
+            <div className="label" style={{ fontSize: '1.7rem', fontWeight: 600, color: 'var(--chocolate)' }}>Total Mesas</div>
+            <div className="value" style={{ fontSize: '1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.6)', textAlign: 'center' }}>{mesas.length}</div>
+          </div>
+          <LayoutGrid size={40} style={{ color: 'var(--caramel)' }} />
         </Card>
         <Card className="mesas-stat-card" style={{ borderColor: '#86efac', background: '#f0fdf4' }}>
-          <div><div className="label">Disponibles</div><div className="value">{mesas.filter(m => m.estado === 'disponible').length}</div></div>
-          <LayoutGrid size={28} style={{ color: '#16a34a' }} />
+          <div>
+            <div className="label" style={{ fontSize: '1.7rem', fontWeight: 600, color: 'var(--chocolate)' }}>Disponibles</div>
+            <div className="value" style={{ fontSize: '1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.6)', textAlign: 'center' }}>{mesas.filter(m => m.estado === 'disponible').length}</div>
+          </div>
+          <LayoutGrid size={40} style={{ color: '#16a34a' }} />
         </Card>
         <Card className="mesas-stat-card" style={{ borderColor: '#fca5a5', background: '#fef2f2' }}>
-          <div><div className="label">Ocupadas</div><div className="value">{mesas.filter(m => m.estado === 'ocupada').length}</div></div>
-          <Users size={28} style={{ color: '#dc2626' }} />
+          <div>
+            <div className="label" style={{ fontSize: '1.7rem', fontWeight: 600, color: 'var(--chocolate)' }}>Ocupadas</div>
+            <div className="value" style={{ fontSize: '1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.6)', textAlign: 'center' }}>{mesas.filter(m => m.estado === 'ocupada').length}</div>
+          </div>
+          <Users size={40} style={{ color: '#dc2626' }} />
         </Card>
         <Card className="mesas-stat-card">
-          <div><div className="label">Capacidad Total</div><div className="value">{mesas.reduce((sum, m) => sum + m.capacidad, 0)}</div></div>
-          <Users size={32} style={{ color: 'var(--caramel)' }} />
+          <div>
+            <div className="label" style={{ fontSize: '1.7rem', fontWeight: 600, color: 'var(--chocolate)' }}>Capacidad Total</div>
+            <div className="value" style={{ fontSize: '1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.6)', textAlign: 'center' }}>{mesas.reduce((sum, m) => sum + m.capacidad, 0)}</div>
+          </div>
+          <Users size={40} style={{ color: 'var(--caramel)' }} />
         </Card>
       </div>
 
       <Card className="mesas-table-card">
         <div style={{ padding: '1rem' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--chocolate)' }}>Lista de Mesas</h2>
+          <h2 style={{ fontSize: '2rem', fontWeight: 600, color: 'var(--chocolate)', textAlign: 'center' }}>Lista de Mesas</h2>
         </div>
         <Table>
           <TableHeader>
-            <TableRow><TableHead>Mesa</TableHead><TableHead>Capacidad</TableHead><TableHead>Ubicación</TableHead><TableHead>Estado</TableHead><TableHead className="text-right">Acciones</TableHead></TableRow>
+            <TableRow>
+              <TableHead style={{fontSize:'1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Capacidad</TableHead>
+              <TableHead style={{fontSize:'1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Espacio</TableHead>
+              <TableHead style={{fontSize:'1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Ubicación</TableHead>
+              <TableHead style={{fontSize:'1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Estado</TableHead>
+              <TableHead style={{fontSize:'1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)', textAlign: 'right'}}>Acciones</TableHead>
+            </TableRow>
           </TableHeader>
           <TableBody>
             {mesas.map(m => (
               <TableRow key={m.id_mesa}>
-                <TableCell style={{ fontWeight: 500 }}>{m.numero_mesa}</TableCell>
-                <TableCell><Users size={14} className="inline" /> {m.capacidad} personas</TableCell>
-                <TableCell><MapPin size={14} className="inline" /> {m.ubicacion}</TableCell>
-                <TableCell><span className={statusClass(m.estado)}>{m.estado}</span></TableCell>
-                <TableCell className="text-right">
-                  <button className="btn-outline" style={{ marginRight: '0.25rem' }} onClick={() => openEdit(m)}><Pencil size={14} /></button>
-                  <button className="btn-danger" onClick={() => handleDelete(m)} disabled={m.estado === 'ocupada'}><Trash2 size={14} /></button>
+                <TableCell style={{ fontWeight: 500, fontSize: '1.3rem' }}>{m.numero_mesa}</TableCell>
+                <TableCell style={{fontWeight: 500, fontSize: '1.3rem', color: 'rgb(114, 92, 63, 0.7)'}}><Users size={20} className="inline" /> {m.capacidad} personas</TableCell>
+                <TableCell style={{fontWeight: 500, fontSize: '1.3rem', color: 'rgb(114, 92, 63, 0.7)'}}><MapPin size={20} className="inline" /> {m.ubicacion}</TableCell>
+                <TableCell ><span className={statusClass(m.estado)}>{m.estado}</span></TableCell>
+                <TableCell style={{ textAlign: 'right' }}>
+                  <button className="btn-outline" style={{ marginRight: '0.25rem' }} onClick={() => openEdit(m)}>
+                    <Pencil size={20} />
+                  </button>
+                  <button className="btn-danger" onClick={() => handleDelete(m)} disabled={m.estado === 'ocupada'}>
+                    <Trash2 size={20} />
+                  </button>
                 </TableCell>
               </TableRow>
             ))}
@@ -150,56 +171,77 @@ export function MesasView() {
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)' }}>Agregar Nueva Mesa</DialogTitle></DialogHeader>
-          <div className="mesas-dialog-form">
-            <div><Label>Nombre de la Mesa</Label><Input value={form.numero_mesa} onChange={e => setForm({ ...form, numero_mesa: e.target.value })} /></div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div><Label>Capacidad</Label><Input type="number" min={1} max={20} value={form.capacidad} onChange={e => setForm({ ...form, capacidad: parseInt(e.target.value) || 1 })} /></div>
-              <div><Label>Ubicación</Label>
+          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)', fontWeight: 600, fontSize: '2rem' }}>Agregar Nueva Mesa</DialogTitle></DialogHeader>
+          <div className="mesas-dialog-form"  >
+            <div><Label style={{fontSize: '1.5rem',fontWeight: 600, color:'rgb(114, 92, 63, 0.7)'}}>Nombre de la Mesa</Label>
+            <Input value={form.numero_mesa} onChange={e => setForm({ ...form, numero_mesa: e.target.value })} />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem'}}>
+              <div ><Label style={{fontSize: '1.5rem',fontWeight: 600, color:'rgb(114, 92, 63, 0.7)'}}>Capacidad</Label >
+              <Input min={1} max={20} value={form.capacidad} onChange={e => setForm({ ...form, capacidad: parseInt(e.target.value) || 1 })} />
+              </div>
+              <div><Label style={{fontSize: '1.5rem',fontWeight: 600, color:'rgb(114, 92, 63, 0.7)'}}>Ubicación</Label>
                 <Select value={form.ubicacion} onValueChange={v => setForm({ ...form, ubicacion: v as 'interior' | 'terraza' })}>
-                  <SelectTrigger style={{ borderColor: 'var(--caramel)' }}><SelectValue /></SelectTrigger>
-                  <SelectContent><SelectItem value="interior">Interior</SelectItem><SelectItem value="terraza">Terraza</SelectItem></SelectContent>
+                  <SelectTrigger style={{ borderColor: 'var(--caramel)', fontSize: '1.2rem' }}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="interior" style={{fontSize: '1.2rem'}}>Interior</SelectItem>
+                    <SelectItem value="terraza" style={{fontSize: '1.2rem'}}>Terraza</SelectItem>
+                  </SelectContent>
                 </Select>
               </div>
             </div>
-            <div><Label>Estado</Label>
+            <div><Label style={{fontSize: '1.5rem',fontWeight: 600, color:'rgb(114, 92, 63, 0.7)'}}>Estado</Label>
               <Select value={form.estado} onValueChange={v => setForm({ ...form, estado: v as Mesa['estado'] })}>
-                <SelectTrigger style={{ borderColor: 'var(--caramel)' }}><SelectValue /></SelectTrigger>
-                <SelectContent><SelectItem value="disponible">Disponible</SelectItem><SelectItem value="ocupada">Ocupada</SelectItem><SelectItem value="reservada">Reservada</SelectItem></SelectContent>
+                <SelectTrigger style={{ borderColor: 'var(--caramel)', fontSize: '1.2rem' }}><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="disponible" style={{fontSize: '1.2rem'}} >Disponible</SelectItem>
+                  <SelectItem value="ocupada" style={{fontSize: '1.2rem'}}>Ocupada</SelectItem>
+                  <SelectItem value="reservada" style={{fontSize: '1.2rem'}}>Reservada</SelectItem>
+                </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <button className="btn-outline" onClick={() => setCreateOpen(false)}>Cancelar</button>
-            <button className="btn-primary" onClick={handleCreate}>Crear Mesa</button>
+            <button className="btn-outline" onClick={() => setCreateOpen(false)} style={{backgroundColor: 'var(--chocolate)', color : 'white', fontSize: '1.3rem'}}>Cancelar</button>
+            <button className="btn-primary" onClick={handleCreate} style= {{fontSize: '1.3rem'}}>Crear Mesa</button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
-          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)' }}>Editar Mesa</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)', fontWeight: 600, fontSize: '2rem' }}>Editar Mesa</DialogTitle></DialogHeader>
           <div className="mesas-dialog-form">
-            <div><Label>Nombre de la Mesa</Label><Input value={form.numero_mesa} onChange={e => setForm({ ...form, numero_mesa: e.target.value })} /></div>
+            <div><Label style={{fontSize: '1.5rem',fontWeight: 600, color:'rgb(114, 92, 63, 0.7)'}}>Nombre de la Mesa</Label>
+            <Input value={form.numero_mesa} onChange={e => setForm({ ...form, numero_mesa: e.target.value })} />
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div><Label>Capacidad</Label><Input type="number" min={1} max={20} value={form.capacidad} onChange={e => setForm({ ...form, capacidad: parseInt(e.target.value) || 1 })} /></div>
-              <div><Label>Ubicación</Label>
+              <div><Label style={{fontSize: '1.5rem',fontWeight: 600, color:'rgb(114, 92, 63, 0.7)'}}>Capacidad</Label><Input type="number" min={1} max={20} value={form.capacidad} onChange={e => setForm({ ...form, capacidad: parseInt(e.target.value) || 1 })} />
+              </div>
+              <div><Label style={{fontSize: '1.5rem',fontWeight: 600, color:'rgb(114, 92, 63, 0.7)'}}>Ubicación</Label>
                 <Select value={form.ubicacion} onValueChange={v => setForm({ ...form, ubicacion: v as 'interior' | 'terraza' })}>
-                  <SelectTrigger style={{ borderColor: 'var(--caramel)' }}><SelectValue /></SelectTrigger>
-                  <SelectContent><SelectItem value="interior">Interior</SelectItem><SelectItem value="terraza">Terraza</SelectItem></SelectContent>
+                  <SelectTrigger style={{ borderColor: 'var(--caramel)', fontSize: '1.2rem' }}><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="interior" style={{ fontSize: '1.2rem' }}>Interior</SelectItem>
+                    <SelectItem value="terraza" style={{ fontSize: '1.2rem' }}>Terraza</SelectItem>
+                  </SelectContent>
                 </Select>
               </div>
             </div>
-            <div><Label>Estado</Label>
+            <div><Label style={{fontSize: '1.5rem',fontWeight: 600, color:'rgb(114, 92, 63, 0.7)'}}>Estado</Label>
               <Select value={form.estado} onValueChange={v => setForm({ ...form, estado: v as Mesa['estado'] })}>
-                <SelectTrigger style={{ borderColor: 'var(--caramel)' }}><SelectValue /></SelectTrigger>
-                <SelectContent><SelectItem value="disponible">Disponible</SelectItem><SelectItem value="ocupada">Ocupada</SelectItem><SelectItem value="reservada">Reservada</SelectItem></SelectContent>
+                <SelectTrigger style={{ borderColor: 'var(--caramel)', fontSize: '1.2rem' }}><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="disponible" style={{ fontSize: '1.2rem' }}>Disponible</SelectItem>
+                  <SelectItem value="ocupada" style={{ fontSize: '1.2rem' }}>Ocupada</SelectItem>
+                  <SelectItem value="reservada" style={{ fontSize: '1.2rem' }}>Reservada</SelectItem>
+                </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
-            <button className="btn-outline" onClick={() => setEditOpen(false)}>Cancelar</button>
-            <button className="btn-primary" onClick={handleEdit}>Guardar Cambios</button>
+            <button className="btn-outline" onClick={() => setEditOpen(false)} style={{backgroundColor: 'var(--chocolate)', color : 'white', fontSize: '1.3rem'}}>Cancelar</button>
+            <button className="btn-primary" onClick={handleEdit} style={{fontSize: '1.3rem'}}>Guardar Cambios</button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -104,18 +104,18 @@ export function CajaView() {
       {/* Encabezado */}
       <div className="caja-header">
         <div>
-          <h1 className="caja-title">Caja</h1>
-          <p className="caja-subtitle">Gestión de turnos y cierres</p>
+          <h1 className="caja-title" style={{ color: 'var(--chocolate)', fontSize: '4rem'}}>Caja</h1>
+          <p className="caja-subtitle" style={{fontSize: '2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>Gestión de turnos y cierres</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           {!turno && (
-            <Button className="caja-btn-abrir" onClick={() => setShowAbrirDialog(true)}>
-              <Play size={16} style={{ marginRight: '0.5rem' }} /> Abrir Turno
+            <Button className="caja-btn-abrir" onClick={() => setShowAbrirDialog(true)} style={{fontSize: '1.3rem', color: 'white'}}>
+              <Play style={{height: 30, width: 30}} /> Abrir Turno
             </Button>
           )}
           {turno && (
-            <Button className="caja-btn-cerrar" onClick={prepararCierre}>
-              <StopCircle size={16} style={{ marginRight: '0.5rem' }} /> Cerrar Turno
+            <Button className="caja-btn-cerrar" onClick={prepararCierre} style={{fontSize: '1.3rem', color: 'white'}}>
+              <StopCircle style={{height: 30, width: 30}} /> Cerrar Turno
             </Button>
           )}
         </div>
@@ -132,39 +132,67 @@ export function CajaView() {
         <>
           {/* Resumen */}
           <div className="caja-summary-grid">
-            <Card className="caja-summary-card"><CardHeader><CardTitle className="caja-summary-card-title">Fondo Inicial</CardTitle></CardHeader><CardContent><div className="caja-summary-card-amount">{formatCurrency(turno.monto_inicial)}</div></CardContent></Card>
-            <Card className="caja-summary-card-success"><CardHeader><CardTitle className="caja-summary-card-title" style={{ color: '#16a34a' }}>Ingresos</CardTitle></CardHeader><CardContent><div className="caja-summary-card-amount" style={{ color: '#16a34a' }}>{formatCurrency(turno.totalIngresos)}</div></CardContent></Card>
-            <Card className="caja-summary-card-danger"><CardHeader><CardTitle className="caja-summary-card-title" style={{ color: '#dc2626' }}>Egresos</CardTitle></CardHeader><CardContent><div className="caja-summary-card-amount" style={{ color: '#dc2626' }}>{formatCurrency(turno.totalEgresos)}</div></CardContent></Card>
-            <Card className="caja-summary-card"><CardHeader><CardTitle className="caja-summary-card-title">Saldo Actual</CardTitle></CardHeader><CardContent><div className="caja-summary-card-amount">{formatCurrency(turno.saldo)}</div></CardContent></Card>
+            <Card className="caja-summary-card">
+              <CardHeader>
+                <CardTitle className="caja-summary-card-title" style={{fontSize: '2rem', fontWeight: 700, color: 'rgb(114, 92, 63)'}}>Fondo Inicial</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="caja-summary-card-amount" style={{fontSize: '2rem', fontWeight: 800, color: 'rgb(114, 92, 63, 0.7)'}}>{formatCurrency(turno.monto_inicial)}</div>
+              </CardContent>
+            </Card>
+            <Card className="caja-summary-card-success">
+              <CardHeader>
+                <CardTitle className="caja-summary-card-title" style={{ fontSize: '2rem', fontWeight: 700, color: '#16a34a' }}>Ingresos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="caja-summary-card-amount" style={{ color: '#16a34a', fontSize: '2rem', fontWeight: 800, color: ' rgb(22, 163, 74,0.7)' }}>{formatCurrency(turno.totalIngresos)}</div>
+              </CardContent>
+            </Card>
+            <Card className="caja-summary-card-danger">
+              <CardHeader>
+                <CardTitle className="caja-summary-card-title" style={{ fontSize: '2rem', fontWeight: 700, color: '#dc2626' }}>Egresos</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="caja-summary-card-amount" style={{ color: '#dc2626', fontSize: '2rem', fontWeight: 800, color: 'rgb(220, 38, 38, 0.7)' }}>{formatCurrency(turno.totalEgresos)}</div>
+              </CardContent>
+            </Card>
+            <Card className="caja-summary-card">
+              <CardHeader>
+                <CardTitle className="caja-summary-card-title" style={{ fontSize: '2rem', fontWeight: 700, color: 'rgb(114, 92, 63)' }}>Saldo Actual</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="caja-summary-card-amount" style={{ fontSize: '2rem', fontWeight: 800, color: 'rgb(114, 92, 63, 0.7)' }}>{formatCurrency(turno.saldo)}</div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Métodos de pago en vivo */}
           <div className="caja-metodos-grid">
             <Card className="caja-metodo-card">
-              <CardHeader className="caja-summary-card-title">Efectivo</CardHeader>
+              <CardHeader className="caja-summary-card-title" style={{fontSize: '2rem', fontWeight: 700, color: '#16a34a'}}>Efectivo</CardHeader>
               <CardContent>
-                <div className="caja-metodo-amount" style={{ color: '#16a34a' }}>{turno?.desglose ? formatCurrency(turno.desglose.efectivo) : '$0.00'}</div>
-                <div className="caja-arqueo-nota">Propinas: {turno?.desglose ? formatCurrency(turno.desglose.propinas_efectivo) : '$0.00'}</div>
+                <div className="caja-metodo-amount" style={{fontSize: '2rem', fontWeight: 800, color: 'rgb(22, 163, 74, 0.7)' }}>{turno?.desglose ? formatCurrency(turno.desglose.efectivo) : '$0.00'}</div>
+                <div className="caja-arqueo-nota" style={{fontSize: '1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)', }}>Propinas: {turno?.desglose ? formatCurrency(turno.desglose.propinas_efectivo) : '$0.00'}</div>
               </CardContent>
             </Card>
             <Card className="caja-metodo-card">
-              <CardHeader className="caja-summary-card-title">Tarjeta</CardHeader>
+              <CardHeader className="caja-summary-card-title" style={{fontSize: '2rem', fontWeight: 700, color: '#2563eb'}}>Tarjeta</CardHeader>
               <CardContent>
-                <div className="caja-metodo-amount" style={{ color: '#2563eb' }}>{turno?.desglose ? formatCurrency(turno.desglose.tarjeta) : '$0.00'}</div>
-                <div className="caja-arqueo-nota">Propinas: {turno?.desglose ? formatCurrency(turno.desglose.propinas_tarjeta) : '$0.00'}</div>
+                <div className="caja-metodo-amount" style={{ fontSize: '2rem', fontWeight: 800, color: 'rgb(37, 99, 235, 0.7)' }}>{turno?.desglose ? formatCurrency(turno.desglose.tarjeta) : '$0.00'}</div>
+                <div className="caja-arqueo-nota" style={{fontSize: '1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)', }}>Propinas: {turno?.desglose ? formatCurrency(turno.desglose.propinas_tarjeta) : '$0.00'}</div>
               </CardContent>
             </Card>
             <Card className="caja-metodo-card">
-              <CardHeader className="caja-summary-card-title">Transferencia</CardHeader>
+              <CardHeader className="caja-summary-card-title" style={{fontSize: '2rem', fontWeight: 700, color: '#7c3aed'}}>Transferencia</CardHeader>
               <CardContent>
-                <div className="caja-metodo-amount" style={{ color: '#7c3aed' }}>{turno?.desglose ? formatCurrency(turno.desglose.transferencia) : '$0.00'}</div>
-                <div className="caja-arqueo-nota">Propinas: {turno?.desglose ? formatCurrency(turno.desglose.propinas_transferencia) : '$0.00'}</div>
+                <div className="caja-metodo-amount" style={{ fontSize: '2rem', fontWeight: 800, color: 'rgb(124, 58, 237, 0.7)' }}>{turno?.desglose ? formatCurrency(turno.desglose.transferencia) : '$0.00'}</div>
+                <div className="caja-arqueo-nota" style={{fontSize: '1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)', }}>Propinas: {turno?.desglose ? formatCurrency(turno.desglose.propinas_transferencia) : '$0.00'}</div>
               </CardContent>
             </Card>
             <Card className="caja-metodo-card-warning">
-              <CardHeader className="caja-summary-card-title" style={{ color: '#92400e' }}>Propinas totales</CardHeader>
+              <CardHeader className="caja-summary-card-title" style={{fontSize: '2rem', fontWeight: 700, color: '#92400e'}}>Propinas totales</CardHeader>
               <CardContent>
-                <div className="caja-metodo-amount" style={{ color: '#92400e' }}>
+                <div className="caja-metodo-amount" style={{ fontSize: '2rem', fontWeight: 800, color: 'rgb(146, 64, 14, 0.7)' }}>
                   {turno?.desglose
                     ? formatCurrency(turno.desglose.propinas_efectivo + turno.desglose.propinas_tarjeta + turno.desglose.propinas_transferencia)
                     : '$0.00'}
@@ -175,16 +203,24 @@ export function CajaView() {
 
           {/* Movimientos del turno */}
           <Card className="caja-movimientos-card">
-            <CardHeader><CardTitle className="caja-summary-card-title">Movimientos del Turno</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="caja-summary-card-title" style={{ fontSize: '2rem', fontWeight: 700 }}>Movimientos del Turno</CardTitle>
+            </CardHeader>
             <CardContent>
               <Table>
-                <TableHeader><TableRow><TableHead>Tipo</TableHead><TableHead>Concepto</TableHead><TableHead className="text-right">Monto</TableHead></TableRow></TableHeader>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead style={{ fontSize: '1.6rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700 }}>Tipo</TableHead>
+                    <TableHead style={{ fontSize: '1.6rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700 }}>Concepto</TableHead>
+                    <TableHead className="text-right" style={{ fontSize: '1.6rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700 }}>Monto</TableHead>
+                  </TableRow>
+                </TableHeader>
                 <TableBody>
                   {movimientos.map((mov: any) => (
                     <TableRow key={mov.id_movimiento_fin}>
-                      <TableCell><span style={{ color: mov.tipo === 'ingreso' ? '#16a34a' : '#dc2626' }}>{mov.tipo}</span></TableCell>
-                      <TableCell>{mov.concepto}</TableCell>
-                      <TableCell className="text-right">{formatCurrency(parseFloat(mov.monto))}</TableCell>
+                      <TableCell><span style={{ color: mov.tipo === 'ingreso' ? '#16a34a' : '#dc2626', fontSize: '1.4rem' }}>{mov.tipo}</span></TableCell>
+                      <TableCell style={{fontSize: '1.4rem', color: 'rgb(114, 92, 63)' }}>{mov.concepto}</TableCell>
+                      <TableCell className="text-right" style={{fontSize: '1.4rem', color: 'rgb(220, 38, 38, 0.7)', fontWeight: 700}}>{formatCurrency(parseFloat(mov.monto))}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -197,14 +233,17 @@ export function CajaView() {
       {/* Diálogo abrir turno */}
       <Dialog open={showAbrirDialog} onOpenChange={setShowAbrirDialog}>
         <DialogContent>
-          <DialogHeader><DialogTitle className="caja-title" style={{ fontSize: '1.25rem' }}>Abrir Nuevo Turno</DialogTitle><DialogDescription>Monto inicial en caja</DialogDescription></DialogHeader>
+          <DialogHeader>
+            <DialogTitle className="caja-title" style={{ fontSize: '2rem', fontWeight: 700 }}>Abrir Nuevo Turno</DialogTitle>
+            <DialogDescription style={{fontSize:'1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Monto inicial en caja</DialogDescription>
+          </DialogHeader>
           <div style={{ margin: '1rem 0' }}>
-            <Label>Monto Inicial</Label>
-            <Input type="number" value={montoInicial} onChange={e => setMontoInicial(e.target.value)} className="caja-abrir-input" />
+            <Label style={{fontSize: '1.6rem', fontWeight: 600}}>Monto Inicial</Label>
+            <Input type="number" value={montoInicial} onChange={e => setMontoInicial(e.target.value)} className="caja-abrir-input" style={{fontSize: '1.4rem'}} />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAbrirDialog(false)}>Cancelar</Button>
-            <Button className="caja-abrir-btn" onClick={handleAbrirTurno}>Abrir Turno</Button>
+            <Button variant="outline" onClick={() => setShowAbrirDialog(false)} style={{fontSize: '1.4rem', background: 'rgb(114, 92, 63)', color: 'white'}}>Cancelar</Button>
+            <Button className="caja-abrir-btn" onClick={handleAbrirTurno} style={{fontSize: '1.4rem', background: 'rgb(114, 92, 63)', color: 'white'}}>Abrir Turno</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -213,8 +252,8 @@ export function CajaView() {
       <Dialog open={showCerrarDialog} onOpenChange={setShowCerrarDialog}>
         <DialogContent style={{ maxWidth: '42rem', maxHeight: '90vh', overflowY: 'auto' }}>
           <DialogHeader>
-            <DialogTitle className="caja-title">Cierre de Turno</DialogTitle>
-            <DialogDescription>Resumen final del turno</DialogDescription>
+            <DialogTitle className="caja-title" style={{ fontSize: '2rem', fontWeight: 700 }}>Cierre de Turno</DialogTitle>
+            <DialogDescription style={{fontSize:'1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Resumen final del turno</DialogDescription>
           </DialogHeader>
           {turno && (
             <ScrollArea className="caja-cierre-scroll">
@@ -222,26 +261,36 @@ export function CajaView() {
                 {/* Totales */}
                 <div className="caja-cierre-totales">
                   <div className="caja-cierre-total-box caja-cierre-total-box-success">
-                    <div className="caja-cierre-total-label">Ingresos totales</div>
-                    <div className="caja-cierre-total-amount">{formatCurrency(turno.totalIngresos)}</div>
+                    <div className="caja-cierre-total-label" style={{fontSize: '1.3rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700}}>Ingresos totales</div>
+                    <div className="caja-cierre-total-amount"style={{fontSize: '1.3rem', color: 'rgb(22, 163, 74,0.7'}}>{formatCurrency(turno.totalIngresos)}</div>
                   </div>
                   <div className="caja-cierre-total-box caja-cierre-total-box-danger">
-                    <div className="caja-cierre-total-label">Egresos totales</div>
-                    <div className="caja-cierre-total-amount">{formatCurrency(turno.totalEgresos)}</div>
+                    <div className="caja-cierre-total-label" style={{fontSize: '1.3rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700}} >Egresos totales</div>
+                    <div className="caja-cierre-total-amount" style={{fontSize: '1.3rem', color: 'rgb(220, 38, 38, 0.7)'}}>{formatCurrency(turno.totalEgresos)}</div>
                   </div>
                 </div>
 
                 {/* Métodos */}
                 <div className="caja-arqueo-bloque">
-                  <div className="caja-arqueo-label">Métodos de pago y propinas</div>
+                  <div className="caja-arqueo-label" style={{fontSize: '1.3rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700}}>Métodos de pago y propinas</div>
                   <Table>
-                    <TableHeader><TableRow><TableHead>Método</TableHead><TableHead className="text-right">Total cobrado</TableHead><TableHead className="text-right">Propinas</TableHead></TableRow></TableHeader>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead style={{fontSize: '1.2rem', color: 'rgb(114, 92, 63)',fontWeight: 700}}>Método</TableHead>
+                        <TableHead className="text-right"style={{fontSize: '1.2rem', color: 'rgb(114, 92, 63)', fontWeight: 700}}>Total cobrado</TableHead>
+                        <TableHead className="text-right"style={{fontSize: '1.2rem', color: 'rgb(114, 92, 63)', fontWeight: 700}}>Propinas</TableHead>
+                      </TableRow>
+                    </TableHeader>
                     <TableBody>
                       {['efectivo', 'tarjeta', 'transferencia'].map(metodo => (
                         <TableRow key={metodo}>
-                          <TableCell style={{ textTransform: 'capitalize' }}>{metodo}</TableCell>
-                          <TableCell className="text-right">{turno?.desglose ? formatCurrency(turno.desglose[metodo]) : '-'}</TableCell>
-                          <TableCell className="text-right">{turno?.desglose ? formatCurrency(turno.desglose[`propinas_${metodo}`]) : '-'}</TableCell>
+                          <TableCell style={{ textTransform: 'capitalize', fontSize: '1.1rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>{metodo}</TableCell>
+                          <TableCell className="text-right" style={{ fontSize: '1.1rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>
+                            {turno?.desglose ? formatCurrency(turno.desglose[metodo]) : '-'}
+                          </TableCell>
+                          <TableCell className="text-right" style={{ fontSize: '1.1rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>
+                            {turno?.desglose ? formatCurrency(turno.desglose[`propinas_${metodo}`]) : '-'}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -250,15 +299,23 @@ export function CajaView() {
 
                 {/* Movimientos del turno */}
                 <div className="caja-arqueo-bloque">
-                  <div className="caja-arqueo-label">Movimientos del turno</div>
+                  <div className="caja-arqueo-label" style={{fontSize: '1.3rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700}}>Movimientos del turno</div>
                   <Table>
-                    <TableHeader><TableRow><TableHead>Tipo</TableHead><TableHead>Concepto</TableHead><TableHead className="text-right">Monto</TableHead></TableRow></TableHeader>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead style={{fontSize: '1.2rem', color: 'rgb(114, 92, 63)',fontWeight: 700}}>Tipo</TableHead>
+                        <TableHead style={{fontSize: '1.2rem', color: 'rgb(114, 92, 63)',fontWeight: 700}}>Concepto</TableHead>
+                        <TableHead className="text-right" style={{fontSize: '1.2rem', color: 'rgb(114, 92, 63)', fontWeight: 700}}>Monto</TableHead>
+                      </TableRow>
+                    </TableHeader>
                     <TableBody>
                       {movimientos.map((mov: any) => (
                         <TableRow key={mov.id_movimiento_fin}>
-                          <TableCell><span style={{ color: mov.tipo === 'ingreso' ? '#16a34a' : '#dc2626' }}>{mov.tipo}</span></TableCell>
-                          <TableCell>{mov.concepto}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(parseFloat(mov.monto || '0'))}</TableCell>
+                          <TableCell><span style={{ color: mov.tipo === 'ingreso' ? '#16a34a' : '#dc2626', fontSize: '1.1rem' }}>{mov.tipo}</span></TableCell>
+                          <TableCell style={{ fontSize: '1.1rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>{mov.concepto}</TableCell>
+                          <TableCell className="text-right" style={{ fontSize: '1.1rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>
+                            {formatCurrency(parseFloat(mov.monto || '0'))}
+                          </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -273,19 +330,35 @@ export function CajaView() {
                   const efectivoEsperado = parseFloat(turno.monto_inicial) + cobrosEfectivo - egresosEfectivo - propinasTotales
                   return (
                     <div className="caja-arqueo-bloque">
-                      <div className="caja-arqueo-label">Arqueo de efectivo</div>
-                      <div className="caja-arqueo-fila"><span>Fondo inicial</span><span>{formatCurrency(turno.monto_inicial)}</span></div>
-                      <div className="caja-arqueo-fila"><span>Cobros en efectivo</span><span style={{ color: '#16a34a' }}>+{formatCurrency(cobrosEfectivo)}</span></div>
-                      <div className="caja-arqueo-fila"><span>Egresos en efectivo</span><span style={{ color: '#dc2626' }}>-{formatCurrency(egresosEfectivo)}</span></div>
-                      <div className="caja-arqueo-fila"><span>Propinas a entregar</span><span style={{ color: '#92400e' }}>-{formatCurrency(propinasTotales)}</span></div>
-                      <div className="caja-arqueo-total"><span>Efectivo esperado</span><span>{formatCurrency(efectivoEsperado)}</span></div>
+                      <div className="caja-arqueo-label" style={{fontSize: '1.3rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700}}>Arqueo de efectivo</div>
+                      <div className="caja-arqueo-fila">
+                        <span style={{fontSize: '1.1rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700}}>Fondo inicial</span>
+                        <span style={{fontSize: '1.1rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700}}>{formatCurrency(turno.monto_inicial)}</span>
+                      </div>
+                      <div className="caja-arqueo-fila">
+                        <span style={{fontSize: '1.1rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700}}>Cobros en efectivo</span>
+                        <span style={{fontSize: '1.1rem', color: '#16a34a', fontWeight: 700}}>+{formatCurrency(cobrosEfectivo)}</span>
+                      </div>
+                      <div className="caja-arqueo-fila">
+                        <span style={{fontSize: '1.1rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700}}>Egresos en efectivo</span>
+                        <span style={{ fontSize: '1.1rem', color: '#dc2626', fontWeight: 700 }}>-{formatCurrency(egresosEfectivo)}</span>
+                      </div>
+                      <div className="caja-arqueo-fila">
+                        <span style={{fontSize: '1.1rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700}}>Propinas a entregar</span>
+                        <span style={{fontSize: '1.1rem', color: '#92400e', fontWeight: 700 }}>-{formatCurrency(propinasTotales)}</span>
+                      </div>
+                      <div className="caja-arqueo-total">
+                        <span style={{fontSize: '1.1rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 500}}>Efectivo esperado</span>
+                        <span style={{fontSize: '1.1rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 500}}>{formatCurrency(efectivoEsperado)}</span>
+                      </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-                        <Label>Efectivo contado</Label>
+                        <Label style={{fontSize: '1.3rem'}}>Efectivo contado</Label>
                         <Input type="number" step="0.01" value={efectivoContado} onChange={e => { setEfectivoContado(e.target.value); const val = parseFloat(e.target.value); if (!isNaN(val)) { setDiferencia(val - efectivoEsperado); } else { setDiferencia(null); } }} className="caja-arqueo-input" placeholder="0.00" />
                       </div>
                       {diferencia !== null && (
                         <div className={`caja-arqueo-fila ${diferencia === 0 ? 'caja-diferencia-perfecta' : diferencia > 0 ? 'caja-diferencia-positiva' : 'caja-diferencia-negativa'}`} style={{ marginTop: '0.5rem' }}>
-                          <span>Diferencia</span><span>{diferencia === 0 ? 'Cuadre perfecto' : formatCurrency(diferencia)}</span>
+                          <span style={{fontSize: '1.1rem', color: 'rgb(114, 92, 63)', fontWeight: 700}}>Diferencia</span>
+                          <span style={{fontSize: '1.1rem', color: 'rgb(114, 92, 63)', fontWeight: 700}}>{diferencia === 0 ? 'Cuadre perfecto' : formatCurrency(diferencia)}</span>
                         </div>
                       )}
                     </div>
@@ -295,8 +368,8 @@ export function CajaView() {
             </ScrollArea>
           )}
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCerrarDialog(false)}>Cancelar</Button>
-            <Button className="btn-danger" onClick={handleCerrarTurno}><StopCircle size={16} style={{ marginRight: '0.5rem' }} /> Confirmar Cierre</Button>
+            <Button variant="outline" onClick={() => setShowCerrarDialog(false)} style={{ background: 'rgb(114, 92, 63)', color: 'white', fontSize: '1.3rem' }}>Cancelar</Button>
+            <Button className="btn-danger" onClick={handleCerrarTurno} style={{ background: 'rgb(114, 92, 63)', color: 'white', fontSize: '1.3rem' }}><StopCircle style={{height:25, width:25}} /> Confirmar Cierre</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

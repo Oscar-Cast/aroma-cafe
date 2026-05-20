@@ -76,39 +76,46 @@ export function MermasView() {
     <div className="mermas-page">
       <div className="mermas-header">
         <div>
-          <h1>Mermas</h1>
-          <p>Registro de pérdidas de productos e insumos</p>
+          <h1 style={{fontSize: '4rem'}}>Mermas</h1>
+          <p style={{fontSize: '2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Registro de pérdidas de productos e insumos</p>
         </div>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="bg-[var(--vanilla)]/30">
-          <TabsTrigger value="productos">Productos</TabsTrigger>
-          <TabsTrigger value="insumos">Insumos</TabsTrigger>
+        <TabsList  style={{background: 'var(--chocolate, 0.1)', height: '3rem'}} >
+          <TabsTrigger value="productos" style={{fontSize: '1.3rem', color: 'white', backgroundColor: 'var(--chocolate)', height: '2rem'}}>Productos</TabsTrigger>
+          <TabsTrigger value="insumos" style={{fontSize: '1.3rem', color: 'white', backgroundColor: 'var(--chocolate)', height: '2rem'}}>Insumos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="productos" style={{ marginTop: '1rem' }}>
           <div className="mermas-section-header">
-            <h2>Mermas de productos</h2>
-            <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={() => setShowDialogProd(true)}>
-              <Plus size={16} style={{ marginRight: '0.5rem' }} /> Registrar merma
+            <h2 style={{fontSize: '2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Mermas de productos</h2>
+            <Button style={{ background: 'var(--chocolate)', color: 'white', fontSize: '1.3rem' }} onClick={() => setShowDialogProd(true)} >
+              <Plus style={{height: 30, width: 30}} /> Registrar merma
             </Button>
           </div>
           <div className="mermas-table-container">
             <table className="mermas-table">
-              <thead><tr><th>Fecha</th><th>Producto</th><th className="text-center">Cantidad</th><th>Motivo</th><th>Registrado por</th><th className="text-right">Valor</th></tr></thead>
+              <thead><tr>
+                <th style={{fontSize: '1.4rem'}}>Fecha</th>
+                <th style={{fontSize: '1.4rem'}}>Producto</th>
+                <th className="text-center" style={{fontSize: '1.4rem'}}>Cantidad</th>
+                <th style={{fontSize: '1.4rem'}}>Motivo</th>
+                <th style={{fontSize: '1.4rem'}}>Registrado por</th>
+                <th className="text-right" style={{fontSize: '1.4rem'}}>Valor</th>
+              </tr></thead>
               <tbody>
                 {mermasProd.map(m => {
                   const prod = productos.find(p => p.id_producto === m.id_producto)
                   const valor = m.cantidad * (prod?.precio || 0)
                   return (
                     <tr key={m.id_merma_prod}>
-                      <td style={{ fontSize: '0.85rem' }}>{formatDate(m.fecha_hora)}</td>
-                      <td style={{ fontWeight: 500 }}>{m.nombre_producto || prod?.nombre_producto}</td>
-                      <td className="text-center">{m.cantidad}</td>
-                      <td>{m.motivo}</td>
-                      <td>{m.nombre_usuario}</td>
-                      <td className="text-right text-red">{formatCurrency(valor)}</td>
+                      <td style={{ fontSize: '1.2rem' }}>{formatDate(m.fecha_hora)}</td>
+                      <td style={{ fontSize: '1.2rem', fontWeight: 500 }}>{m.nombre_producto || prod?.nombre_producto}</td>
+                      <td className="text-center" style={{ fontSize: '1.2rem' }}>{m.cantidad}</td>
+                      <td style={{ fontSize: '1.2rem' }}>{m.motivo}</td>
+                      <td style={{ fontSize: '1.2rem' }}>{m.nombre_usuario}</td>
+                      <td className="text-right text-red" style={{ fontSize: '1.2rem', fontWeight: 700, color: 'rgb(220, 20, 60, 0.6)' }}>{formatCurrency(valor)}</td>
                     </tr>
                   )
                 })}
@@ -122,25 +129,32 @@ export function MermasView() {
 
         <TabsContent value="insumos" style={{ marginTop: '1rem' }}>
           <div className="mermas-section-header">
-            <h2>Mermas de insumos</h2>
-            <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={() => setShowDialogInsumo(true)}>
-              <Plus size={16} style={{ marginRight: '0.5rem' }} /> Registrar merma
+            <h2 style={{fontSize: '2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Mermas de insumos</h2>
+            <Button style={{ background: 'var(--chocolate)', color: 'white', fontSize: '1.3rem' }} onClick={() => setShowDialogInsumo(true)} >
+              <Plus style={{height: 30, width: 30}} /> Registrar merma
             </Button>
           </div>
           <div className="mermas-table-container">
             <table className="mermas-table">
-              <thead><tr><th>Fecha</th><th>Insumo</th><th className="text-center">Cantidad</th><th>Unidad</th><th>Motivo</th><th>Registrado por</th></tr></thead>
+              <thead><tr>
+                <th style={{fontSize: '1.4rem'}}>Fecha</th>
+                <th style={{fontSize: '1.4rem'}}>Insumo</th>
+                <th className="text-center" style={{fontSize: '1.4rem'}}>Cantidad</th>
+                <th style={{fontSize: '1.4rem'}}>Unidad</th>
+                <th style={{fontSize: '1.4rem'}}>Motivo</th>
+                <th style={{fontSize: '1.4rem'}}>Registrado por</th>
+              </tr></thead>
               <tbody>
                 {movimientos.map((mov: any) => {
                   const ins = insumos.find(i => i.id_insumo === mov.id_insumo)
                   return (
                     <tr key={mov.id_movimiento}>
-                      <td style={{ fontSize: '0.85rem' }}>{formatDate(mov.fecha_movimiento)}</td>
-                      <td style={{ fontWeight: 500 }}>{ins?.nombre_insumo || 'N/A'}</td>
-                      <td className="text-center">{mov.cantidad}</td>
-                      <td>{ins?.unidad_medida || ''}</td>
-                      <td>{mov.tipo_movimiento === 'merma_caducidad' ? 'Caducidad' : 'Daño'}</td>
-                      <td>{mov.nombre_usuario}</td>
+                      <td style={{ fontSize: '1.2rem' }}>{formatDate(mov.fecha_movimiento)}</td>
+                      <td style={{ fontSize: '1.2rem', fontWeight: 500 }}>{ins?.nombre_insumo || 'N/A'}</td>
+                      <td className="text-center" style={{ fontSize: '1.2rem' }}>{mov.cantidad}</td>
+                      <td style={{ fontSize: '1.2rem' }}>{ins?.unidad_medida || ''}</td>
+                      <td style={{ fontSize: '1.2rem' }}>{mov.tipo_movimiento === 'merma_caducidad' ? 'Caducidad' : 'Daño'}</td>
+                      <td style={{ fontSize: '1.2rem' }}>{mov.nombre_usuario}</td>
                     </tr>
                   )
                 })}
@@ -155,31 +169,55 @@ export function MermasView() {
 
       <Dialog open={showDialogProd} onOpenChange={setShowDialogProd}>
         <DialogContent>
-          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)' }}>Registrar merma de producto</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)', fontSize: '1.7rem', fontWeight: 700 }}>Registrar merma de producto</DialogTitle></DialogHeader>
           <div className="mermas-dialog-form">
-            <div><label>Producto</label><select value={formProd.id_producto} onChange={e => setFormProd({ ...formProd, id_producto: e.target.value })}><option value="">Selecciona</option>{productos.map(p => <option key={p.id_producto} value={p.id_producto}>{p.nombre_producto} — {formatCurrency(p.precio)}</option>)}</select></div>
-            <div><label>Cantidad</label><input type="number" min="1" value={formProd.cantidad} onChange={e => setFormProd({ ...formProd, cantidad: e.target.value })} /></div>
-            <div><label>Motivo</label><select value={formProd.motivo} onChange={e => setFormProd({ ...formProd, motivo: e.target.value })}><option value="">Selecciona</option>{motivosMerma.map(m => <option key={m} value={m}>{m}</option>)}</select></div>
-            {formProd.motivo === 'Otro' && <div><label>Especifica</label><textarea value={formProd.motivoOtro} onChange={e => setFormProd({ ...formProd, motivoOtro: e.target.value })} /></div>}
+            <div>
+              <label style={{fontSize: '1.3rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Producto</label>
+              <select value={formProd.id_producto} onChange={e => setFormProd({ ...formProd, id_producto: e.target.value })}>
+                <option value="" style={{fontSize: '1.3rem'}}>Selecciona</option>
+                {productos.map(p => <option key={p.id_producto} value={p.id_producto}>{p.nombre_producto} — {formatCurrency(p.precio)}</option>)}
+              </select>
+            </div>
+            <div>
+              <label style={{fontSize: '1.3rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Cantidad</label>
+              <input type="number" min="1" value={formProd.cantidad} onChange={e => setFormProd({ ...formProd, cantidad: e.target.value })} />
+            </div>
+            <div>
+              <label style={{fontSize: '1.3rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Motivo</label>
+              <select value={formProd.motivo} onChange={e => setFormProd({ ...formProd, motivo: e.target.value })}>
+                <option value="" style={{fontSize: '1.3rem'}}>Selecciona</option>
+                {motivosMerma.map(m => <option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+            {formProd.motivo === 'Otro' && <div><label style={{fontSize: '1.3rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Especifica</label><textarea value={formProd.motivoOtro} onChange={e => setFormProd({ ...formProd, motivoOtro: e.target.value })} /></div>}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDialogProd(false)}>Cancelar</Button>
-            <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={handleProdSubmit}>Registrar</Button>
+            <Button variant="outline" onClick={() => setShowDialogProd(false)} style={{ background: 'var(--chocolate)', color: 'white', fontSize: '1.3rem' }}>Cancelar</Button>
+            <Button style={{ background: 'var(--chocolate)', color: 'white', fontSize: '1.3rem' }} onClick={handleProdSubmit}>Registrar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       <Dialog open={showDialogInsumo} onOpenChange={setShowDialogInsumo}>
         <DialogContent>
-          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)' }}>Registrar merma de insumo</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)', fontSize: '1.7rem', fontWeight: 700 }}>Registrar merma de insumo</DialogTitle></DialogHeader>
           <div className="mermas-dialog-form">
-            <div><label>Insumo</label><select value={formInsumo.id_insumo} onChange={e => setFormInsumo({ ...formInsumo, id_insumo: e.target.value })}><option value="">Selecciona</option>{insumos.map(i => <option key={i.id_insumo} value={i.id_insumo}>{i.nombre_insumo} ({i.unidad_medida})</option>)}</select></div>
-            <div><label>Cantidad</label><input type="number" step="0.01" value={formInsumo.cantidad} onChange={e => setFormInsumo({ ...formInsumo, cantidad: e.target.value })} /></div>
-            <div><label>Motivo</label><select value={formInsumo.motivo} onChange={e => setFormInsumo({ ...formInsumo, motivo: e.target.value })}><option value="">Selecciona</option>{motivosMerma.filter(m => m !== 'Otro').map(m => <option key={m} value={m}>{m}</option>)}</select></div>
+            <div>
+              <label style={{fontSize: '1.3rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Insumo</label>
+            <select value={formInsumo.id_insumo} onChange={e => setFormInsumo({ ...formInsumo, id_insumo: e.target.value })}>
+              <option value="" style={{fontSize: '1.3rem'}}>Selecciona</option>
+              {insumos.map(i => <option key={i.id_insumo} value={i.id_insumo}>{i.nombre_insumo} ({i.unidad_medida})</option>)}
+            </select>
+            </div>
+            <div><label style={{fontSize: '1.3rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Cantidad</label><input type="number" step="0.01" value={formInsumo.cantidad} onChange={e => setFormInsumo({ ...formInsumo, cantidad: e.target.value })} /></div>
+            <div><label style={{fontSize: '1.3rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Motivo</label><select value={formInsumo.motivo} onChange={e => setFormInsumo({ ...formInsumo, motivo: e.target.value })}>
+              <option value="" style={{fontSize: '1.3rem'}}>Selecciona</option>
+              {motivosMerma.filter(m => m !== 'Otro').map(m => <option key={m} value={m}>{m}</option>)}
+            </select></div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDialogInsumo(false)}>Cancelar</Button>
-            <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={handleInsumoSubmit}>Registrar</Button>
+            <Button variant="outline" onClick={() => setShowDialogInsumo(false)} style={{ background: 'var(--chocolate)', color: 'white', fontSize: '1.3rem' }}>Cancelar</Button>
+            <Button style={{ background: 'var(--chocolate)', color: 'white', fontSize: '1.3rem' }} onClick={handleInsumoSubmit}>Registrar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

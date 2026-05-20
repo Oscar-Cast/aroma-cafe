@@ -155,23 +155,23 @@ export function InventarioView() {
     <div className="inventario-page">
       <div className="inventario-header">
         <div>
-          <h1>Inventario</h1>
-          <p>Control de insumos y existencias</p>
+          <h1 style={{ fontSize: '4rem', fontWeight: 600, color: 'var(--chocolate)' }}>Inventario</h1>
+          <p style={{ fontSize: '2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>Control de insumos y existencias</p>
         </div>
         <Button
-          style={{ background: 'var(--chocolate)', color: 'white' }}
+          style={{ background: 'var(--chocolate)', color: 'white', fontSize: '1.3rem' }}
           onClick={() => { resetForm(); setDialogOpen(true) }}
         >
-          <Plus size={16} style={{ marginRight: '0.5rem' }} /> Nuevo Insumo
+          <Plus style={{height: 30, width: 30}} /> Nuevo Insumo
         </Button>
       </div>
 
       {lowStock.length > 0 && (
-        <div className="inventario-alert">
-          <div className="icon"><AlertTriangle size={24} color="#dc2626" /></div>
+        <div className="inventario-alert" style={{height: '7rem'}}>
+          <div className="icon" style={{height: 75, width: 75}}><AlertTriangle size={60} color="#dc2626" /></div>
           <div className="text">
-            <div className="title">{lowStock.length} insumo(s) en nivel crítico</div>
-            <div className="sub">Revisa los niveles y reabastece lo necesario.</div>
+            <div className="title" style={{fontSize: '2rem', color: '#dc2626', textShadow: 'none', textAlign: 'left'}}>{lowStock.length} insumo(s) en nivel crítico</div>
+            <div className="sub" style={{fontSize: '1.4rem', fontWeight: 700, color: 'rgb(220, 38, 38, 0.7)', }}>Revisa los niveles y reabastece lo necesario.</div>
           </div>
         </div>
       )}
@@ -180,11 +180,11 @@ export function InventarioView() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Insumo</TableHead>
-              <TableHead>Existencia</TableHead>
-              <TableHead>Nivel</TableHead>
-              <TableHead className="text-center">Estado</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead style={{fontSize: '1.6rem', fontWeight: 600, color: 'rgb(114, 92, 63)'}}>Insumo</TableHead>
+              <TableHead style={{fontSize: '1.6rem', fontWeight: 600, color: 'rgb(114, 92, 63)'}}>Existencia</TableHead>
+              <TableHead style={{fontSize: '1.6rem', fontWeight: 600, color: 'rgb(114, 92, 63)'}}>Nivel</TableHead>
+              <TableHead className="text-center" style={{fontSize: '1.6rem', fontWeight: 600, color: 'rgb(114, 92, 63)'}}>Estado</TableHead>
+              <TableHead className="text-right" style={{fontSize: '1.6rem', fontWeight: 600, color: 'rgb(114, 92, 63)'}}>Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -193,12 +193,12 @@ export function InventarioView() {
               return (
                 <TableRow key={i.id_insumo}>
                   <TableCell>
-                    <div style={{ fontWeight: 500 }}>{i.nombre_insumo}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--caramel)' }}>{i.unidad_medida}</div>
+                    <div style={{fontSize: '1.3rem', fontWeight: 500 }}>{i.nombre_insumo}</div>
+                    <div style={{fontSize: '1.2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.5)' }}>{i.unidad_medida}</div>
                   </TableCell>
                   <TableCell>
-                    <div style={{ fontWeight: 600 }}>{i.existencia_actual} {i.unidad_medida}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--caramel)' }}>Mín: {i.nivel_minimo}</div>
+                    <div style={{fontSize: '1.3rem', fontWeight: 600 }}>{i.existencia_actual} {i.unidad_medida}</div>
+                    <div style={{ fontSize: '1.2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.5)' }}>Mín: {i.nivel_minimo}</div>
                   </TableCell>
                   <TableCell style={{ width: '12rem' }}>
                     <div className="inventario-progress">
@@ -206,7 +206,7 @@ export function InventarioView() {
                     </div>
                   </TableCell>
                   <TableCell className="text-center">
-                      <span className={`inventario-badge ${s.color}`}>{s.label}</span>
+                      <span className={`inventario-badge ${s.color}`} style={{fontSize: '1.3rem'}}>{s.label}</span>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -215,10 +215,10 @@ export function InventarioView() {
                       style={{ borderColor: '#86efac', color: '#16a34a', marginRight: '0.25rem' }}
                       onClick={() => openAjuste(i)}
                     >
-                      <TrendingUp size={14} />
+                      <TrendingUp style={{height: 30, width: 30}} />
                     </Button>
                     <Button variant="ghost" size="sm" onClick={() => openEdit(i)}>
-                      <Edit2 size={14} />
+                      <Edit2 style={{height: 30, width: 30}} />
                     </Button>
                   </TableCell>
                 </TableRow>
@@ -232,31 +232,31 @@ export function InventarioView() {
       <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm() }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle style={{ color: 'var(--chocolate)' }}>{editingInsumo ? 'Editar Insumo' : 'Nuevo Insumo'}</DialogTitle>
+            <DialogTitle style={{ color: 'var(--chocolate)', fontWeight: 700, fontSize: '1.7rem' }}>{editingInsumo ? 'Editar Insumo' : 'Nuevo Insumo'}</DialogTitle>
           </DialogHeader>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div>
-              <Label>Nombre</Label>
-              <Input value={form.nombre_insumo} onChange={e => setForm({ ...form, nombre_insumo: e.target.value })} />
+              <Label style={{fontSize: '1.35rem', fontWeight: 700, color:'rgb(114, 92, 63, 0.7)'}}>Nombre</Label>
+              <Input value={form.nombre_insumo} onChange={e => setForm({ ...form, nombre_insumo: e.target.value })} style={{fontSize: '1.3rem'}}/>
             </div>
             <div>
-              <Label>Unidad de Medida</Label>
-              <Input value={form.unidad_medida} onChange={e => setForm({ ...form, unidad_medida: e.target.value })} />
+              <Label style={{fontSize: '1.35rem', fontWeight: 700, color:'rgb(114, 92, 63, 0.7)'}}>Unidad de Medida</Label>
+              <Input value={form.unidad_medida} onChange={e => setForm({ ...form, unidad_medida: e.target.value })} style={{fontSize: '1.3rem'}} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <div>
-                <Label>Existencia Actual</Label>
-                <Input type="number" step="0.01" value={form.existencia_actual} onChange={e => setForm({ ...form, existencia_actual: e.target.value })} />
+                <Label style={{fontSize: '1.35rem', fontWeight: 700, color:'rgb(114, 92, 63, 0.7)'}}>Existencia Actual</Label>
+                <Input type="number" step="0.01" value={form.existencia_actual} onChange={e => setForm({ ...form, existencia_actual: e.target.value })} style={{fontSize: '1.3rem'}} />
               </div>
               <div>
-                <Label>Nivel Mínimo</Label>
-                <Input type="number" step="0.01" value={form.nivel_minimo} onChange={e => setForm({ ...form, nivel_minimo: e.target.value })} />
+                <Label style={{fontSize: '1.35rem', fontWeight: 700, color:'rgb(114, 92, 63, 0.7)'}}>Nivel Mínimo</Label>
+                <Input type="number" step="0.01" value={form.nivel_minimo} onChange={e => setForm({ ...form, nivel_minimo: e.target.value })} style={{fontSize: '1.3rem'}} />
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={handleSubmit}>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} style={{fontSize: '1.4rem', background: 'rgb(114, 92, 63)', color: 'white'}}>Cancelar</Button>
+            <Button style={{ background: 'var(--chocolate)', color: 'white', fontSize: '1.4rem' }} onClick={handleSubmit}>
               {editingInsumo ? 'Guardar' : 'Crear'}
             </Button>
           </DialogFooter>
@@ -267,29 +267,32 @@ export function InventarioView() {
       <Dialog open={ajusteOpen} onOpenChange={setAjusteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle style={{ color: 'var(--chocolate)' }}>Agregar al inventario</DialogTitle>
+            <DialogTitle style={{ color: 'var(--chocolate)', fontWeight: 700, fontSize: '1.7rem' }}>Agregar al inventario</DialogTitle>
           </DialogHeader>
-          <p style={{ color: 'var(--caramel)', fontSize: '0.9rem' }}>
+          <p style={{fontSize: '1.35rem', fontWeight: 700, color:'rgb(114, 92, 63, 0.7)'}}>
             {ajusteInsumo?.nombre_insumo} — Existencia actual: {ajusteInsumo?.existencia_actual} {ajusteInsumo?.unidad_medida}
           </p>
           <div>
-            <Label>Cantidad a agregar</Label>
+            <Label style={{fontSize: '1.35rem', fontWeight: 700, color:'rgb(114, 92, 63)'}}>Cantidad a agregar</Label>
             <Input
               type="number"
               step="0.01"
               value={ajusteCantidad}
               onChange={e => setAjusteCantidad(e.target.value)}
               placeholder="0.00"
+              style={{fontSize: '1.35rem'}}
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAjusteOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setAjusteOpen(false)} style={{fontSize: '1.4rem', background: 'rgb(114, 92, 63)', color: 'white'}}>
+              Cancelar
+            </Button>
             <Button
-              style={{ background: '#16a34a', color: 'white' }}
+              style={{ background: '#16a34a', color: 'white', fontSize: '1.4rem' }}
               onClick={handleAjuste}
               disabled={!ajusteCantidad || parseFloat(ajusteCantidad) <= 0}
             >
-              <TrendingUp size={14} style={{ marginRight: '0.5rem' }} /> Agregar
+              Agregar
             </Button>
           </DialogFooter>
         </DialogContent>

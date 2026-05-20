@@ -8,24 +8,73 @@
 .caja-no-turno-text { text-align: center; font-size: 1.125rem; color: var(--chocolate); padding-top: 1.5rem; }
 
 /* tarjetas resumen */
-.caja-summary-grid { composes: grid-cards; }
+.caja-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+}
+.caja-summary-card,
+.caja-summary-card-success,
+.caja-summary-card-danger {
+  border-radius: 1rem;
+  padding: 1rem;
+  min-height: 10rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 12px 28px rgba(114, 92, 63, 0.08);
+}
 .caja-summary-card { composes: card-cafe; }
 .caja-summary-card-success { composes: card-success; }
 .caja-summary-card-danger { composes: card-danger; }
-.caja-summary-card-title { composes: heading-card; }
+.caja-summary-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--chocolate);
+  margin-bottom: 0.75rem;
+}
 .caja-summary-card-amount { 
-	font-size: 1.5rem; 
-	font-weight: 700;
-	}
+  font-size: 2rem; 
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--chocolate);
+}
+.caja-summary-card-note {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--caramel);
+}
 
 /* métodos de pago en vivo */
-.caja-metodos-grid { composes: grid-cards; }
+.caja-metodos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
+  align-items: stretch;
+}
+.caja-metodo-card,
+.caja-metodo-card-warning {
+  border-radius: 1rem;
+  padding: 1rem;
+  min-height: 10rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 12px 28px rgba(114, 92, 63, 0.08);
+}
 .caja-metodo-card { composes: card-cafe; }
 .caja-metodo-card-warning { composes: card-warning; }
-.caja-metodo-amount { 
-	font-size: 1.125rem; 
-	font-weight: 700; 
-	}
+.caja-metodo-amount {
+  font-size: 1.5rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.caja-arqueo-nota {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--caramel);
+}
 
 /* movimientos del turno */
 .caja-movimientos-card { composes: card-cafe; }

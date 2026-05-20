@@ -112,19 +112,19 @@ export function UsuariosView() {
     <div className="usuarios-page">
       <div className="usuarios-header">
         <div>
-          <h1>Usuarios</h1>
-          <p>Gestión de permisos del sistema</p>
+          <h1 style={{ fontSize: '4rem', fontWeight: 700, color: 'var(--chocolate)' }}>Usuarios</h1>
+          <p style={{ fontSize: '2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>Gestión de permisos del sistema</p>
         </div>
-        <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={() => { resetForm(); setDialogOpen(true); }}>
-          <Plus size={16} style={{ marginRight: '0.5rem' }} /> Nuevo Usuario
+        <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={() => { resetForm(); setDialogOpen(true); }} style={{ fontSize: '1.25rem', color: 'white ', background: 'var(--chocolate)' }}>
+          <Plus style={{height: 30, width: 30}} /> Nuevo Usuario
         </Button>
       </div>
 
       <div className="usuarios-roles-grid">
         {(Object.keys(rolesInfo) as UserRole[]).map(rol => (
-          <div className="usuarios-rol-card" key={rol}>
-            <span className="rol-label">{rolesInfo[rol].label}</span>
-            <span className="rol-count">{countByRole(rol)}</span>
+          <div className="usuarios-rol-card" key={rol} >
+            <span className="rol-label" style={{fontSize: '1.7rem', fontWeight: 700, color:'rgb(114, 92, 63)'}}>{rolesInfo[rol].label}</span>
+            <span className="rol-count" style={{fontSize: '1.7rem', fontWeight: 700, color:'rgb(114, 92, 63, 0.6)'}}>{countByRole(rol)}</span>
           </div>
         ))}
       </div>
@@ -132,7 +132,13 @@ export function UsuariosView() {
       <div className="usuarios-table-container">
         <Table>
           <TableHeader>
-            <TableRow><TableHead>Usuario</TableHead><TableHead>Rol</TableHead><TableHead>Fecha Alta</TableHead><TableHead className="text-center">Estado</TableHead><TableHead className="text-right">Acciones</TableHead></TableRow>
+            <TableRow>
+              <TableHead style={{fontSize: '1.5rem', fontWeight: 700, color:'rgb(114, 92, 63, 0.6)'}}>Usuario</TableHead>
+              <TableHead style={{fontSize: '1.5rem', fontWeight: 700, color:'rgb(114, 92, 63, 0.6)'}}>Rol</TableHead>
+              <TableHead style={{fontSize: '1.5rem', fontWeight: 700, color:'rgb(114, 92, 63, 0.6)'}}>Fecha Alta</TableHead>
+              <TableHead className="text-center" style={{fontSize: '1.5rem', fontWeight: 700, color:'rgb(114, 92, 63, 0.6)'}}>Estado</TableHead>
+              <TableHead className="text-right" style={{fontSize: '1.5rem', fontWeight: 700, color:'rgb(114, 92, 63, 0.6)'}}>Acciones</TableHead>
+            </TableRow>
           </TableHeader>
           <TableBody>
             {usuarios.map(u => (
@@ -141,17 +147,22 @@ export function UsuariosView() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                     <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%', background: 'var(--chocolate)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700 }}>{u.nombre_completo.charAt(0)}</div>
                     <div>
-                      <div style={{ fontWeight: 500 }}>{u.nombre_completo}</div>
-                      <div style={{ fontSize: '0.8rem', color: 'var(--caramel)' }}>@{u.nombre_usuario}</div>
+                      <div style={{ fontWeight: 500, fontSize: '1.2rem' }}>{u.nombre_completo}</div>
+                      <div style={{ fontSize: '1.1rem', color: 'rgb(114, 92, 63, 0.7)' }}>@{u.nombre_usuario}</div>
                     </div>
                   </div>
                 </TableCell>
-                <TableCell><Badge variant="outline" className={rolesInfo[u.rol].color}>{rolesInfo[u.rol].icon}<span style={{ marginLeft: '0.25rem' }}>{rolesInfo[u.rol].label}</span></Badge></TableCell>
-                <TableCell style={{ color: 'var(--caramel)' }}>{formatDate(u.fecha_alta)}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={rolesInfo[u.rol].color}>
+                    {rolesInfo[u.rol].icon}
+                    <span style={{ marginLeft: '0.25rem', fontSize: '1.2rem' }}>{rolesInfo[u.rol].label}</span>
+                  </Badge>
+                </TableCell>
+                <TableCell style={{ color: 'var(--caramel)', fontSize: '1.3rem'}}>{formatDate(u.fecha_alta)}</TableCell>
                 <TableCell className="text-center"><Switch checked={u.estado === 'activo'} onCheckedChange={() => toggleEstado(u)} /></TableCell>
                 <TableCell className="text-right">
-                  <Button variant="ghost" size="icon" onClick={() => openEdit(u)}><Edit2 size={16} /></Button>
-                  <Button variant="ghost" size="icon" style={{ color: '#ef4444' }} onClick={() => handleBaja(u.id_usuario)}><Trash2 size={16} /></Button>
+                  <Button variant="ghost" size="icon" onClick={() => openEdit(u)}><Edit2 style={{height: 30, width: 30}} /></Button>
+                  <Button variant="ghost" size="icon" style={{ color: '#ef4444' }} onClick={() => handleBaja(u.id_usuario)}><Trash2 style={{height: 30, width: 30}} /></Button>
                 </TableCell>
               </TableRow>
             ))}
@@ -160,8 +171,8 @@ export function UsuariosView() {
       </div>
 
       <div className="usuarios-card">
-        <h2>Niveles de Acceso por Rol</h2>
-        <p className="desc">Descripción de permisos para cada rol</p>
+        <h2 style={{fontSize: '2rem', fontWeight: 700}}>Niveles de Acceso por Rol</h2>
+        <p className="desc" style={{ fontSize: '1.5rem', color: 'rgb(114, 92, 63, 0.7)', fontWeight: 700 }}>Descripción de permisos para cada rol</p>
         <div className="usuarios-permisos-grid">
           <div className="usuarios-permiso-item" style={{ background: '#f3e8ff', border: '1px solid #d8b4fe' }}>
             <h3 style={{ color: '#7e22ce' }}>Administrador</h3>
@@ -188,22 +199,22 @@ export function UsuariosView() {
 
       <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) resetForm(); }}>
         <DialogContent>
-          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)' }}>{editingUsuario ? 'Editar Usuario' : 'Nuevo Usuario'}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle style={{ color: 'var(--chocolate)', fontSize: '2rem', fontWeight: 700 }}>{editingUsuario ? 'Editar Usuario' : 'Nuevo Usuario'}</DialogTitle></DialogHeader>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div><Label>Nombre Completo</Label><Input value={form.nombre_completo} onChange={e => setForm({ ...form, nombre_completo: e.target.value })} /></div>
-            <div><Label>Nombre de Usuario</Label><Input value={form.nombre_usuario} onChange={e => setForm({ ...form, nombre_usuario: e.target.value })} /></div>
-            {!editingUsuario && <div><Label>Contraseña</Label><Input type="password" value={form.contrasena} onChange={e => setForm({ ...form, contrasena: e.target.value })} /></div>}
-            <div><Label>Rol</Label>
+            <div><Label style={{ fontSize: '1.2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>Nombre Completo</Label><Input value={form.nombre_completo} onChange={e => setForm({ ...form, nombre_completo: e.target.value })} /></div>
+            <div><Label style={{ fontSize: '1.2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>Nombre de Usuario</Label><Input value={form.nombre_usuario} onChange={e => setForm({ ...form, nombre_usuario: e.target.value })} /></div>
+            {!editingUsuario && <div><Label style={{ fontSize: '1.2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>Contraseña</Label><Input type="password" value={form.contrasena} onChange={e => setForm({ ...form, contrasena: e.target.value })} /></div>}
+            <div><Label style={{ fontSize: '1.2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>Rol</Label>
               <Select value={form.rol} onValueChange={v => setForm({ ...form, rol: v as UserRole })}>
                 <SelectTrigger><SelectValue placeholder="Selecciona" /></SelectTrigger>
                 <SelectContent>{(Object.keys(rolesInfo) as UserRole[]).map(r => <SelectItem key={r} value={r}>{rolesInfo[r].label}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}><Label>Activo</Label><Switch checked={form.estado === 'activo'} onCheckedChange={c => setForm({ ...form, estado: c ? 'activo' : 'inactivo' })} /></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} ><Label style={{ fontSize: '1.2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>Activo</Label><Switch checked={form.estado === 'activo'} onCheckedChange={c => setForm({ ...form, estado: c ? 'activo' : 'inactivo' })} /></div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button style={{ background: 'var(--chocolate)', color: 'white' }} onClick={handleSubmit}>{editingUsuario ? 'Guardar' : 'Crear'}</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)} style={{fontSize: '1.3rem', background: 'rgb(114, 92, 63)', color: 'white'}}>Cancelar</Button>
+            <Button style={{ background: 'var(--chocolate)', color: 'white', fontSize: '1.3rem' }} onClick={handleSubmit}>{editingUsuario ? 'Guardar' : 'Crear'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

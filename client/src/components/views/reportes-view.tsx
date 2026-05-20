@@ -260,8 +260,10 @@ export function ReportesView() {
     <div className="reportes-page">
       <div className="reportes-header">
         <div>
-          <h1>Reportes administrativos</h1>
-          <div className="periodo-info">{datos.periodo.inicio} – {datos.periodo.fin}</div>
+          <h1 style={{fontSize: '3rem'}}>Reportes administrativos</h1>
+          <div className="periodo-info" style={{ fontSize: '1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)' }}>
+            {datos.periodo.inicio} – {datos.periodo.fin}
+          </div>
         </div>
         <div className="reportes-controles">
           <Button variant={periodo === 'today' ? 'default' : 'outline'} size="sm" onClick={() => setPeriodo('today')}>Hoy</Button>
@@ -284,10 +286,10 @@ export function ReportesView() {
       )}
 
       <div className="reportes-totales">
-        <div className="reportes-total-card ingresos"><div className="label">Ingresos</div><div className="value">{formatCurrency(datos.totalIngresos)}</div></div>
-        <div className="reportes-total-card egresos"><div className="label">Egresos</div><div className="value">{formatCurrency(datos.totalEgresos)}</div></div>
-        <div className="reportes-total-card saldo"><div className="label">Saldo neto</div><div className="value">{formatCurrency(datos.saldoNeto)}</div></div>
-        <div className="reportes-total-card ticket"><div className="label">Ticket prom.</div><div className="value">{formatCurrency(datos.ticketPromedio)}</div></div>
+        <div className="reportes-total-card ingresos"><div className="label" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--chocolate)' }}>Ingresos</div><div className="value" style={{color: 'rgb(114, 92, 63, 0.7)'}}>{formatCurrency(datos.totalIngresos)}</div></div>
+        <div className="reportes-total-card egresos"><div className="label" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--chocolate)' }}>Egresos</div><div className="value" style={{color: 'rgb(114, 92, 63, 0.7)'}}>{formatCurrency(datos.totalEgresos)}</div></div>
+        <div className="reportes-total-card saldo"><div className="label" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--chocolate)' }}>Saldo neto</div><div className="value" style={{color: 'rgb(114, 92, 63, 0.7)'}}>{formatCurrency(datos.saldoNeto)}</div></div>
+        <div className="reportes-total-card ticket"><div className="label" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--chocolate)' }}>Ticket prom.</div><div className="value" style={{color: 'rgb(114, 92, 63, 0.7)'}}>{formatCurrency(datos.ticketPromedio)}</div></div>
       </div>
 
       <div className="reportes-grid">

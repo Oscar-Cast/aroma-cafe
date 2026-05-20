@@ -58,59 +58,64 @@ export function MovimientosFinancierosView() {
   return (
     <div className="movcaja-page">
       <div className="movcaja-header">
-        <h1>Movimientos de Caja</h1>
-        <p>Registra ingresos y egresos manuales durante el turno</p>
+        <h1 style={{fontSize: '4rem'}}>Movimientos de Caja</h1>
+        <p style={{fontSize: '2rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Registra ingresos y egresos manuales durante el turno</p>
       </div>
 
       <Card className="movcaja-form-card">
         <form onSubmit={handleSubmit}>
           <div className="movcaja-form-grid">
             <div>
-              <Label>Tipo</Label>
+              <Label style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--chocolate)' }}>Tipo</Label>
               <Select value={tipo} onValueChange={setTipo}>
-                <SelectTrigger style={{ borderColor: 'var(--caramel)' }}><SelectValue /></SelectTrigger>
+                <SelectTrigger style={{ borderColor: 'var(--caramel)', fontSize: '1.25rem' }} ><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ingreso">Ingreso</SelectItem>
-                  <SelectItem value="egreso">Egreso</SelectItem>
+                  <SelectItem value="ingreso" style={{fontSize:'1.25rem'}}>Ingreso</SelectItem>
+                  <SelectItem value="egreso" style={{fontSize:'1.25rem'}}>Egreso</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label>Monto</Label>
-              <Input type="number" step="0.01" value={monto} onChange={e => setMonto(e.target.value)} placeholder="0.00" />
+              <Label style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--chocolate)' }}>Monto</Label>
+              <Input type="number" step="0.01" value={monto} onChange={e => setMonto(e.target.value)} placeholder="0.00" style={{fontSize: '1.25rem'}} />
             </div>
             <div>
-              <Label>Concepto</Label>
-              <Input value={concepto} onChange={e => setConcepto(e.target.value)} placeholder="Ej: Compra de insumos" />
+              <Label style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--chocolate)' }}>Concepto</Label>
+              <Input value={concepto} onChange={e => setConcepto(e.target.value)} placeholder="Ej: Compra de insumos" style={{fontSize: '1.25rem'}} />
             </div>
           </div>
-          <button type="submit" className="movcaja-submit-btn">
-            <DollarSign size={16} style={{ marginRight: '0.5rem' }} /> Registrar movimiento
+          <button type="submit" className="movcaja-submit-btn" style={{ fontSize: '1.3rem', display: 'flex', alignItems: 'center', color: 'white' }}>
+            <DollarSign  style={{ height: 20, width: 20 }} /> Registrar movimiento
           </button>
         </form>
       </Card>
 
       <Card className="movcaja-historial-card">
         <div style={{ padding: '1rem' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--chocolate)' }}>Historial</h2>
+          <h2 style={{ fontSize: '2rem', fontWeight: 700, color: 'var(--chocolate)' }}>Historial</h2>
         </div>
         <Table>
           <TableHeader>
-            <TableRow><TableHead>Fecha</TableHead><TableHead>Tipo</TableHead><TableHead>Concepto</TableHead><TableHead className="text-right">Monto</TableHead></TableRow>
+            <TableRow>
+              <TableHead style={{fontSize: '1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Fecha</TableHead>
+              <TableHead style={{fontSize: '1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Tipo</TableHead>
+              <TableHead style={{fontSize: '1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Concepto</TableHead>
+              <TableHead className="text-right" style={{fontSize: '1.5rem', fontWeight: 700, color: 'rgb(114, 92, 63, 0.7)'}}>Monto</TableHead>
+            </TableRow>
           </TableHeader>
           <TableBody>
             {movimientos.map(m => (
               <TableRow key={m.id_movimiento_fin}>
-                <TableCell className="text-sm">{formatDate(m.fecha_hora)}</TableCell>
-                <TableCell>
+                <TableCell className="text-sm" style={{fontSize: '1.25rem', fontWeight: 600, color: 'rgb(114, 92, 63, 0.8)'}}>{formatDate(m.fecha_hora)}</TableCell>
+                <TableCell style={{fontSize: '1.25rem', fontWeight: 600, color: 'rgb(114, 92, 63, 0.8)'}}>
                   {m.tipo === 'ingreso' ? (
-                    <span className="text-green"><TrendingUp size={14} className="inline" /> Ingreso</span>
+                    <span className="text-green"><TrendingUp size={30} className="inline " style={{color: 'green'}} /> Ingreso</span>
                   ) : (
-                    <span className="text-red"><TrendingDown size={14} className="inline" /> Egreso</span>
+                    <span className="text-red"><TrendingDown size={30} className="inline" style={{color: 'red'}} /> Egreso</span>
                   )}
                 </TableCell>
-                <TableCell>{m.concepto}</TableCell>
-                <TableCell className={`text-right ${m.tipo === 'ingreso' ? 'text-green' : 'text-red'}`} style={{ fontWeight: 600 }}>
+                <TableCell style={{fontSize: '1.25rem', fontWeight: 600, color: 'rgb(114, 92, 63, 0.8)'}}>{m.concepto}</TableCell>
+                <TableCell className={`text-right ${m.tipo === 'ingreso' ? 'text-green' : 'text-red'}`} style={{ fontWeight: 600, fontSize: '1.25rem', color: 'rgb(114, 92, 63, 0.7)' }}>
                   {formatCurrency(parseFloat(m.monto))}
                 </TableCell>
               </TableRow>
